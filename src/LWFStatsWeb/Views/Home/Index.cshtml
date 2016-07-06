@@ -1,0 +1,32 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+
+<div class="row">
+    <div class="col">
+        <img class="img-responsive" src="~/images/clash_header.jpg" />
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-sm-6">
+        <h2>Clans</h2>
+        <p>View all the clans in the alliance.</p>
+        <p><a class="btn btn-default" asp-area="" asp-controller="Clans" asp-action="Index">Show clans &raquo;</a></p>
+    </div>
+    <div class="col-sm-6">
+        <h2>War Syncs</h2>
+        <p>View status of recent war syncs.</p>
+        <p><a class="btn btn-default" asp-area="" asp-controller="Syncs" asp-action="Index">Show war syncs &raquo;</a></p>
+    </div>
+    <div class="col-sm-6">
+        <h2>Following Clans</h2>
+        <p>View war clans that are syncing with us.</p>
+        <p><a class="btn btn-default" asp-area="" asp-controller="Clans" asp-action="Following">Show following clans &raquo;</a></p>
+    </div>
+    <div class="col-sm-6">
+        <h2>Graph</h2>
+        <p>View graph visualization of latest 5 wars.</p>
+        <p><a class="btn btn-default" asp-area="" asp-controller="Graphs" asp-action="Index">Show graph &raquo;</a></p>
+    </div>
+</div>

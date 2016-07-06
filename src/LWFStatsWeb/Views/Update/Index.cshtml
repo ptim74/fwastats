@@ -1,0 +1,125 @@
+﻿@model LWFStatsWeb.Models.UpdateViewModels.IndexViewModel
+
+@{
+    ViewBag.Title = "Update";
+}
+
+<h2>Update</h2>
+
+<div class="alerts">
+    @foreach (var error in Model.Errors)
+    {
+        <div class="alert alert-warning">
+            <strong>Warning!</strong> @error
+        </div>
+    }
+</div>
+
+@{
+    var insert_count = 0;
+    var update_count = 0;
+    var delete_count = 0;
+}
+@foreach (var task in Model.Tasks)
+{
+    if (task.Mode == UpdateTaskMode.Update)
+    {
+        update_count++;
+    }
+    else if (task.Mode == UpdateTaskMode.Insert)
+    {
+        insert_count++;
+    }
+    else if (task.Mode == UpdateTaskMode.Delete)
+    {
+        delete_count++;
+    }
+    <span id="@task.ID" class="update-task-id hidden"></span>
+}
+
+<div>
+    <dl class="dl-horizontal">
+        <dt>
+            Inserts
+        </dt>
+        <dd class="count-insert">
+            @insert_count
+        </dd>
+        <dt>
+            Updates
+        </dt>
+        <dd class="count-update">
+            @update_count
+        </dd>
+        <dt>
+            Deletes
+        </dt>
+        <dd class="count-delete">
+            @delete_count
+        </dd>
+    </dl>
+</div>
+
+<div class="progress hidden">
+    <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="0"
+         aria-valuemin="0" aria-valuemax="100" style="width:0%">
+    </div>
+</div>
+
+<p>
+    <button id="confirm-btn" type="button" class="btn btn-primary">Confirm</button>
+</p>
+
+@section scripts {
+    <script type="text/javascript">
+
+    var total_updates = @insert_count + @update_count + @delete_count;
+    var updates_done = 0;
+
+    function updateTask() {
+
+        var updateTaskElement = $(".update-task-id");
+
+        if(updateTaskElement.length > 0)
+            updateTaskElement = updateTaskElement.first();
+
+        if(updateTaskElement && updateTaskElement.attr("id")) {
+            updateTaskElement.removeClass("update-task-id");
+            $.getJSON('@Url.Action("UpdateTask","Update")/' + updateTaskElement.attr("id"),updateTaskCallback);
+        } else {
+            $(".progress-bar").text("Almost done");
+            $.getJSON('@Url.Action("UpdateFinished", "Update")',updateFinishedCallback);
+        }
+    }
+
+    function updateTaskCallback(data) {
+        if (data && data.id) {
+            if(data.message)
+                $(".progress-bar").text(data.message);
+
+            if(!data.status)
+                $(".alerts").append($("<div class='alert alert-danger'></div>").text(data.message));
+
+            var progress = Math.round(++updates_done * 100 / total_updates);
+
+            $(".progress-bar").attr("aria-valuenow",progress);
+            $(".progress-bar").attr("style","width:" + progress + "%");
+
+            updateTask();
+        }
+    }
+
+    function updateFinishedCallback(data) {
+        $(".progress-bar").text(data.message);
+    }
+
+    $(function () {
+        $("#confirm-btn").click(function () {
+            $(this).addClass('disabled');
+            $(".progress").removeClass('hidden');
+            updateTask();
+        });
+    });
+
+    </script>
+}
