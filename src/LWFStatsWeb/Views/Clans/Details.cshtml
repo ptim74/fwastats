@@ -1,0 +1,118 @@
+@model LWFStatsWeb.Models.Clan
+
+@{
+    ViewData["Title"] = @Model.Name;
+}
+
+<div class="well" style="margin-top:20px;">
+    <div class="row">
+        <div class="col">
+            <img src="@Model.BadgeUrl.Small" style="float:left;margin-right:10px;" />
+            <h2 style="margin-top:0px;margin-bottom:0px">@Model.Name</h2>
+            <div class="text-muted">@Model.Tag</div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6">
+            @Model.Description
+            <br class="visible-xs visible-sm" />
+            <br class="visible-xs visible-sm" />
+        </div>
+        <div class="col-md-6">
+            <div class="row">
+                <div class="col-xs-3"><b>Members:</b></div>
+                <div class="col-xs-3"><b>@Html.DisplayFor(model => model.MemberCount)/50</b></div>
+                <div class="col-xs-3"><b>Level:</b></div>
+                <div class="col-xs-3"><b>@Html.DisplayFor(model => model.ClanLevel)</b></div>
+            </div>
+            <div class="row">
+                <div class="col-xs-3"><b>W<span class="hidden-xs">in</span>/T<span class="hidden-xs">ie</span>/L<span class="hidden-xs">oss</span>:</b></div>
+                <div class="col-xs-3"><b>@Html.DisplayFor(model => model.WarWins)/@Html.DisplayFor(model => model.WarTies)/@Html.DisplayFor(model => model.WarLosses)</b></div>
+                <div class="col-xs-3"><b>Points:</b></div>
+                <div class="col-xs-3"><b>@Html.DisplayFor(model => model.ClanPoints)</b></div>
+            </div>
+            <div class="row">
+                <div class="col-xs-3"><b>Streak:</b></div>
+                <div class="col-xs-3"><b>@Html.DisplayFor(model => model.WarWinStreak)</b></div>
+                <div class="col-xs-3"><b>Trophies:</b></div>
+                <div class="col-xs-3"><b>@Html.DisplayFor(model => model.RequiredTrophies)</b></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (Model.Members != null)
+{
+    <table id="myTable" class="table table-condensed table-hover table-responsive tablesorter">
+        <thead>
+            <tr>
+                <th>
+                    #
+                </th>
+                <th>
+                    L<span class="hidden-xs">evel</span>
+                </th>
+                <th>
+                    Name
+                </th>
+                <th>
+                    D<span class="hidden-xs">onations</span>
+                </th>
+                <th>
+                    R<span class="hidden-xs">eceived</span>
+                </th>
+                <th>
+                    T<span class="hidden-xs">rophies</span>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var member in Model.Members.OrderBy(m => m.ClanRank))
+            {
+                var member_class = "";
+                if (member.Role == "leader")
+                {
+                    member_class = "danger";
+                }
+                else if (member.Role == "coLeader")
+                {
+                    member_class = "info";
+                }
+                else if (member.Role == "admin")
+                {
+                    member_class = "warning";
+                }
+                <tr class="@member_class">
+                    <td>
+                        @member.ClanRank
+                    </td>
+                    <td>
+                        @member.ExpLevel
+                    </td>
+                    <td>
+                        @member.Name
+                    </td>
+                    <td>
+                        @member.Donations
+                    </td>
+                    <td>
+                        @member.DonationsReceived
+                    </td>
+                    <td>
+                        @member.Trophies
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@section scripts {
+    <script type="text/javascript">
+
+        $(function () {
+            $("#myTable").tablesorter();
+        });
+
+    </script>
+}

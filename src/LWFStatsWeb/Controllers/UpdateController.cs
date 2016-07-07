@@ -91,7 +91,7 @@ namespace LWFStatsWeb.Controllers
 
                 if (task.Mode == UpdateTaskMode.Update)
                 {
-                    var clan = await api.GetClan(task.ClanTag);
+                    var clan = await api.GetClan(task.ClanTag, true);
 
                     var existingClanQ = from c in db.Clans
                                         join b in db.ClanBadgeUrls on c.Tag equals b.ClanTag
@@ -249,7 +249,7 @@ namespace LWFStatsWeb.Controllers
 
                 if (task.Mode == UpdateTaskMode.Insert)
                 {
-                    var clan = await api.GetClan(task.ClanTag);
+                    var clan = await api.GetClan(task.ClanTag, true);
                     if (clan == null)
                         throw new Exception(string.Format("Clan {0} not found", task.ClanTag));
 

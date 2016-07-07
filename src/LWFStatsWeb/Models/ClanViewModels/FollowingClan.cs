@@ -12,6 +12,7 @@ namespace LWFStatsWeb.Models.ClanViewModels
         public string BadgeURL { get; set; }
         public int Wars { get; set; }
         public string LatestClan { get; set; }
+        public string LatestTag { get; set; }
         public string LatestDate { get; set; }
     }
 }

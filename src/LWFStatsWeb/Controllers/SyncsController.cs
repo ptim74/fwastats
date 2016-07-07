@@ -52,6 +52,7 @@ namespace LWFStatsWeb.Controllers
                         clan.Results.Add(new SyncIndexResult()
                         {
                             Result = r.Result,
+                            OpponentTag = r.OpponentTag,
                             OpponentName = r.OpponentName,
                             OpponentBadgeURL = r.OpponentBadge,
                             IsAlliance = clans.ContainsKey(r.OpponentTag)

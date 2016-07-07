@@ -10,6 +10,7 @@ namespace LWFStatsWeb.Models.SyncViewModels
         public string Result { get; set; }
         public bool IsAlliance { get; set; }
         public string OpponentName { get; set; }
+        public string OpponentTag { get; set; }
         public string OpponentBadgeURL { get; set; }
     }
 }

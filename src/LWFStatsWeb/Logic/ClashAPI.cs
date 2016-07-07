@@ -20,7 +20,7 @@ namespace LWFStatsWeb.Logic
     public interface IClashApi
     {
         Task<List<War>> GetClanWarlog(string clanTag);
-        Task<Clan> GetClan(string clanTag);
+        Task<Clan> GetClan(string clanTag, bool withWarDetails);
     }
 
     public class ClashApi : IClashApi
@@ -60,12 +60,12 @@ namespace LWFStatsWeb.Logic
             return data.Wars;
         }
 
-        public async Task<Clan> GetClan(string clanTag)
+        public async Task<Clan> GetClan(string clanTag, bool withWarDetails)
         {
             var url = string.Format("clans/{0}", Uri.EscapeDataString(clanTag));
             var data = await Request<Clan>(url);
 
-            if (data.IsWarLogPublic)
+            if (data.IsWarLogPublic && withWarDetails)
                 data.Wars = await GetClanWarlog(clanTag);
 
             data.FixData();

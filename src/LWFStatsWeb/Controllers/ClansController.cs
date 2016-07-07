@@ -8,16 +8,21 @@ using Microsoft.EntityFrameworkCore;
 using LWFStatsWeb.Data;
 using LWFStatsWeb.Models;
 using LWFStatsWeb.Models.ClanViewModels;
+using LWFStatsWeb.Logic;
 
 namespace LWFStatsWeb.Controllers
 {
     public class ClansController : Controller
     {
         private readonly ApplicationDbContext db;
+        private readonly IClashApi api;
 
-        public ClansController(ApplicationDbContext db)
+        public ClansController(
+            ApplicationDbContext db,
+            IClashApi api)
         {
             this.db = db;
+            this.api = api;
         }
 
         // GET: Clans
@@ -51,6 +56,37 @@ namespace LWFStatsWeb.Controllers
             return View(clans.OrderBy(c => c.Name).ToList());
         }
 
+        public async Task<ActionResult> Details(string id)
+        {
+            var clan = new Clan();
+            clan.Name = "Clan not found";
+            clan.BadgeUrl = new ClanBadgeUrls();
+            clan.Members = new List<Member>();
+            try
+            {
+                var clans = db.Clans.Include(c => c.BadgeUrl).Include(c => c.Members).Where(c => c.Tag == id).ToList();
+                if (clans.Count > 0)
+                {
+                    clan = clans.First();
+                }
+                else
+                {
+                    //Allow only other clans we have matched
+                    var opponents = db.WarOpponents.Where(o => o.Tag == id).ToList();
+                    if (opponents.Count > 0)
+                    {
+                        clan = await api.GetClan(id, false);
+                    }
+                }
+            }
+            catch(Exception e)
+            {
+                clan.Description = e.Message;
+                
+            }
+            return View(clan);
+        }
+
         public ActionResult Following()
         {
             var clans = new List<FollowingClan>();
@@ -70,12 +106,13 @@ namespace LWFStatsWeb.Controllers
                              join b in db.WarOpponentBadgeUrls on w.ID equals b.WarID
                              join c in db.Clans on w.ClanTag equals c.Tag
                              where w.ID == follower.WarID
-                             select new { ClanName = c.Name, EndTime = w.EndTime, BadgeURL = b.Small };
+                             select new { Tag = c.Tag, ClanName = c.Name, EndTime = w.EndTime, BadgeURL = b.Small };
 
                 foreach (var extra in extraQ.ToList())
                 {
                     clan.BadgeURL = extra.BadgeURL;
                     clan.LatestClan = extra.ClanName;
+                    clan.LatestTag = extra.Tag;
                     clan.LatestDate = extra.EndTime.ToString("yyyy-MM-dd");
                 }
 

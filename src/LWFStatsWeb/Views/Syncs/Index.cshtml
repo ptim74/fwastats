@@ -29,7 +29,7 @@
                     <img src="@clan.BadgeURL" width="35" height="35" />
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => clan.Name)
+                    <a asp-route-id="@clan.Tag" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
                 </td>
                 @foreach (var warResult in clan.Results)
                 {
@@ -49,8 +49,8 @@
                     {
                         result_class = "text-muted";
                     }
-                    <td class="@result_class">
-                        @Html.DisplayFor(modelItem => warResult.OpponentName)
+                    <td>
+                        <a class="@result_class" asp-route-id="@warResult.OpponentTag" asp-area="" asp-controller="Clans" asp-action="Details">@warResult.OpponentName</a>
                     </td>
                 }
             </tr>
