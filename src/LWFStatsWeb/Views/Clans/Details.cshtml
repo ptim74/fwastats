@@ -7,8 +7,8 @@
 <div class="well" style="margin-top:20px;">
     <div class="row">
         <div class="col">
-            <img src="@Model.BadgeUrl.Small" style="float:left;margin-right:10px;" />
-            <h2 style="margin-top:0px;margin-bottom:0px">@Model.Name</h2>
+            <img src="@Model.BadgeUrl.Small" style="float:left;margin-right:10px;margin-left:10px;margin-top:-15px;" />
+            <h3 style="margin-top:10px;margin-bottom:0px">@Model.Name</h3>
             <div class="text-muted">@Model.Tag</div>
         </div>
     </div>
@@ -72,15 +72,15 @@
                 var member_class = "";
                 if (member.Role == "leader")
                 {
-                    member_class = "danger";
+                    member_class = "text-danger";
                 }
                 else if (member.Role == "coLeader")
                 {
-                    member_class = "info";
+                    member_class = "text-primary";
                 }
-                else if (member.Role == "admin")
+                else if (member.Role == "member")
                 {
-                    member_class = "warning";
+                    member_class = "text-muted";
                 }
                 <tr class="@member_class">
                     <td>
