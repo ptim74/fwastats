@@ -85,8 +85,7 @@ namespace LWFStatsWeb.Models
             {
                 foreach (var war in Wars)
                 {
-                    war.ClanTag = Tag;
-                    war.FixData();
+                    war.FixData(Tag);
                 }
             }
         }

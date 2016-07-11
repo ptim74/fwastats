@@ -41,77 +41,137 @@
     </div>
 </div>
 
-@if (Model.Members != null)
-{
-    <table id="myTable" class="table table-condensed table-hover table-responsive tablesorter">
-        <thead>
-            <tr>
-                <th>
-                    #
-                </th>
-                <th>
-                    L<span class="hidden-xs">evel</span>
-                </th>
-                <th>
-                    Name
-                </th>
-                <th>
-                    D<span class="hidden-xs">onations</span>
-                </th>
-                <th>
-                    R<span class="hidden-xs">eceived</span>
-                </th>
-                <th>
-                    T<span class="hidden-xs">rophies</span>
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var member in Model.Members.OrderBy(m => m.ClanRank))
-            {
-                var member_class = "";
-                if (member.Role == "leader")
-                {
-                    member_class = "text-danger";
-                }
-                else if (member.Role == "coLeader")
-                {
-                    member_class = "text-primary";
-                }
-                else if (member.Role == "member")
-                {
-                    member_class = "text-muted";
-                }
-                <tr class="@member_class">
-                    <td>
-                        @member.ClanRank
-                    </td>
-                    <td>
-                        @member.ExpLevel
-                    </td>
-                    <td>
-                        @member.Name
-                    </td>
-                    <td>
-                        @member.Donations
-                    </td>
-                    <td>
-                        @member.DonationsReceived
-                    </td>
-                    <td>
-                        @member.Trophies
-                    </td>
-                </tr>
-            }
-        </tbody>
-    </table>
-}
+<ul class="nav nav-tabs">
+    <li class="active"><a data-toggle="tab" href="#members">Members</a></li>
+    <li><a data-toggle="tab" href="#wars">Wars</a></li>
+</ul>
+
+<div class="tab-content">
+    <div id="members" class="tab-pane in active">
+        @if (Model.Members != null)
+        {
+            <table id="myTable" class="table table-condensed table-hover table-responsive tablesorter">
+                <thead>
+                    <tr>
+                        <th>
+                            #
+                        </th>
+                        <th>
+                            L<span class="hidden-xs">evel</span>
+                        </th>
+                        <th>
+                            Name
+                        </th>
+                        <th>
+                            D<span class="hidden-xs">onations</span>
+                        </th>
+                        <th>
+                            R<span class="hidden-xs">eceived</span>
+                        </th>
+                        <th>
+                            T<span class="hidden-xs">rophies</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var member in Model.Members.OrderBy(m => m.ClanRank))
+                    {
+                        var member_class = "";
+                        if (member.Role == "leader")
+                        {
+                            member_class = "text-danger";
+                        }
+                        else if (member.Role == "coLeader")
+                        {
+                            member_class = "text-primary";
+                        }
+                        else if (member.Role == "member")
+                        {
+                            member_class = "text-muted";
+                        }
+                        <tr class="@member_class">
+                            <td>
+                                @member.ClanRank
+                            </td>
+                            <td>
+                                @member.ExpLevel
+                            </td>
+                            <td>
+                                @member.Name
+                            </td>
+                            <td>
+                                @member.Donations
+                            </td>
+                            <td>
+                                @member.DonationsReceived
+                            </td>
+                            <td>
+                                @member.Trophies
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+
+    </div>
+    <div id="wars" class="tab-pane">
+        @if (Model.Wars != null)
+        {
+            <table id="myTable2" class="table table-condensed table-hover table-responsive tablesorter">
+                <thead>
+                    <tr>
+                        <th>
+                            Date
+                        </th>
+                        <th>
+                            Opponent
+                        </th>
+                        <th>
+                            Stars
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var war in Model.Wars.OrderByDescending(w => w.EndTime))
+                    {
+                        var war_class = "";
+                        if (war.Result == "win")
+                        {
+                            war_class = "text-success";
+                        }
+                        else if (war.Result == "lose")
+                        {
+                            war_class = "text-danger";
+                        }
+                        else
+                        {
+                            war_class = "text-muted";
+                        }
+                        <tr class="@war_class">
+                            <td>
+                                @war.EndTime.ToString("yyyy-MM-dd")
+                            </td>
+                            <td>
+                                @war.OpponentResult.Name
+                            </td>
+                            <td>
+                                @war.ClanResult.Stars - @war.OpponentResult.Stars
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
 
 @section scripts {
     <script type="text/javascript">
 
         $(function () {
-            $("#myTable").tablesorter();
+            $(".tablesorter").tablesorter();
         });
 
     </script>

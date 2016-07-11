@@ -18,7 +18,7 @@ namespace LWFStatsWeb.Controllers
             this.db = db;
         }
 
-        public ActionResult Index()
+        public ActionResult Index(int? count)
         {
             var clans = new Dictionary<string, SyncIndexClan>();
 
@@ -32,7 +32,11 @@ namespace LWFStatsWeb.Controllers
                 clans.Add(clan.Tag, clanDetail);
             }
 
-            var recentSyncs = db.WarSyncs.OrderByDescending(w => w.Start).Take(3).ToList();
+            var warsToTake = 3;
+            if (count != null && count.HasValue)
+                warsToTake = count.Value;
+
+            var recentSyncs = db.WarSyncs.OrderByDescending(w => w.Start).Take(warsToTake).ToList();
 
             var warCount = 0;
 

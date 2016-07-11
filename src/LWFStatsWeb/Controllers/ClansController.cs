@@ -56,6 +56,34 @@ namespace LWFStatsWeb.Controllers
             return View(clans.OrderBy(c => c.Name).ToList());
         }
 
+        protected List<War> GetPrivateWars(string id)
+        {
+            var wars = new List<War>();
+            var opponents = db.WarOpponents.Include(o => o.War.ClanResult).Include(o => o.War.OpponentResult).Where(o => o.Tag == id).ToList();
+            if (opponents.Count > 0)
+            {
+                foreach (var o in opponents)
+                {
+                    var w = new War();
+                    w.EndTime = o.War.EndTime;
+                    w.OpponentResult = new WarOpponentResult();
+                    w.OpponentResult.Stars = o.War.ClanResult.Stars;
+                    w.OpponentResult.Name = o.War.ClanResult.Name;
+                    w.ClanResult = new WarClanResult();
+                    w.ClanResult.Stars = o.Stars;
+                    if (o.War.Result == "win")
+                        w.Result = "lose";
+                    else if (o.War.Result == "lose")
+                        w.Result = "win";
+                    else
+                        w.Result = o.War.Result;
+
+                    wars.Add(w);
+                }
+            }
+            return wars;
+        }
+
         public async Task<ActionResult> Details(string id)
         {
             var clan = new Clan();
@@ -68,14 +96,18 @@ namespace LWFStatsWeb.Controllers
                 if (clans.Count > 0)
                 {
                     clan = clans.First();
+                    if (clan.IsWarLogPublic)
+                        clan.Wars = db.Wars.Include(w => w.ClanResult).Include(w => w.OpponentResult.BadgeUrl).Where(c => c.ClanTag == id).ToList();
+                    else
+                        clan.Wars = this.GetPrivateWars(id);
                 }
                 else
                 {
-                    //Allow only other clans we have matched
-                    var opponents = db.WarOpponents.Where(o => o.Tag == id).ToList();
-                    if (opponents.Count > 0)
+                    var wars = this.GetPrivateWars(id);
+                    if (wars.Count > 0)
                     {
-                        clan = await api.GetClan(id, false);
+                        clan = await api.GetClan(id,false);
+                        clan.Wars = wars;
                     }
                 }
             }

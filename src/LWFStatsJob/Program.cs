@@ -11,17 +11,11 @@ namespace LWFStatsJob
 {
     public class Program
     {
-        public string LWFStatsURL
-        {
-            get
-            {
-                return "http://lwfstats.azurewebsites.net";
-            }
-        }
+        public string URL { get; set; }
 
         private async Task<string> Request(string page)
         {
-            var url = string.Format("{0}/{1}", LWFStatsURL, page);
+            var url = string.Format("{0}/{1}", URL, page);
             var request = WebRequest.Create(url);
             request.ContentType = "application/json; charset=utf-8";
             var response = await request.GetResponseAsync();
@@ -42,7 +36,7 @@ namespace LWFStatsJob
         {
             var failures = 0;
 
-            Log(string.Format("Run started, connecting to {0}", LWFStatsURL));
+            Log(string.Format("Run started, connecting to {0}", URL));
             var index = await Request<UpdateIndexView>("Update/GetTasks");
 
             if (index != null)
@@ -80,7 +74,15 @@ namespace LWFStatsJob
 
         static int Main(string[] args)
         {
-            return new Program().Run().Result;
+            if(args != null && args.Length == 1)
+            {
+                return new Program() { URL = args[0] }.Run().Result;
+            }
+            else
+            {
+                Console.WriteLine("Usage LWFStatsJon [URL]");
+                return -1;
+            }
         }
     }
 }

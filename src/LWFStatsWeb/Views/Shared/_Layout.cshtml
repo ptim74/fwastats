@@ -18,8 +18,16 @@
               asp-fallback-href="~/lib/vis/dist/vis.min.css"
               asp-fallback-test-class="vis-background" asp-fallback-test-property="overflow" asp-fallback-test-value="hidden" />
         <link rel="stylesheet" href="~/css/site.min.css" asp-append-version="true" />
-    </environment>
+            <script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
 
+  ga('create', 'UA-80548991-1', 'auto');
+  ga('send', 'pageview');
+            </script>
+    </environment>
 </head>
 <body>
     <div class="navbar navbar-inverse navbar-fixed-top">
@@ -78,5 +86,6 @@
     </environment>
 
     @RenderSection("scripts", required: false)
+
 </body>
 </html>

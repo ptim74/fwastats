@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "LWFStatsJob": {
+      "commandName": "Project",
+      "commandLineArgs": "http://lwfstatsdemo.azurewebsites.net"
+    }
+  }
+}

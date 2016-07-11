@@ -40,8 +40,9 @@ namespace LWFStatsWeb.Models
 
         public virtual Clan Clan { get; set; }
 
-        public void FixData()
+        public void FixData(string clanTag)
         {
+            ClanTag = clanTag;
             ID = endTime + ClanTag;
             EndTime = DateTime.ParseExact(endTime, "yyyyMMddTHHmmss.fffK", CultureInfo.InvariantCulture);
             if (this.ClanResult != null)
