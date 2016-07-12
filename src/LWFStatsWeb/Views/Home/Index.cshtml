@@ -1,4 +1,6 @@
-﻿@{
+﻿@model LWFStatsWeb.Models.HomeViewModels.IndexViewModel
+
+@{
     ViewBag.Title = "Home Page";
 }
 
@@ -9,6 +11,18 @@
 </div>
 
 <div class="row">
+    <div class="col-sm-6">
+        <h2>Latest War</h2>
+        <p><b>@Model.LatestSync.Name</b></p>
+        <div id="piechart" style="width:200px"></div>
+    </div>
+    <div class="col-sm-6">
+        <h2>Key numbers</h2>
+        <p><b>@Model.Counters.ClanCount</b> clans</p>
+        <p><b>@Model.Counters.MemberCount</b> members</p>
+        <p><b>@Model.Counters.SyncCount</b> war syncs</p>
+        <p><b>@Model.Counters.WarCount</b> war results</p>
+    </div>
     <div class="col-sm-6">
         <h2>Clans</h2>
         <p>View all the clans in the alliance.</p>
@@ -30,3 +44,44 @@
         <p><a class="btn btn-default" asp-area="" asp-controller="Graphs" asp-action="Index">Show graph &raquo;</a></p>
     </div>
 </div>
+
+@section scripts {
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <script type="text/javascript">
+        google.charts.load('current', {'packages':['corechart']});
+        google.charts.setOnLoadCallback(drawChart);
+
+        var options;
+        var chart;
+
+        function drawChart() {
+            var data = google.visualization.arrayToDataTable([
+                ['Wars', 'Count'],
+                ['LWF', @Model.LatestSync.AllianceMatches],
+                ['War', @Model.LatestSync.WarMatches],
+                ['DNS', @Model.LatestSync.NotStarted]
+            ]);
+
+            options = {
+                legend: 'none',
+                pieSliceText: 'label',
+                chartArea: { left: 10, top: 10, width: '180', height: '180' }
+            };
+
+            chart = new google.visualization.PieChart(document.getElementById('piechart'));
+            chart.draw(data, options);
+        }
+
+        function resizeHandler() {
+            chart.draw(data, options);
+        }
+        if (window.addEventListener) {
+            window.addEventListener('resize', resizeHandler, false);
+        }
+        else if (window.attachEvent) {
+            window.attachEvent('onresize', resizeHandler);
+        }
+    </script>
+}
