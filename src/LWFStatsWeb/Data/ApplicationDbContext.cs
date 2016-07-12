@@ -30,6 +30,8 @@ namespace LWFStatsWeb.Data
             builder.Entity<WarOpponentResult>().HasIndex(e => e.Tag);
             builder.Entity<WarSync>().HasIndex(e => e.Start);
             builder.Entity<WarSync>().HasIndex(e => e.Finish);
+            builder.Entity<ClanValidity>().HasIndex(v => v.ValidFrom);
+            builder.Entity<ClanValidity>().HasIndex(v => v.ValidTo);
         }
 
         public virtual DbSet<Clan> Clans { get; set; }
@@ -41,5 +43,10 @@ namespace LWFStatsWeb.Data
         public virtual DbSet<WarSync> WarSyncs { get; set; }
         public virtual DbSet<WarOpponentBadgeUrls> WarOpponentBadgeUrls { get; set; }
         public virtual DbSet<ClanBadgeUrls> ClanBadgeUrls { get; set; }
+        public virtual DbSet<ClanValidity> ClanValidities { get; set; }
+
+        // Add Migration:
+        // CMD> dotnet ef migrations add {MigrationName}
+        // PM> Add-Migration [-Name] <String>
     }
 }

@@ -327,6 +327,7 @@ namespace LWFStatsWeb.Controllers
             try
             {
                 statistics.CalculateSyncs();
+                statistics.UpdateValidities();
             }
             catch(Exception e)
             {

@@ -84,7 +84,7 @@ namespace LWFStatsWeb.Controllers
             return wars;
         }
 
-        public async Task<ActionResult> Details(string id)
+        public async Task<Clan> GetDetails(string id)
         {
             var clan = new Clan();
             clan.Name = "Clan not found";
@@ -106,17 +106,26 @@ namespace LWFStatsWeb.Controllers
                     var wars = this.GetPrivateWars(id);
                     if (wars.Count > 0)
                     {
-                        clan = await api.GetClan(id,false);
+                        clan = await api.GetClan(id, false);
                         clan.Wars = wars;
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 clan.Description = e.Message;
-                
+
             }
-            return View(clan);
+            return clan;
+        }
+
+        public async Task<ActionResult> Details(string id)
+        {
+            var model = new IndexViewModel();
+            model.InAlliance = db.Clans.Any(c => c.Tag == id);
+            model.Clan = await this.GetDetails(id);
+            model.Validity = await this.db.ClanValidities.SingleOrDefaultAsync(c => c.Tag == id);
+            return View(model);
         }
 
         public ActionResult Following()
@@ -125,9 +134,10 @@ namespace LWFStatsWeb.Controllers
 
             var followers = from o in db.WarOpponents
                             where !db.Clans.Any(c => c.Tag == o.Tag)
+                            where !db.ClanValidities.Any(v => v.Tag == o.Tag)
                             group o by new { o.Tag, o.Name } into grp
-                            where grp.Count() > 2
-                            orderby grp.Count() descending
+                            where grp.Count() > 1
+                            //orderby grp.Count() descending
                             select new { Tag = grp.Key.Tag, Name = grp.Key.Name, Count = grp.Count(), WarID = grp.Max(o => o.WarID) };
 
             foreach (var follower in followers.ToList())
@@ -151,7 +161,107 @@ namespace LWFStatsWeb.Controllers
                 clans.Add(clan);
             }
 
-            return View(clans);
+            return View(clans.OrderByDescending(c => c.LatestDate).ToList());
+        }
+
+        // GET: Clans/Edit/5
+        public async Task<IActionResult> Edit(string id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var clanValidity = await db.ClanValidities.SingleOrDefaultAsync(m => m.Tag == id);
+            if (clanValidity == null)
+            {
+                var opp = db.WarOpponents.FirstOrDefault(o => o.Tag == id);
+                clanValidity = new ClanValidity() { Tag = id };
+                if (opp != null)
+                    clanValidity.Name = opp.Name;
+
+                var opponents = (  from o in db.WarOpponents
+                                   where o.Tag == id
+                                   join w in db.Wars on o.WarID equals w.ID
+                                   group w by new { o.Tag, o.Name } into g
+                                   select new {
+                                       Tag = g.Key.Tag,
+                                       Name = g.Key.Name,
+                                       MinEndTime = g.Min(w => w.EndTime),
+                                       MaxEndTime = g.Max(w => w.EndTime) }).ToList();
+
+                foreach(var opponent in opponents )
+                {
+                    clanValidity.Name = opponent.Name;
+                    clanValidity.ValidFrom = opponent.MinEndTime.AddDays(-1);
+                    clanValidity.ValidTo = opponent.MaxEndTime.AddDays(1);
+                }
+
+            }
+            return View(clanValidity);
+        }
+
+        // POST: Clans/Edit/5
+        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
+        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(string id, [Bind("Tag,ValidFrom,ValidTo")] ClanValidity clanValidity)
+        {
+            if (id != clanValidity.Tag)
+            {
+                return NotFound();
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var opp = db.WarOpponents.FirstOrDefault(o => o.Tag == id);
+                    if (opp != null)
+                    {
+                        clanValidity.Name = opp.Name;
+
+                        if (!this.ClanValidityExists(id))
+                        {
+                            if (clanValidity.ValidFrom < clanValidity.ValidTo)
+                            {
+                                db.Add(clanValidity);
+                            }
+                        }
+                        else
+                        {
+                            if (clanValidity.ValidFrom == clanValidity.ValidTo)
+                            {
+                                db.Remove(clanValidity);
+                            }
+                            else if (clanValidity.ValidFrom < clanValidity.ValidTo)
+                            {
+                                db.Update(clanValidity);
+                            }
+                        }
+                        await db.SaveChangesAsync();
+                    }
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!ClanValidityExists(clanValidity.Tag))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction("Details", new { id = id });
+            }
+            return View(clanValidity);
+        }
+
+        private bool ClanValidityExists(string id)
+        {
+            return db.ClanValidities.Any(e => e.Tag == id);
         }
     }
 }

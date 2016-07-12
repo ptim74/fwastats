@@ -38,6 +38,32 @@ namespace LWFStatsWeb.Controllers
 
             var recentSyncs = db.WarSyncs.OrderByDescending(w => w.Start).Take(warsToTake).ToList();
 
+            /*
+            var earliestWar = DateTime.Now;
+
+            foreach (var s in recentSyncs)
+            {
+                if (s.Start < earliestWar)
+                    earliestWar = s.Start;
+            }
+
+            var formerClans = from f in db.ClanValidities
+                               where f.ValidTo < DateTime.Now && f.ValidTo >= earliestWar
+                               join o in db.WarOpponents on f.Tag equals o.Tag
+                               join w in db.Wars on o.WarID equals w.ID
+                               join b in db.WarOpponentBadgeUrls on w.ID equals b.WarID
+                               orderby w.EndTime descending //to get latest badge
+                               select new SyncIndexClan { Tag = o.Tag, Name = o.Name, BadgeURL = b.Small, Results = new List<SyncIndexResult>() };
+
+            foreach(var formerClan in formerClans)
+            {
+                if(!clans.ContainsKey(formerClan.Tag))
+                {
+                    clans.Add(formerClan.Tag, formerClan);
+                }
+            }
+            */
+
             var warCount = 0;
 
             foreach (var s in recentSyncs)

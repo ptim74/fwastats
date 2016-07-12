@@ -1,0 +1,41 @@
+@model LWFStatsWeb.Models.ClanValidity
+
+@{
+    ViewData["Title"] = "Edit";
+}
+
+<h2>@Model.Name</h2>
+
+<form asp-action="Edit">
+    <div class="form-horizontal">
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="Tag" />
+        <div class="form-group">
+            <label asp-for="ValidFrom" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="ValidFrom" class="form-control" />
+                <span asp-validation-for="ValidFrom" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label asp-for="ValidTo" class="col-md-2 control-label"></label>
+            <div class="col-md-10">
+                <input asp-for="ValidTo" class="form-control" />
+                <span asp-validation-for="ValidTo" class="text-danger" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <input type="submit" value="Save" class="btn btn-default" />
+            </div>
+        </div>
+    </div>
+</form>
+
+<div>
+    <a asp-action="Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

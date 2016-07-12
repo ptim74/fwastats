@@ -10,6 +10,7 @@ namespace LWFStatsWeb.Logic
     public interface IClanStatistics
     {
         void CalculateSyncs();
+        void UpdateValidities();
     }
 
     public class ClanStatistics : IClanStatistics
@@ -100,6 +101,60 @@ namespace LWFStatsWeb.Logic
                 s.MissedStarts = clanList.Count - s.AllianceMatches - s.WarMatches;
 
                 db.WarSyncs.Add(s);
+            }
+
+            db.SaveChanges();
+        }
+
+        public void UpdateValidities()
+        {
+            var currentClans = db.Clans.ToDictionary(c => c.Tag);
+            var validClans = db.ClanValidities.ToDictionary(l => l.Tag);
+
+            var firstMatches = (from o in db.WarOpponents
+                                join w in db.Wars on o.WarID equals w.ID
+                                group w by new { o.Tag } into g
+                                select new { Tag = g.Key.Tag, MinEndTime = g.Min(w => w.EndTime) }).ToDictionary(d => d.Tag);
+
+            //Deleted clans
+            foreach (var clan in validClans.Keys)
+            {
+                if(!currentClans.Keys.Contains(clan))
+                {
+                    var validClan = validClans[clan];
+                    validClan.ValidTo = DateTime.Now;
+                    db.ClanValidities.Update(validClan);
+                }
+            }
+
+            //New or existing clans
+            foreach(var clan in currentClans.Keys)
+            {
+                var currentClan = currentClans[clan];
+                if(!validClans.Keys.Contains(clan))
+                {
+                    var validClan = new ClanValidity() { Tag = clan, Name = currentClan.Name, ValidFrom = DateTime.Now, ValidTo = DateTime.MaxValue };
+                    if (firstMatches.ContainsKey(clan))
+                        validClan.ValidFrom = firstMatches[clan].MinEndTime.AddDays(-1);
+                    db.ClanValidities.Add(validClan);
+                }
+                else
+                {
+                    var validClan = validClans[clan];
+                    if(validClan.ValidTo < DateTime.Now)
+                    {
+                        validClan.ValidTo = DateTime.MaxValue;
+                        db.Entry(validClan).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                    }
+                    if (firstMatches.ContainsKey(clan))
+                    {
+                        if (validClan.ValidFrom > firstMatches[clan].MinEndTime)
+                        {
+                            validClan.ValidFrom = firstMatches[clan].MinEndTime;
+                            db.Entry(validClan).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                        }
+                    }
+                }
             }
 
             db.SaveChanges();
