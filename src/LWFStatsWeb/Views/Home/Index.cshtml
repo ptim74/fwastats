@@ -14,7 +14,7 @@
     <div class="col-sm-6">
         <h2>Latest War</h2>
         <p><b>@Model.LatestSync.Name</b></p>
-        <div id="piechart" style="width:200px"></div>
+        <div id="piechart" style="width:300px;height:200px"><p><span class="glyphicon glyphicon-hourglass"></span> Loading...</p></div>
     </div>
     <div class="col-sm-6">
         <h2>Key numbers</h2>
@@ -53,35 +53,22 @@
         google.charts.load('current', {'packages':['corechart']});
         google.charts.setOnLoadCallback(drawChart);
 
-        var options;
-        var chart;
-
         function drawChart() {
             var data = google.visualization.arrayToDataTable([
                 ['Wars', 'Count'],
-                ['LWF', @Model.LatestSync.AllianceMatches],
-                ['War', @Model.LatestSync.WarMatches],
-                ['DNS', @Model.LatestSync.NotStarted]
+                ['LWF matches', @Model.LatestSync.AllianceMatches],
+                ['War matches', @Model.LatestSync.WarMatches],
+                ['Did not start', @Model.LatestSync.NotStarted]
             ]);
 
-            options = {
-                legend: 'none',
-                pieSliceText: 'label',
-                chartArea: { left: 10, top: 10, width: '180', height: '180' }
+            var options = {
+                pieHole: 0.4,
+                chartArea: { left: 15, top: 15, width: '270', height: '170' }
             };
 
-            chart = new google.visualization.PieChart(document.getElementById('piechart'));
+            var chart = new google.visualization.PieChart(document.getElementById('piechart'));
             chart.draw(data, options);
         }
 
-        function resizeHandler() {
-            chart.draw(data, options);
-        }
-        if (window.addEventListener) {
-            window.addEventListener('resize', resizeHandler, false);
-        }
-        else if (window.attachEvent) {
-            window.attachEvent('onresize', resizeHandler);
-        }
     </script>
 }
