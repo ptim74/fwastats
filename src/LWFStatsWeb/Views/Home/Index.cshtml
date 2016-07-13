@@ -26,15 +26,21 @@
                 }
                 if (members_needed > 0)
                 {
-                    <p class="text-danger"><a class="text-danger" asp-route-id="@clan.Tag" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name needs <b>@members_needed</b> more member<span>@plural</span></a></p>
-                }
-                else if (members_needed == 0)
-                {
-                    <p class="text-warning"><a class="text-warning" asp-route-id="@clan.Tag" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name doesn't have any extra members</a></p>
+                    <div>
+                        <a class="text-danger" asp-route-id="@clan.Tag" asp-area="" asp-controller="Clans" asp-action="Details">
+                            <img src="@clan.BadgeURL" width="35" height="35" />
+                            @clan.Name needs <b>@members_needed</b> member<span>@plural</span>
+                        </a>
+                    </div>
                 }
                 else
                 {
-                    <p class="text-success"><a class="text-success" asp-route-id="@clan.Tag" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name has only <b>@extra_members</b> extra member<span>@plural</span></a></p>
+                    <div>
+                        <a class="text-success" asp-route-id="@clan.Tag" asp-area="" asp-controller="Clans" asp-action="Details">
+                            <img src="@clan.BadgeURL" width="35" height="35" />
+                            @clan.Name has <b>@extra_members</b> spare member<span>@plural</span>
+                        </a>
+                    </div>
                 }
             }
         </div>

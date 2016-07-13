@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using LWFStatsWeb.Data;
 using LWFStatsWeb.Models.HomeViewModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace LWFStatsWeb.Controllers
 {
@@ -59,10 +60,10 @@ namespace LWFStatsWeb.Controllers
                     model.LatestSync.NotStarted = clanTags.Count() - model.LatestSync.AllianceMatches - model.LatestSync.WarMatches;
                 }
 
-                var clansNeedingHelp = db.Clans.Where(c => c.MemberCount >= 25).OrderBy(c => c.MemberCount).Take(5);
+                var clansNeedingHelp = db.Clans.Include(c => c.BadgeUrl).Where(c => c.MemberCount >= 25).OrderBy(c => c.MemberCount).Take(5);
                 foreach(var clan in clansNeedingHelp)
                 {
-                    model.ClansNeedingHelp.Add(new ClanDetails { Tag = clan.Tag, Name = clan.Name, Members = clan.MemberCount });
+                    model.ClansNeedingHelp.Add(new ClanDetails { Tag = clan.Tag, Name = clan.Name, Members = clan.MemberCount, BadgeURL = clan.BadgeUrl.Small });
                 }
             }
             catch(Exception)
