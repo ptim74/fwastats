@@ -9,6 +9,7 @@ namespace LWFStatsWeb.Models.HomeViewModels
     {
         public SyncStats LatestSync { get; set; }
         public CounterStats Counters { get; set; }
+        public List<ClanDetails> ClansNeedingHelp { get; set; }
     }
 
     public class SyncStats
@@ -25,5 +26,13 @@ namespace LWFStatsWeb.Models.HomeViewModels
         public int MemberCount { get; set; }
         public int WarCount { get; set; }
         public int SyncCount { get; set; }
+    }
+
+    public class ClanDetails
+    {
+        public string Tag { get; set; }
+        public string Name { get; set; }
+        public int Members { get; set; }
+        public string BadgeURL { get; set; }
     }
 }

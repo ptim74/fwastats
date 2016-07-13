@@ -11,6 +11,34 @@
 </div>
 
 <div class="row">
+    @if (Model.ClansNeedingHelp.Count > 0)
+    {
+        <div class="col-sm-6">
+            <h2>Clans recruiting</h2>
+            @foreach (var clan in Model.ClansNeedingHelp.OrderBy(c => c.Members))
+            {
+                var members_needed = 40 - clan.Members;
+                var plural = "s";
+                var extra_members = members_needed * -1;
+                if (extra_members == 1 || members_needed == 1)
+                {
+                    plural = "";
+                }
+                if (members_needed > 0)
+                {
+                    <p class="text-danger"><a class="text-danger" asp-route-id="@clan.Tag" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name needs <b>@members_needed</b> more member<span>@plural</span></a></p>
+                }
+                else if (members_needed == 0)
+                {
+                    <p class="text-warning"><a class="text-warning" asp-route-id="@clan.Tag" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name doesn't have any extra members</a></p>
+                }
+                else
+                {
+                    <p class="text-success"><a class="text-success" asp-route-id="@clan.Tag" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name has only <b>@extra_members</b> extra member<span>@plural</span></a></p>
+                }
+            }
+        </div>
+    }
     <div class="col-sm-6">
         <h2>Latest War</h2>
         <p><b>@Model.LatestSync.Name</b></p>

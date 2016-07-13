@@ -23,6 +23,7 @@ namespace LWFStatsWeb.Controllers
             var model = new IndexViewModel();
             model.Counters = new CounterStats();
             model.LatestSync = new SyncStats();
+            model.ClansNeedingHelp = new List<ClanDetails>();
 
             try
             {
@@ -56,6 +57,12 @@ namespace LWFStatsWeb.Controllers
                             model.LatestSync.WarMatches++;
                     }
                     model.LatestSync.NotStarted = clanTags.Count() - model.LatestSync.AllianceMatches - model.LatestSync.WarMatches;
+                }
+
+                var clansNeedingHelp = db.Clans.Where(c => c.MemberCount >= 25).OrderBy(c => c.MemberCount).Take(5);
+                foreach(var clan in clansNeedingHelp)
+                {
+                    model.ClansNeedingHelp.Add(new ClanDetails { Tag = clan.Tag, Name = clan.Name, Members = clan.MemberCount });
                 }
             }
             catch(Exception)
