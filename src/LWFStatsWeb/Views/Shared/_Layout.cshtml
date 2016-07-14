@@ -6,7 +6,11 @@
 
     @if (ViewData.ContainsKey("MetaDescription"))
     {
-        <meta name="MetaDescription" content="@ViewData["MetaDescription"]" />
+        <meta name="description" content="@ViewData["MetaDescription"]" />
+    }
+    @if (ViewData.ContainsKey("MetaRobots"))
+    {
+        <meta name="robots" content="@ViewData["MetaRobots"]" />
     }
 
     <title>@ViewData["Title"] - LWF Stats</title>

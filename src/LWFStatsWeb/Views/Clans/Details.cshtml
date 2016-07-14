@@ -1,7 +1,15 @@
 @model LWFStatsWeb.Models.ClanViewModels.IndexViewModel
 
 @{
-    ViewData["Title"] = @Model.Clan.Name;
+    ViewBag.Title = @Model.Clan.Name;
+    if (Model.InAlliance)
+    {
+        ViewBag.MetaDescription = @Model.Clan.Name + ", Loot War Fellowship (LWF), Clash of Clans";
+    }
+    else
+    {
+        ViewBag.MetaRobots = "noindex, nofollow";
+    }
 }
 
 <div class="well" style="margin-top:20px;">
