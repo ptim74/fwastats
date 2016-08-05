@@ -33,7 +33,7 @@
                     <img src="@clan.BadgeURL" width="35" height="35" />
                 </td>
                 <td>
-                    <a asp-route-id="@clan.Tag" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
+                    <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => clan.Wars)
@@ -42,7 +42,7 @@
                     @Html.DisplayFor(modelItem => clan.LatestDate)
                 </td>
                 <td>
-                    <a asp-route-id="@clan.LatestTag" asp-area="" asp-controller="Clans" asp-action="Details">@clan.LatestClan</a>
+                    <a asp-route-id="@clan.LatestLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.LatestClan</a>
                 </td>
             </tr>
         }

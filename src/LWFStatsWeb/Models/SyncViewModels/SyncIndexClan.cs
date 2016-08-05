@@ -11,6 +11,14 @@ namespace LWFStatsWeb.Models.SyncViewModels
         public string Name { get; set; }
         public string BadgeURL { get; set; }
 
+        public string LinkID
+        {
+            get
+            {
+                return Tag.Replace("#", "");
+            }
+        }
+
         public List<SyncIndexResult> Results { get; set; }
     }
 }

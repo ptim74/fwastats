@@ -122,8 +122,11 @@ namespace LWFStatsWeb.Logic
                 if(!currentClans.Keys.Contains(clan))
                 {
                     var validClan = validClans[clan];
-                    validClan.ValidTo = DateTime.Now;
-                    db.ClanValidities.Update(validClan);
+                    if (validClan.ValidTo > DateTime.Now)
+                    {
+                        validClan.ValidTo = DateTime.Now;
+                        db.ClanValidities.Update(validClan);
+                    }
                 }
             }
 

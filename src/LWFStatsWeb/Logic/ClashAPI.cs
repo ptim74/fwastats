@@ -48,7 +48,8 @@ namespace LWFStatsWeb.Logic
         private async Task<T> Request<T>(string page)
         {
             var pageData = await Request(page);
-            return JsonConvert.DeserializeObject<T>(pageData);
+            var settings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
+            return JsonConvert.DeserializeObject<T>(pageData, settings);
         }
 
         public async Task<List<War>> GetClanWarlog(string clanTag)

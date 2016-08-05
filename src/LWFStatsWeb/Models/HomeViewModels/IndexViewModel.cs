@@ -34,5 +34,13 @@ namespace LWFStatsWeb.Models.HomeViewModels
         public string Name { get; set; }
         public int Members { get; set; }
         public string BadgeURL { get; set; }
+
+        public string LinkID
+        {
+            get
+            {
+                return Tag.Replace("#", "");
+            }
+        }
     }
 }

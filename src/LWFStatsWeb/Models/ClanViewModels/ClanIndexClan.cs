@@ -13,5 +13,13 @@ namespace LWFStatsWeb.Models.ClanViewModels
         public string BadgeURL { get; set; }
 
         public List<WarResult> Results { get; set; }
+
+        public string LinkID
+        {
+            get
+            {
+                return Tag.Replace("#", "");
+            }
+        }
     }
 }

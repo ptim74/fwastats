@@ -52,13 +52,13 @@
 @if (!Model.InAlliance && Model.Validity != null && !Model.Validity.IsValid())
 {
     <div class="alert alert-info">
-        Clan left alliance <a asp-route-id="@Model.Clan.Tag" asp-area="" asp-controller="Clans" asp-action="Edit">@Model.Validity.ValidTo.ToString("yyyy-MM-dd")</a>.
+        Clan left alliance <a asp-route-id="@Model.Clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Edit">@Model.Validity.ValidTo.ToString("yyyy-MM-dd")</a>.
     </div>
 }
 else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars.Any(w => w.Result == "lose"))
 {
     <div class="alert alert-info">
-        <a asp-route-id="@Model.Clan.Tag" asp-area="" asp-controller="Clans" asp-action="Edit">Mark clan as former alliance member</a>
+        <a asp-route-id="@Model.Clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Edit">Mark clan as former alliance member</a>
     </div>
 }
 
@@ -174,7 +174,7 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars.Any(w =>
                         @war.EndTime.ToString("yyyy-MM-dd")
                     </td>
                     <td>
-                        @war.OpponentResult.Name
+                        <a class="@war_class" asp-route-id="@war.OpponentResult.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.OpponentResult.Name</a>
                     </td>
                     <td>
                         @war.ClanResult.Stars - @war.OpponentResult.Stars

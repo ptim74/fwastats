@@ -69,6 +69,7 @@ namespace LWFStatsWeb.Controllers
                     w.OpponentResult = new WarOpponentResult();
                     w.OpponentResult.Stars = o.War.ClanResult.Stars;
                     w.OpponentResult.Name = o.War.ClanResult.Name;
+                    w.OpponentResult.Tag = o.War.ClanTag;
                     w.ClanResult = new WarClanResult();
                     w.ClanResult.Stars = o.Stars;
                     if (o.War.Result == "win")
@@ -84,7 +85,7 @@ namespace LWFStatsWeb.Controllers
             return wars;
         }
 
-        public async Task<Clan> GetDetails(string id)
+        protected async Task<Clan> GetDetails(string tag)
         {
             var clan = new Clan();
             clan.Name = "Clan not found";
@@ -92,21 +93,21 @@ namespace LWFStatsWeb.Controllers
             clan.Members = new List<Member>();
             try
             {
-                var clans = db.Clans.Include(c => c.BadgeUrl).Include(c => c.Members).Where(c => c.Tag == id).ToList();
+                var clans = db.Clans.Include(c => c.BadgeUrl).Include(c => c.Members).Where(c => c.Tag == tag).ToList();
                 if (clans.Count > 0)
                 {
                     clan = clans.First();
                     if (clan.IsWarLogPublic)
-                        clan.Wars = db.Wars.Include(w => w.ClanResult).Include(w => w.OpponentResult.BadgeUrl).Where(c => c.ClanTag == id).ToList();
+                        clan.Wars = db.Wars.Include(w => w.ClanResult).Include(w => w.OpponentResult.BadgeUrl).Where(c => c.ClanTag == tag).ToList();
                     else
-                        clan.Wars = this.GetPrivateWars(id);
+                        clan.Wars = this.GetPrivateWars(tag);
                 }
                 else
                 {
-                    var wars = this.GetPrivateWars(id);
+                    var wars = this.GetPrivateWars(tag);
                     if (wars.Count > 0)
                     {
-                        clan = await api.GetClan(id, false);
+                        clan = await api.GetClan(tag, false);
                         clan.Wars = wars;
                     }
                 }
@@ -119,12 +120,18 @@ namespace LWFStatsWeb.Controllers
             return clan;
         }
 
+        protected string LinkIdToTag(string id)
+        {
+            return string.Concat("#", id.Replace("#", ""));
+        }
+
         public async Task<ActionResult> Details(string id)
         {
+            var tag = LinkIdToTag(id);
             var model = new IndexViewModel();
-            model.InAlliance = db.Clans.Any(c => c.Tag == id);
-            model.Clan = await this.GetDetails(id);
-            model.Validity = await this.db.ClanValidities.SingleOrDefaultAsync(c => c.Tag == id);
+            model.InAlliance = db.Clans.Any(c => c.Tag == tag);
+            model.Clan = await this.GetDetails(tag);
+            model.Validity = await this.db.ClanValidities.SingleOrDefaultAsync(c => c.Tag == tag);
             return View(model);
         }
 
@@ -167,21 +174,22 @@ namespace LWFStatsWeb.Controllers
         // GET: Clans/Edit/5
         public async Task<IActionResult> Edit(string id)
         {
-            if (id == null)
+            var tag = LinkIdToTag(id);
+            if (tag == null)
             {
                 return NotFound();
             }
 
-            var clanValidity = await db.ClanValidities.SingleOrDefaultAsync(m => m.Tag == id);
+            var clanValidity = await db.ClanValidities.SingleOrDefaultAsync(m => m.Tag == tag);
             if (clanValidity == null)
             {
-                var opp = db.WarOpponents.FirstOrDefault(o => o.Tag == id);
-                clanValidity = new ClanValidity() { Tag = id };
+                var opp = db.WarOpponents.FirstOrDefault(o => o.Tag == tag);
+                clanValidity = new ClanValidity() { Tag = tag };
                 if (opp != null)
                     clanValidity.Name = opp.Name;
 
                 var opponents = (  from o in db.WarOpponents
-                                   where o.Tag == id
+                                   where o.Tag == tag
                                    join w in db.Wars on o.WarID equals w.ID
                                    group w by new { o.Tag, o.Name } into g
                                    select new {
@@ -206,9 +214,11 @@ namespace LWFStatsWeb.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Tag,ValidFrom,ValidTo")] ClanValidity clanValidity)
+        public async Task<IActionResult> Edit(string id, [Bind("Tag,LinkID,ValidFrom,ValidTo")] ClanValidity clanValidity)
         {
-            if (id != clanValidity.Tag)
+            var tag = LinkIdToTag(id);
+
+            if (tag != clanValidity.Tag)
             {
                 return NotFound();
             }
@@ -217,12 +227,12 @@ namespace LWFStatsWeb.Controllers
             {
                 try
                 {
-                    var opp = db.WarOpponents.FirstOrDefault(o => o.Tag == id);
+                    var opp = db.WarOpponents.FirstOrDefault(o => o.Tag == tag);
                     if (opp != null)
                     {
                         clanValidity.Name = opp.Name;
 
-                        if (!this.ClanValidityExists(id))
+                        if (!this.ClanValidityExists(tag))
                         {
                             if (clanValidity.ValidFrom < clanValidity.ValidTo)
                             {

@@ -28,7 +28,7 @@
                 if (members_needed > 0)
                 {
                     <div>
-                        <a class="text-danger" asp-route-id="@clan.Tag" asp-area="" asp-controller="Clans" asp-action="Details">
+                        <a class="text-danger" asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">
                             <img src="@clan.BadgeURL" width="35" height="35" />
                             @clan.Name needs <b>@members_needed</b> member<span>@plural</span>
                         </a>
@@ -37,7 +37,7 @@
                 else
                 {
                     <div>
-                        <a class="text-success" asp-route-id="@clan.Tag" asp-area="" asp-controller="Clans" asp-action="Details">
+                        <a class="text-success" asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">
                             <img src="@clan.BadgeURL" width="35" height="35" />
                             @clan.Name has <b>@extra_members</b> spare member<span>@plural</span>
                         </a>

@@ -30,7 +30,7 @@
                     <img src="@clan.BadgeURL" width="35" height="35" />
                 </td>
                 <td>
-                    <a asp-route-id="@clan.Tag" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
+                    <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => clan.Members)

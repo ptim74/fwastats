@@ -89,5 +89,13 @@ namespace LWFStatsWeb.Models
                 }
             }
         }
+
+        public string LinkID
+        {
+            get
+            {
+                return Tag.Replace("#", "");
+            }
+        }
     }
 }

@@ -30,5 +30,13 @@ namespace LWFStatsWeb.Models
                 return true;
             return false;
         }
+
+        public string LinkID
+        {
+            get
+            {
+                return Tag.Replace("#", "");
+            }
+        }
     }
 }

@@ -95,6 +95,9 @@ namespace LWFStatsWeb
 
             app.UseMvc(routes =>
             {
+                routes.MapRoute("ClanDetails", "Clan/{id}", new { controller = "Clans", action = "Details" });
+                routes.MapRoute("ClanEdit", "Clan/{id}/Edit", new { controller = "Clans", action = "Edit" });
+
                 routes.MapRoute(
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");

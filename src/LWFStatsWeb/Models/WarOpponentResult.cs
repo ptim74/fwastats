@@ -38,5 +38,13 @@ namespace LWFStatsWeb.Models
 
         [DataMember(Name = "badgeUrls")]
         public virtual WarOpponentBadgeUrls BadgeUrl { get; set; }
+
+        public string LinkID
+        {
+            get
+            {
+                return Tag.Replace("#", "");
+            }
+        }
     }
 }

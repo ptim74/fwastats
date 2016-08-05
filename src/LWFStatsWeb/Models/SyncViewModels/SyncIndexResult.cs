@@ -12,5 +12,15 @@ namespace LWFStatsWeb.Models.SyncViewModels
         public string OpponentName { get; set; }
         public string OpponentTag { get; set; }
         public string OpponentBadgeURL { get; set; }
+
+        public string OpponentLinkID
+        {
+            get
+            {
+                if (OpponentTag == null)
+                    return null;
+                return OpponentTag.Replace("#", "");
+            }
+        }
     }
 }

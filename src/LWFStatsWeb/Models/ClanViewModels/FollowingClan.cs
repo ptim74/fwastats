@@ -14,5 +14,21 @@ namespace LWFStatsWeb.Models.ClanViewModels
         public string LatestClan { get; set; }
         public string LatestTag { get; set; }
         public string LatestDate { get; set; }
+
+        public string LinkID
+        {
+            get
+            {
+                return Tag.Replace("#", "");
+            }
+        }
+
+        public string LatestLinkID
+        {
+            get
+            {
+                return LatestTag.Replace("#", "");
+            }
+        }
     }
 }
