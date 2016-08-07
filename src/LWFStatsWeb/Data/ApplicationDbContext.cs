@@ -26,8 +26,8 @@ namespace LWFStatsWeb.Data
             builder.Entity<Member>().HasIndex(e => e.Name);
             builder.Entity<Member>().HasIndex(e => e.Role);
             builder.Entity<War>().HasIndex(e => e.EndTime);
-            builder.Entity<WarClanResult>().HasIndex(e => e.Tag);
-            builder.Entity<WarOpponentResult>().HasIndex(e => e.Tag);
+            builder.Entity<War>().HasIndex(e => e.ClanTag);
+            builder.Entity<War>().HasIndex(e => e.OpponentTag);
             builder.Entity<WarSync>().HasIndex(e => e.Start);
             builder.Entity<WarSync>().HasIndex(e => e.Finish);
             builder.Entity<ClanValidity>().HasIndex(v => v.ValidFrom);
@@ -38,11 +38,11 @@ namespace LWFStatsWeb.Data
         public virtual DbSet<Member> Members { get; set; }
         public virtual DbSet<UpdateTask> UpdateTasks { get; set; }
         public virtual DbSet<War> Wars { get; set; }
-        public virtual DbSet<WarClanResult> WarParticipants { get; set; }
-        public virtual DbSet<WarOpponentResult> WarOpponents { get; set; }
+        //public virtual DbSet<WarClanResult> WarParticipants { get; set; }
+        //public virtual DbSet<WarOpponentResult> WarOpponents { get; set; }
         public virtual DbSet<WarSync> WarSyncs { get; set; }
-        public virtual DbSet<WarOpponentBadgeUrls> WarOpponentBadgeUrls { get; set; }
-        public virtual DbSet<ClanBadgeUrls> ClanBadgeUrls { get; set; }
+        //public virtual DbSet<WarOpponentBadgeUrls> WarOpponentBadgeUrls { get; set; }
+        //public virtual DbSet<ClanBadgeUrls> ClanBadgeUrls { get; set; }
         public virtual DbSet<ClanValidity> ClanValidities { get; set; }
 
         // Add Migration:

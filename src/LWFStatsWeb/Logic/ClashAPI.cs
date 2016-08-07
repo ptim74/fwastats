@@ -48,7 +48,12 @@ namespace LWFStatsWeb.Logic
         private async Task<T> Request<T>(string page)
         {
             var pageData = await Request(page);
-            var settings = new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
+
+            var settings = new JsonSerializerSettings {
+                NullValueHandling = NullValueHandling.Ignore,
+                DateFormatString = "yyyyMMddTHHmmss.fffK"
+            };
+
             return JsonConvert.DeserializeObject<T>(pageData, settings);
         }
 

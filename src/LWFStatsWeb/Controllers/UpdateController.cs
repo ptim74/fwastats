@@ -71,18 +71,10 @@ namespace LWFStatsWeb.Controllers
                     var clan = db.Clans.Include(c => c.BadgeUrl).Single(c => c.Tag == task.ClanTag);
                     if (clan != null)
                     {
-                        var members = db.Members.Include(m => m.BadgeUrl)
-                                                .Where(m => m.ClanTag == clan.Tag);
+                        var members = db.Members.Where(m => m.ClanTag == clan.Tag);
 
                         foreach(var member in members.ToList())
                             db.Entry(member).State = EntityState.Deleted;
-
-                        var wars = db.Wars.Include(w => w.OpponentResult.BadgeUrl)
-                                          .Include(w => w.ClanResult)
-                                          .Where(w => w.ClanTag == clan.Tag);
-
-                        foreach (var war in wars.ToList())
-                            db.Entry(war).State = EntityState.Deleted;
  
                         db.Entry(clan).State = EntityState.Deleted;
                         db.SaveChanges();
@@ -94,42 +86,41 @@ namespace LWFStatsWeb.Controllers
                     var clan = await api.GetClan(task.ClanTag, true);
 
                     var existingClanQ = from c in db.Clans
-                                        join b in db.ClanBadgeUrls on c.Tag equals b.ClanTag
                                         where c.Tag == task.ClanTag
                                         select new
                                         {
                                             ClanLevel = c.ClanLevel,
                                             ClanPoints = c.ClanPoints,
-                                            ClanType = c.ClanType,
+                                            ClanType = c.Type,
                                             Description = c.Description,
                                             IsWarLogPublic = c.IsWarLogPublic,
-                                            MemberCount = c.MemberCount,
+                                            MemberCount = c.Members,
                                             Name = c.Name,
                                             RequiredTrophies = c.RequiredTrophies,
                                             WarLosses = c.WarLosses,
                                             WarTies = c.WarTies,
                                             WarWins = c.WarWins,
                                             WarWinStreak = c.WarWinStreak,
-                                            Large = b.Large,
-                                            Medium = b.Medium,
-                                            Small = b.Small
+                                            BadgeUrl = c.BadgeUrl 
                                         };
 
                     var existingClan = existingClanQ.ToList().First();
 
                     var clanModified = false;
 
+                    if (clan.BadgeUrl != existingClan.BadgeUrl)
+                        clanModified = true;
                     if (clan.ClanLevel != existingClan.ClanLevel)
                         clanModified = true;
                     if (clan.ClanPoints != existingClan.ClanPoints)
                         clanModified = true;
-                    if (clan.ClanType != existingClan.ClanType)
+                    if (clan.Type != existingClan.ClanType)
                         clanModified = true;
                     if (clan.Description != existingClan.Description)
                         clanModified = true;
                     if (clan.IsWarLogPublic != existingClan.IsWarLogPublic)
                         clanModified = true;
-                    if (clan.MemberCount != existingClan.MemberCount)
+                    if (clan.Members != existingClan.MemberCount)
                         clanModified = true;
                     if (clan.Name != existingClan.Name)
                         clanModified = true;
@@ -146,19 +137,6 @@ namespace LWFStatsWeb.Controllers
 
                     if (clanModified)
                         db.Entry(clan).State = EntityState.Modified;
-
-                    if (clan.BadgeUrl != null)
-                    {
-                        var badgeModified = false;
-                        if (clan.BadgeUrl.Large != existingClan.Large)
-                            badgeModified = true;
-                        if (clan.BadgeUrl.Medium != existingClan.Medium)
-                            badgeModified = true;
-                        if (clan.BadgeUrl.Small != existingClan.Small)
-                            badgeModified = true;
-                        if (badgeModified)
-                            db.Entry(clan.BadgeUrl).State = EntityState.Modified;
-                    }
 
                     var allMembers = (from m in db.Members select m.Tag).ToList();
 
@@ -177,9 +155,9 @@ namespace LWFStatsWeb.Controllers
                                           Trophies = m.Trophies
                                       }).ToList();
 
-                    if (clan.Members != null)
+                    if (clan.MemberList != null)
                     {
-                        foreach (var clanMember in clan.Members.ToList())
+                        foreach (var clanMember in clan.MemberList.ToList())
                         {
                             var oldMember1 = from c in oldMembers where c.Tag == clanMember.Tag select c;
                             if (oldMember1.Count() > 0)
@@ -218,7 +196,7 @@ namespace LWFStatsWeb.Controllers
 
                         foreach (var clanMember in oldMembers)
                         {
-                            var existingMember = (from m in clan.Members where m.Tag == clanMember.Tag select m).ToList();
+                            var existingMember = (from m in clan.MemberList where m.Tag == clanMember.Tag select m).ToList();
                             if (existingMember.Count() == 0)
                             {
                                 var formerMember = new Member { Tag = clanMember.Tag };
@@ -237,9 +215,6 @@ namespace LWFStatsWeb.Controllers
                             if (!clanWars.Contains(war.ID))
                             {
                                 db.Entry(war).State = EntityState.Added;
-                                db.Entry(war.OpponentResult).State = EntityState.Added;
-                                db.Entry(war.OpponentResult.BadgeUrl).State = EntityState.Added;
-                                db.Entry(war.ClanResult).State = EntityState.Added;
                             }
                         }
                     }
@@ -249,20 +224,32 @@ namespace LWFStatsWeb.Controllers
 
                 if (task.Mode == UpdateTaskMode.Insert)
                 {
-                    var clan = await api.GetClan(task.ClanTag, true);
+                    var clan = await api.GetClan(task.ClanTag,true);
                     if (clan == null)
                         throw new Exception(string.Format("Clan {0} not found", task.ClanTag));
 
                     var existingMembers = (from m in db.Members where m.ClanTag != task.ClanTag select m.Tag).ToList();
 
-                    foreach (var clanMember in clan.Members)
+                    foreach (var clanMember in clan.MemberList)
                     {
                         //Member hopped from other clan
                         if (existingMembers.Contains(clanMember.Tag))
                             db.Entry(clanMember).State = EntityState.Modified;
                     }
 
+                    if (clan.Wars != null)
+                    {
+                        var existingWars = (from w in db.Wars where w.ClanTag == task.ClanTag select w.ID).ToList();
+
+                        foreach (var clanWar in clan.Wars)
+                        {
+                            if (!existingWars.Contains(clanWar.ID))
+                                db.Wars.Add(clanWar);
+                        }
+                    }
+
                     db.Clans.Add(clan);
+
                     db.SaveChanges();
                 }
 
@@ -326,8 +313,8 @@ namespace LWFStatsWeb.Controllers
 
             try
             {
-                statistics.CalculateSyncs();
                 statistics.UpdateValidities();
+                statistics.CalculateSyncs();
             }
             catch(Exception e)
             {

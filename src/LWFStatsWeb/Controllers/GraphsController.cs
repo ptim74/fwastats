@@ -44,13 +44,12 @@ namespace LWFStatsWeb.Controllers
                 var graphClans = new Dictionary<string, GraphNode>();
 
                 var wars = (from w in db.Wars
-                            join o in db.WarOpponents on w.ID equals o.WarID
                             where w.EndTime >= earliestStart
                             select new
                             {
                                 ClanTag = w.ClanTag,
-                                OpponentTag = o.Tag,
-                                OpponentName = o.Name
+                                OpponentTag = w.OpponentTag,
+                                OpponentName = w.OpponentName
                             }).ToList();
 
                 foreach (var war in wars)

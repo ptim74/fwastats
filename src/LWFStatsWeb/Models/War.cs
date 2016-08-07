@@ -12,51 +12,102 @@ namespace LWFStatsWeb.Models
     [DataContract]
     public class War
     {
-        [ForeignKey("Clan")]
-        [StringLength(10)]
-        public string ClanTag { get; set; }
-
+        [DataMember]
         [StringLength(30)]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public string ID { get; set; }
 
-        [DataMember(Name = "result")]
+        [DataMember]
         [StringLength(10)]
         public string Result { get; set; }  // win
 
-        [DataMember(Name = "endTime")]
-        private string endTime { get; set; }
-
-        [DataMember(Name = "teamSize")]
+        [DataMember]
         public int TeamSize { get; set; } // 40
 
-        [DataMember(Name = "clan")]
-        public virtual WarClanResult ClanResult { get; set; }
+        [DataMember]
+        private WarClan Clan;
 
-        [DataMember(Name = "opponent")]
-        public virtual WarOpponentResult OpponentResult { get; set; }
+        [DataMember]
+        private WarClan Opponent;
 
+        [DataMember]
         public DateTime EndTime { get; set; }
 
-        public virtual Clan Clan { get; set; }
+        [StringLength(10)]
+        public string ClanTag { get; set; }
 
-        public void FixData(string clanTag)
+        [StringLength(50)]
+        public string ClanName { get; set; }
+        public int ClanLevel { get; set; }
+        public int ClanStars { get; set; }
+        public double ClanDestructionPercentage { get; set; }
+        public int ClanAttacks { get; set; }
+        public int ClanExpEarned { get; set; }
+
+        [StringLength(150)]
+        public string ClanBadgeUrl { get; set; }
+
+        [StringLength(10)]
+        public string OpponentTag { get; set; }
+
+        [StringLength(50)]
+        public string OpponentName { get; set; }
+        public int OpponentLevel { get; set; }
+        public int OpponentStars { get; set; }
+        public double OpponentDestructionPercentage { get; set; }
+ 
+        [StringLength(150)]
+        public string OpponentBadgeUrl { get; set; }
+
+        public void FixData()
         {
-            ClanTag = clanTag;
-            ID = endTime + ClanTag;
-            EndTime = DateTime.ParseExact(endTime, "yyyyMMddTHHmmss.fffK", CultureInfo.InvariantCulture);
-            if (this.ClanResult != null)
+            if (Clan != null)
             {
-                this.ClanResult.WarID = ID;
-            }
-            if (this.OpponentResult != null)
-            {
-                this.OpponentResult.WarID = ID;
-                if (this.OpponentResult.BadgeUrl != null)
+                ID = EndTime.ToUniversalTime().ToString("yyyyMMddTHHmmss") + Clan.Tag;
+                ClanTag = Clan.Tag;
+                ClanName = Clan.Name;
+                ClanLevel = Clan.ClanLevel;
+                ClanStars = Clan.Stars;
+                ClanDestructionPercentage = Clan.DestructionPercentage;
+                ClanAttacks = Clan.Attacks;
+                ClanExpEarned = Clan.ExpEarned;
+
+                if (Clan.BadgeUrls != null)
                 {
-                    this.OpponentResult.BadgeUrl.WarID = ID;
+                    ClanBadgeUrl = Clan.BadgeUrls.Small;
+                }
+            }
+
+            if (Opponent != null)
+            {
+                OpponentTag = Opponent.Tag;
+                OpponentName = Opponent.Name;
+                OpponentLevel = Opponent.ClanLevel;
+                OpponentStars = Opponent.Stars;
+                OpponentDestructionPercentage = Opponent.DestructionPercentage;
+
+                if (Opponent.BadgeUrls != null)
+                {
+                    OpponentBadgeUrl = Opponent.BadgeUrls.Small;
                 }
             }
         }
+
+        public string ClanLinkID
+        {
+            get
+            {
+                return ClanTag.Replace("#", "");
+            }
+        }
+
+        public string OpponentLinkID
+        {
+            get
+            {
+                return OpponentTag.Replace("#", "");
+            }
+        }
+
     }
 }

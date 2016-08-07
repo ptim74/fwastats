@@ -12,41 +12,53 @@ namespace LWFStatsWeb.Models
     public class Member
     {
         [ForeignKey("Clan")]
+        [DataMember]
         [StringLength(10)]
         public string ClanTag { get; set; }
 
         [Key]
+        [DataMember]
         [StringLength(10)]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        [DataMember(Name = "tag")]
         public string Tag { get; set; }
 
+        [DataMember]
         [StringLength(50)]
-        [DataMember(Name = "name")]
         public string Name { get; set; }
 
-        [DataMember(Name = "expLevel")]
+        [DataMember]
         public int ExpLevel { get; set; }
 
-        [DataMember(Name = "trophies")]
+        [DataMember]
         public int Trophies { get; set; }
 
+        [DataMember]
         [StringLength(10)]
-        [DataMember(Name = "role")]
         public string Role { get; set; }
 
-        [DataMember(Name = "clanRank")]
+        [DataMember]
         public int ClanRank { get; set; }
 
-        [DataMember(Name = "donations")]
+        [DataMember]
         public int Donations { get; set; }
 
-        [DataMember(Name = "donationsReceived")]
+        [DataMember]
         public int DonationsReceived { get; set; }
 
         public virtual Clan Clan { get; set; }
 
-        [DataMember(Name = "badgeUrls")]
-        public virtual MemberBadgeUrls BadgeUrl { get; set; }
+        [DataMember]
+        private League League;
+
+        [StringLength(150)]
+        public string BadgeUrl { get; set; }
+
+        public void FixData(string clanTag)
+        {
+            ClanTag = clanTag;
+            if (League != null)
+                if(League.IconUrls != null)
+                BadgeUrl = League.IconUrls.Small;
+        }
     }
 }

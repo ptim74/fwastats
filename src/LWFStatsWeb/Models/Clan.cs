@@ -12,80 +12,84 @@ namespace LWFStatsWeb.Models
     public class Clan 
     {
         [Key]
+        [DataMember]
         [StringLength(10)]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        [DataMember(Name = "tag")]
         public string Tag { get; set; }
 
+        [DataMember]
         [StringLength(50)]
-        [DataMember(Name = "name")]
         public string Name { get; set; }
 
-        [DataMember(Name = "clanLevel")]
+        [DataMember]
         public int ClanLevel { get; set; }
 
-        [DataMember(Name = "clanPoints")]
+        [DataMember]
         public int ClanPoints { get; set; }
 
+        [DataMember]
         [StringLength(10)]
-        [DataMember(Name = "type")]
-        public string ClanType { get; set; }
+        public string Type { get; set; }
 
-        [DataMember(Name = "members")]
-        public int MemberCount { get; set; }
+        [DataMember]
+        public int Members { get; set; }
 
-        [DataMember(Name = "requiredTrophies")]
+        [DataMember]
         public int RequiredTrophies { get; set; }
 
-        [DataMember(Name = "warWinStreak")]
+        [DataMember]
         public int WarWinStreak { get; set; }
 
-        [DataMember(Name = "warWins")]
+        [DataMember]
         public int WarWins { get; set; }
 
-        [DataMember(Name = "warTies")]
+        [DataMember]
         public int WarTies { get; set; }
 
-        [DataMember(Name = "warLosses")]
+        [DataMember]
         public int WarLosses { get; set; }
 
-        [DataMember(Name = "isWarLogPublic")]
+        [DataMember]
         public bool IsWarLogPublic { get; set; }
 
+        [DataMember]
         [StringLength(300)]
-        [DataMember(Name = "description")]
         public string Description { get; set; }
 
-        [DataMember(Name = "memberList")]
-        public virtual ICollection<Member> Members { get; set; }
+        [DataMember]
+        public virtual ICollection<Member> MemberList { get; set; }
 
+        [NotMapped]
+        [DataMember]
         public virtual ICollection<War> Wars { get; set; }
 
-        [DataMember(Name = "badgeUrls")]
-        public virtual ClanBadgeUrls BadgeUrl { get; set; }
+        [DataMember]
+        private BadgeUrls BadgeUrls { get; set; }
+
+        [DataMember]
+        [StringLength(150)]
+        public string BadgeUrl { get; set; }
 
         public void FixData()
         {
-            if (Members != null)
+            if(BadgeUrls != null)
             {
-                foreach (var member in Members)
-                {
-                    member.ClanTag = Tag;
-                    if (member.BadgeUrl != null)
-                        member.BadgeUrl.MemberTag = member.Tag;
-                }
+                BadgeUrl = BadgeUrls.Small;
             }
 
-            if (BadgeUrl != null)
+            if (MemberList != null)
             {
-                BadgeUrl.ClanTag = Tag;
+                foreach (var member in MemberList)
+                {
+                    member.FixData(Tag);
+                }
             }
 
             if (Wars != null)
             {
                 foreach (var war in Wars)
                 {
-                    war.FixData(Tag);
+                    war.FixData();
                 }
             }
         }

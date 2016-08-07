@@ -22,12 +22,12 @@ namespace LWFStatsWeb.Controllers
         {
             var clans = new Dictionary<string, SyncIndexClan>();
 
-            foreach (var clan in db.Clans.Include(c => c.BadgeUrl).ToList())
+            foreach (var clan in db.Clans.ToList())
             {
                 var clanDetail = new SyncIndexClan();
                 clanDetail.Tag = clan.Tag;
                 clanDetail.Name = clan.Name;
-                clanDetail.BadgeURL = clan.BadgeUrl.Small;
+                clanDetail.BadgeUrl = clan.BadgeUrl;
                 clanDetail.Results = new List<SyncIndexResult>();
                 clans.Add(clan.Tag, clanDetail);
             }
@@ -38,8 +38,7 @@ namespace LWFStatsWeb.Controllers
 
             var recentSyncs = db.WarSyncs.OrderByDescending(w => w.Start).Take(warsToTake).ToList();
 
-            /*
-            var earliestWar = DateTime.Now;
+            var earliestWar = DateTime.MaxValue;
 
             foreach (var s in recentSyncs)
             {
@@ -47,45 +46,52 @@ namespace LWFStatsWeb.Controllers
                     earliestWar = s.Start;
             }
 
-            var formerClans = from f in db.ClanValidities
-                               where f.ValidTo < DateTime.Now && f.ValidTo >= earliestWar
-                               join o in db.WarOpponents on f.Tag equals o.Tag
-                               join w in db.Wars on o.WarID equals w.ID
-                               join b in db.WarOpponentBadgeUrls on w.ID equals b.WarID
-                               orderby w.EndTime descending //to get latest badge
-                               select new SyncIndexClan { Tag = o.Tag, Name = o.Name, BadgeURL = b.Small, Results = new List<SyncIndexResult>() };
+            earliestWar = earliestWar.AddDays(-2);
 
-            foreach(var formerClan in formerClans)
+            var formerClans = (from f in db.ClanValidities
+                              where f.ValidTo > earliestWar select f).ToDictionary(f => f.Tag);
+
+            foreach(var formerClan in formerClans.Values)
             {
                 if(!clans.ContainsKey(formerClan.Tag))
                 {
-                    clans.Add(formerClan.Tag, formerClan);
+                    var syncClan = new SyncIndexClan { Tag = formerClan.Tag, Name = formerClan.Name, Results = new List<SyncIndexResult>() };
+                    syncClan.BadgeUrl = (from o in db.Wars
+                                            where o.OpponentTag == formerClan.Tag
+                                            orderby o.ID descending
+                                            select o.OpponentBadgeUrl).First();
+                    
+                    clans.Add(formerClan.Tag, syncClan);
                 }
             }
-            */
 
             var warCount = 0;
 
             foreach (var s in recentSyncs)
             {
                 var q = from w in db.Wars
-                        join o in db.WarOpponents on w.ID equals o.WarID
-                        join b in db.WarOpponentBadgeUrls on o.WarID equals b.WarID
                         where w.EndTime >= s.Start && w.EndTime <= s.Finish
-                        select new { ClanTag = w.ClanTag, Result = w.Result, OpponentTag = o.Tag, OpponentName = o.Name, OpponentBadge = b.Small };
+                        select new { ClanTag = w.ClanTag, Result = w.Result, OpponentTag = w.OpponentTag, OpponentName = w.OpponentName, OpponentBadge = w.OpponentBadgeUrl };
 
                 foreach (var r in q)
                 {
                     if (clans.ContainsKey(r.ClanTag))
                     {
                         var clan = clans[r.ClanTag];
+                        var isAlliance = false;
+                        if(formerClans.ContainsKey(r.OpponentTag))
+                        {
+                            var opponentClan = formerClans[r.OpponentTag];
+                            if (opponentClan.ValidFrom < s.Start && opponentClan.ValidTo > s.Start)
+                                isAlliance = true;
+                        }
                         clan.Results.Add(new SyncIndexResult()
                         {
                             Result = r.Result,
                             OpponentTag = r.OpponentTag,
                             OpponentName = r.OpponentName,
                             OpponentBadgeURL = r.OpponentBadge,
-                            IsAlliance = clans.ContainsKey(r.OpponentTag)
+                            IsAlliance = isAlliance
                         });
                     }
                 }

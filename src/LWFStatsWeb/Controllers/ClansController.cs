@@ -32,13 +32,13 @@ namespace LWFStatsWeb.Controllers
 
             var allWars = db.Wars.ToList();
 
-            foreach (var clan in db.Clans.Include(c => c.BadgeUrl).ToList())
+            foreach (var clan in db.Clans.ToList())
             {
                 var clanDetail = new ClanIndexClan();
                 clanDetail.Tag = clan.Tag;
                 clanDetail.Name = clan.Name;
-                clanDetail.Members = clan.MemberCount;
-                clanDetail.BadgeURL = clan.BadgeUrl.Small;
+                clanDetail.Members = clan.Members;
+                clanDetail.BadgeUrl = clan.BadgeUrl;
                 clanDetail.Results = new List<WarResult>();
 
                 var recentWars = allWars.Where(w => w.ClanTag == clan.Tag).OrderByDescending(w => w.EndTime).Take(5).ToList();
@@ -59,25 +59,38 @@ namespace LWFStatsWeb.Controllers
         protected List<War> GetPrivateWars(string id)
         {
             var wars = new List<War>();
-            var opponents = db.WarOpponents.Include(o => o.War.ClanResult).Include(o => o.War.OpponentResult).Where(o => o.Tag == id).ToList();
-            if (opponents.Count > 0)
+            var opponentsWars = db.Wars.Where(o => o.OpponentTag == id).ToList();
+            if (opponentsWars.Count > 0)
             {
-                foreach (var o in opponents)
+                foreach (var o in opponentsWars)
                 {
                     var w = new War();
-                    w.EndTime = o.War.EndTime;
-                    w.OpponentResult = new WarOpponentResult();
-                    w.OpponentResult.Stars = o.War.ClanResult.Stars;
-                    w.OpponentResult.Name = o.War.ClanResult.Name;
-                    w.OpponentResult.Tag = o.War.ClanTag;
-                    w.ClanResult = new WarClanResult();
-                    w.ClanResult.Stars = o.Stars;
-                    if (o.War.Result == "win")
+                    w.ID = o.ID.Replace(o.ClanTag, o.OpponentTag);
+                    w.EndTime = o.EndTime;
+                    w.TeamSize = o.TeamSize;
+
+                    w.ClanTag = o.OpponentTag;
+                    w.ClanAttacks = 0;
+                    w.ClanBadgeUrl = o.OpponentBadgeUrl;
+                    w.ClanDestructionPercentage = o.OpponentDestructionPercentage;
+                    w.ClanExpEarned = 0;
+                    w.ClanLevel = o.OpponentLevel;
+                    w.ClanName = o.OpponentName;
+                    w.ClanStars = o.OpponentStars;
+
+                    w.OpponentBadgeUrl = o.ClanBadgeUrl;
+                    w.OpponentDestructionPercentage = o.ClanDestructionPercentage;
+                    w.OpponentLevel = o.ClanLevel;
+                    w.OpponentName = o.ClanName;
+                    w.OpponentStars = o.ClanStars;
+                    w.OpponentTag = o.ClanTag;
+
+                    if (o.Result == "win")
                         w.Result = "lose";
-                    else if (o.War.Result == "lose")
+                    else if (o.Result == "lose")
                         w.Result = "win";
                     else
-                        w.Result = o.War.Result;
+                        w.Result = o.Result;
 
                     wars.Add(w);
                 }
@@ -89,16 +102,15 @@ namespace LWFStatsWeb.Controllers
         {
             var clan = new Clan();
             clan.Name = "Clan not found";
-            clan.BadgeUrl = new ClanBadgeUrls();
-            clan.Members = new List<Member>();
+            clan.MemberList = new List<Member>();
             try
             {
-                var clans = db.Clans.Include(c => c.BadgeUrl).Include(c => c.Members).Where(c => c.Tag == tag).ToList();
+                var clans = db.Clans.Include(c => c.MemberList).Where(c => c.Tag == tag).ToList();
                 if (clans.Count > 0)
                 {
                     clan = clans.First();
                     if (clan.IsWarLogPublic)
-                        clan.Wars = db.Wars.Include(w => w.ClanResult).Include(w => w.OpponentResult.BadgeUrl).Where(c => c.ClanTag == tag).ToList();
+                        clan.Wars = db.Wars.Where(c => c.ClanTag == tag).ToList();
                     else
                         clan.Wars = this.GetPrivateWars(tag);
                 }
@@ -139,23 +151,20 @@ namespace LWFStatsWeb.Controllers
         {
             var clans = new List<FollowingClan>();
 
-            var followers = from o in db.WarOpponents
-                            where !db.Clans.Any(c => c.Tag == o.Tag)
-                            where !db.ClanValidities.Any(v => v.Tag == o.Tag)
-                            group o by new { o.Tag, o.Name } into grp
+            var followers = from o in db.Wars
+                            where !db.ClanValidities.Any(v => v.Tag == o.OpponentTag)
+                            group o by new { o.OpponentTag, o.OpponentName } into grp
                             where grp.Count() > 1
-                            //orderby grp.Count() descending
-                            select new { Tag = grp.Key.Tag, Name = grp.Key.Name, Count = grp.Count(), WarID = grp.Max(o => o.WarID) };
+                            select new { Tag = grp.Key.OpponentTag, Name = grp.Key.OpponentName, Count = grp.Count(), WarID = grp.Max(o => o.ID) };
 
             foreach (var follower in followers.ToList())
             {
                 var clan = new FollowingClan { Tag = follower.Tag, Name = follower.Name, Wars = follower.Count };
 
                 var extraQ = from w in db.Wars
-                             join b in db.WarOpponentBadgeUrls on w.ID equals b.WarID
-                             join c in db.Clans on w.ClanTag equals c.Tag
+                             join v in db.ClanValidities on w.ClanTag equals v.Tag
                              where w.ID == follower.WarID
-                             select new { Tag = c.Tag, ClanName = c.Name, EndTime = w.EndTime, BadgeURL = b.Small };
+                             select new { Tag = v.Tag, ClanName = v.Name, EndTime = w.EndTime, BadgeURL = w.ClanBadgeUrl };
 
                 foreach (var extra in extraQ.ToList())
                 {
@@ -183,18 +192,17 @@ namespace LWFStatsWeb.Controllers
             var clanValidity = await db.ClanValidities.SingleOrDefaultAsync(m => m.Tag == tag);
             if (clanValidity == null)
             {
-                var opp = db.WarOpponents.FirstOrDefault(o => o.Tag == tag);
+                var opp = db.Wars.FirstOrDefault(o => o.OpponentTag == tag);
                 clanValidity = new ClanValidity() { Tag = tag };
                 if (opp != null)
-                    clanValidity.Name = opp.Name;
+                    clanValidity.Name = opp.OpponentName;
 
-                var opponents = (  from o in db.WarOpponents
-                                   where o.Tag == tag
-                                   join w in db.Wars on o.WarID equals w.ID
-                                   group w by new { o.Tag, o.Name } into g
+                var opponents = (  from w in db.Wars
+                                   where w.OpponentTag == tag
+                                   group w by new { w.OpponentTag, w.OpponentName } into g
                                    select new {
-                                       Tag = g.Key.Tag,
-                                       Name = g.Key.Name,
+                                       Tag = g.Key.OpponentTag,
+                                       Name = g.Key.OpponentName,
                                        MinEndTime = g.Min(w => w.EndTime),
                                        MaxEndTime = g.Max(w => w.EndTime) }).ToList();
 
@@ -227,10 +235,10 @@ namespace LWFStatsWeb.Controllers
             {
                 try
                 {
-                    var opp = db.WarOpponents.FirstOrDefault(o => o.Tag == tag);
+                    var opp = db.Wars.FirstOrDefault(o => o.OpponentTag == tag);
                     if (opp != null)
                     {
-                        clanValidity.Name = opp.Name;
+                        clanValidity.Name = opp.OpponentName;
 
                         if (!this.ClanValidityExists(tag))
                         {
@@ -250,6 +258,24 @@ namespace LWFStatsWeb.Controllers
                                 db.Update(clanValidity);
                             }
                         }
+
+                        var clan = await api.GetClan(tag, true);
+
+                        if (clan.Wars != null)
+                        {
+                            var existingWars = db.Wars.Where(w => w.ClanTag == clan.Tag).ToDictionary(w => w.ID);
+   
+                            foreach (var clanWar in clan.Wars)
+                                if (!existingWars.ContainsKey(clanWar.ID))
+                                    if(clanWar.EndTime > clanValidity.ValidFrom && clanWar.EndTime < clanValidity.ValidTo)
+                                        db.Wars.Add(clanWar);
+
+                            foreach (var war in existingWars.Values)
+                                if (war.EndTime > clanValidity.ValidTo || war.EndTime < clanValidity.ValidFrom)
+                                    db.Entry(war).State = EntityState.Deleted;
+                        }
+
+
                         await db.SaveChangesAsync();
                     }
                 }

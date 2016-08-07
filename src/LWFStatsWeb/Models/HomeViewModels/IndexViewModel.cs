@@ -33,7 +33,7 @@ namespace LWFStatsWeb.Models.HomeViewModels
         public string Tag { get; set; }
         public string Name { get; set; }
         public int Members { get; set; }
-        public string BadgeURL { get; set; }
+        public string BadgeUrl { get; set; }
 
         public string LinkID
         {

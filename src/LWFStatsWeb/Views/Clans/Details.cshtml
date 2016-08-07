@@ -15,7 +15,7 @@
 <div class="well" style="margin-top:20px;">
     <div class="row">
         <div class="col">
-            <img src="@Model.Clan.BadgeUrl.Small" style="float:left;margin-right:10px;margin-left:10px;margin-top:-15px;" />
+            <img src="@Model.Clan.BadgeUrl" style="float:left;margin-right:10px;margin-left:10px;margin-top:-15px;" />
             <h3 style="margin-top:10px;margin-bottom:0px">@Model.Clan.Name</h3>
             <div class="text-muted">@Model.Clan.Tag</div>
         </div>
@@ -29,7 +29,7 @@
         <div class="col-md-6">
             <div class="row">
                 <div class="col-xs-3"><b>Members:</b></div>
-                <div class="col-xs-3"><b>@Html.DisplayFor(model => model.Clan.MemberCount)/50</b></div>
+                <div class="col-xs-3"><b>@Html.DisplayFor(model => model.Clan.Members)/50</b></div>
                 <div class="col-xs-3"><b>Level:</b></div>
                 <div class="col-xs-3"><b>@Html.DisplayFor(model => model.Clan.ClanLevel)</b></div>
             </div>
@@ -69,7 +69,7 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars.Any(w =>
 
 <div class="tab-content">
     <div id="members" class="tab-pane in active">
-        @if (Model.Clan.Members != null)
+        @if (Model.Clan.MemberList != null)
         {
             <table id="myTable" class="table table-condensed table-hover table-responsive tablesorter">
                 <thead>
@@ -95,21 +95,21 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars.Any(w =>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var member in Model.Clan.Members.OrderBy(m => m.ClanRank))
-            {
-                var member_class = "";
-                if (member.Role == "leader")
-                {
-                    member_class = "text-danger";
-                }
-                else if (member.Role == "coLeader")
-                {
-                    member_class = "text-primary";
-                }
-                else if (member.Role == "member")
-                {
-                    member_class = "text-muted";
-                }
+                    @foreach (var member in Model.Clan.MemberList.OrderBy(m => m.ClanRank))
+                    {
+                        var member_class = "";
+                        if (member.Role == "leader")
+                        {
+                            member_class = "text-danger";
+                        }
+                        else if (member.Role == "coLeader")
+                        {
+                            member_class = "text-primary";
+                        }
+                        else if (member.Role == "member")
+                        {
+                            member_class = "text-muted";
+                        }
                 <tr class="@member_class">
                     <td>
                         @member.ClanRank
@@ -174,10 +174,10 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars.Any(w =>
                         @war.EndTime.ToString("yyyy-MM-dd")
                     </td>
                     <td>
-                        <a class="@war_class" asp-route-id="@war.OpponentResult.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.OpponentResult.Name</a>
+                        <a class="@war_class" asp-route-id="@war.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.OpponentName</a>
                     </td>
                     <td>
-                        @war.ClanResult.Stars - @war.OpponentResult.Stars
+                        @war.ClanStars - @war.OpponentStars
                     </td>
                 </tr>
                     }

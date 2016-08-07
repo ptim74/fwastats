@@ -76,29 +76,57 @@ namespace LWFStatsWeb.Logic
                 syncs.Add(sync);
             }
 
-            var clanList = (from c in db.Clans select c.Tag).ToList();
+            var clanList = (from c in db.ClanValidities select c).ToDictionary(c => c.Tag);
 
             foreach (var s in syncs)
             {
+                var searchTime = s.Start.AddHours(-47);
                 var latestWarStarted = s.Start;
 
                 var warQ = from w in db.Wars
-                           join o in db.WarOpponents on w.ID equals o.WarID
                            where w.EndTime >= s.Start && w.EndTime <= s.Finish
-                           select new { EndTime = w.EndTime, OpponentTag = o.Tag };
+                           select new { EndTime = w.EndTime, ClanTag = w.ClanTag, OpponentTag = w.OpponentTag };
+
+                s.MissedStarts = 0;
+                foreach (var clan in clanList.Values)
+                {
+                    if (clan.ValidFrom < searchTime && clan.ValidTo > searchTime)
+                        s.MissedStarts++;
+                }
 
                 foreach (var res in warQ)
                 {
                     if (res.EndTime > latestWarStarted)
                         latestWarStarted = res.EndTime;
-                    if (clanList.Contains(res.OpponentTag))
-                        s.AllianceMatches++;
-                    else
-                        s.WarMatches++;
+                    if (clanList.ContainsKey(res.ClanTag))
+                    {
+                        var clan = clanList[res.ClanTag];
+                        if (clan.ValidFrom < searchTime && clan.ValidTo > searchTime)
+                        {
+                            if (clanList.ContainsKey(res.OpponentTag))
+                            {
+                                var opponent = clanList[res.OpponentTag];
+                                if (opponent.ValidFrom < searchTime && opponent.ValidTo > searchTime)
+                                {
+                                    s.AllianceMatches++;
+                                    s.MissedStarts--;
+                                }
+                                else
+                                {
+                                    s.WarMatches++;
+                                    s.MissedStarts--;
+                                }
+                            }
+                            else
+                            {
+                                s.WarMatches++;
+                                s.MissedStarts--;
+                            }
+                        }
+                    }
                 }
 
                 s.Finish = latestWarStarted;
-                s.MissedStarts = clanList.Count - s.AllianceMatches - s.WarMatches;
 
                 db.WarSyncs.Add(s);
             }
@@ -111,10 +139,9 @@ namespace LWFStatsWeb.Logic
             var currentClans = db.Clans.ToDictionary(c => c.Tag);
             var validClans = db.ClanValidities.ToDictionary(l => l.Tag);
 
-            var firstMatches = (from o in db.WarOpponents
-                                join w in db.Wars on o.WarID equals w.ID
-                                group w by new { o.Tag } into g
-                                select new { Tag = g.Key.Tag, MinEndTime = g.Min(w => w.EndTime) }).ToDictionary(d => d.Tag);
+            var firstMatches = (from w in db.Wars
+                                group w by new { w.OpponentTag } into g
+                                select new { Tag = g.Key.OpponentTag, MinEndTime = g.Min(w => w.EndTime) }).ToDictionary(d => d.Tag);
 
             //Deleted clans
             foreach (var clan in validClans.Keys)

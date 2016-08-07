@@ -45,25 +45,33 @@ namespace LWFStatsWeb.Controllers
 
                     model.LatestSync.Name = latestSync.Name;
 
-                    var q = from w in db.Wars
-                            join o in db.WarOpponents on w.ID equals o.WarID
-                            where w.EndTime >= latestSync.Start && w.EndTime <= latestSync.Finish
-                            select o.Tag;
+                    var syncDate = latestSync.Start.AddDays(-2);
 
-                    foreach(var opponent in q)
+                    var validClanTags = (from f in db.ClanValidities
+                                         where f.ValidTo > syncDate && f.ValidFrom < syncDate
+                                         select f.Tag).ToList();
+
+                    model.LatestSync.NotStarted = validClanTags.Count;
+
+                    var wars = from w in db.Wars
+                            where w.EndTime >= latestSync.Start && w.EndTime <= latestSync.Finish
+                            select new { ClanTag = w.ClanTag, OpponentTag = w.OpponentTag };
+
+                    foreach(var war in wars)
                     {
-                        if (clanTags.Contains(opponent))
+                        if(validClanTags.Contains(war.ClanTag))
+                              model.LatestSync.NotStarted--;
+                        if (validClanTags.Contains(war.OpponentTag))
                             model.LatestSync.AllianceMatches++;
                         else
                             model.LatestSync.WarMatches++;
-                    }
-                    model.LatestSync.NotStarted = clanTags.Count() - model.LatestSync.AllianceMatches - model.LatestSync.WarMatches;
+                       }
                 }
 
-                var clansNeedingHelp = db.Clans.Include(c => c.BadgeUrl).Where(c => c.MemberCount >= 25).OrderBy(c => c.MemberCount).Take(5);
+                var clansNeedingHelp = db.Clans.Where(c => c.Members >= 25).OrderBy(c => c.Members).Take(5);
                 foreach(var clan in clansNeedingHelp)
                 {
-                    model.ClansNeedingHelp.Add(new ClanDetails { Tag = clan.Tag, Name = clan.Name, Members = clan.MemberCount, BadgeURL = clan.BadgeUrl.Small });
+                    model.ClansNeedingHelp.Add(new ClanDetails { Tag = clan.Tag, Name = clan.Name, Members = clan.Members, BadgeUrl = clan.BadgeUrl });
                 }
             }
             catch(Exception)

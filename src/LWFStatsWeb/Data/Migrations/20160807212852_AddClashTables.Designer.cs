@@ -8,14 +8,13 @@ using LWFStatsWeb.Data;
 namespace LWFStatsWeb.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20160704191554_AddClashIndexes")]
-    partial class AddClashIndexes
+    [Migration("20160807212852_AddClashTables")]
+    partial class AddClashTables
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
-                .HasAnnotation("ProductVersion", "1.0.0-rtm-21431")
-                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                .HasAnnotation("ProductVersion", "1.0.0-rtm-21431");
 
             modelBuilder.Entity("LWFStatsWeb.Models.ApplicationUser", b =>
                 {
@@ -71,24 +70,27 @@ namespace LWFStatsWeb.Data.Migrations
                     b.Property<string>("Tag")
                         .HasAnnotation("MaxLength", 10);
 
+                    b.Property<string>("BadgeUrl")
+                        .HasAnnotation("MaxLength", 150);
+
                     b.Property<int>("ClanLevel");
 
                     b.Property<int>("ClanPoints");
-
-                    b.Property<string>("ClanType")
-                        .HasAnnotation("MaxLength", 10);
 
                     b.Property<string>("Description")
                         .HasAnnotation("MaxLength", 300);
 
                     b.Property<bool>("IsWarLogPublic");
 
-                    b.Property<int>("MemberCount");
+                    b.Property<int>("Members");
 
                     b.Property<string>("Name")
                         .HasAnnotation("MaxLength", 50);
 
                     b.Property<int>("RequiredTrophies");
+
+                    b.Property<string>("Type")
+                        .HasAnnotation("MaxLength", 10);
 
                     b.Property<int>("WarLosses");
 
@@ -105,32 +107,34 @@ namespace LWFStatsWeb.Data.Migrations
                     b.ToTable("Clans");
                 });
 
-            modelBuilder.Entity("LWFStatsWeb.Models.ClanBadgeUrls", b =>
+            modelBuilder.Entity("LWFStatsWeb.Models.ClanValidity", b =>
                 {
-                    b.Property<string>("ClanTag")
+                    b.Property<string>("Tag")
                         .HasAnnotation("MaxLength", 10);
 
-                    b.Property<string>("Large")
-                        .HasAnnotation("MaxLength", 150);
+                    b.Property<string>("Name")
+                        .HasAnnotation("MaxLength", 50);
 
-                    b.Property<string>("Medium")
-                        .HasAnnotation("MaxLength", 150);
+                    b.Property<DateTime>("ValidFrom");
 
-                    b.Property<string>("Small")
-                        .HasAnnotation("MaxLength", 150);
+                    b.Property<DateTime>("ValidTo");
 
-                    b.HasKey("ClanTag");
+                    b.HasKey("Tag");
 
-                    b.HasIndex("ClanTag")
-                        .IsUnique();
+                    b.HasIndex("ValidFrom");
 
-                    b.ToTable("ClanBadgeUrls");
+                    b.HasIndex("ValidTo");
+
+                    b.ToTable("ClanValidities");
                 });
 
             modelBuilder.Entity("LWFStatsWeb.Models.Member", b =>
                 {
                     b.Property<string>("Tag")
                         .HasAnnotation("MaxLength", 10);
+
+                    b.Property<string>("BadgeUrl")
+                        .HasAnnotation("MaxLength", 150);
 
                     b.Property<int>("ClanRank");
 
@@ -185,10 +189,41 @@ namespace LWFStatsWeb.Data.Migrations
                     b.Property<string>("ID")
                         .HasAnnotation("MaxLength", 30);
 
+                    b.Property<int>("ClanAttacks");
+
+                    b.Property<string>("ClanBadgeUrl")
+                        .HasAnnotation("MaxLength", 150);
+
+                    b.Property<double>("ClanDestructionPercentage");
+
+                    b.Property<int>("ClanExpEarned");
+
+                    b.Property<int>("ClanLevel");
+
+                    b.Property<string>("ClanName")
+                        .HasAnnotation("MaxLength", 50);
+
+                    b.Property<int>("ClanStars");
+
                     b.Property<string>("ClanTag")
                         .HasAnnotation("MaxLength", 10);
 
                     b.Property<DateTime>("EndTime");
+
+                    b.Property<string>("OpponentBadgeUrl")
+                        .HasAnnotation("MaxLength", 150);
+
+                    b.Property<double>("OpponentDestructionPercentage");
+
+                    b.Property<int>("OpponentLevel");
+
+                    b.Property<string>("OpponentName")
+                        .HasAnnotation("MaxLength", 50);
+
+                    b.Property<int>("OpponentStars");
+
+                    b.Property<string>("OpponentTag")
+                        .HasAnnotation("MaxLength", 10);
 
                     b.Property<string>("Result")
                         .HasAnnotation("MaxLength", 10);
@@ -201,87 +236,9 @@ namespace LWFStatsWeb.Data.Migrations
 
                     b.HasIndex("EndTime");
 
+                    b.HasIndex("OpponentTag");
+
                     b.ToTable("Wars");
-                });
-
-            modelBuilder.Entity("LWFStatsWeb.Models.WarClanResult", b =>
-                {
-                    b.Property<string>("WarID")
-                        .HasAnnotation("MaxLength", 30);
-
-                    b.Property<int>("Attacks");
-
-                    b.Property<int>("ClanLevel");
-
-                    b.Property<double>("DestructionPercentage");
-
-                    b.Property<int>("ExpEarned");
-
-                    b.Property<string>("Name")
-                        .HasAnnotation("MaxLength", 50);
-
-                    b.Property<int>("Stars");
-
-                    b.Property<string>("Tag")
-                        .HasAnnotation("MaxLength", 10);
-
-                    b.HasKey("WarID");
-
-                    b.HasIndex("Tag");
-
-                    b.HasIndex("WarID")
-                        .IsUnique();
-
-                    b.ToTable("WarParticipants");
-                });
-
-            modelBuilder.Entity("LWFStatsWeb.Models.WarOpponentBadgeUrls", b =>
-                {
-                    b.Property<string>("WarID")
-                        .HasAnnotation("MaxLength", 30);
-
-                    b.Property<string>("Large")
-                        .HasAnnotation("MaxLength", 150);
-
-                    b.Property<string>("Medium")
-                        .HasAnnotation("MaxLength", 150);
-
-                    b.Property<string>("Small")
-                        .HasAnnotation("MaxLength", 150);
-
-                    b.HasKey("WarID");
-
-                    b.HasIndex("WarID")
-                        .IsUnique();
-
-                    b.ToTable("WarOpponentBadgeUrls");
-                });
-
-            modelBuilder.Entity("LWFStatsWeb.Models.WarOpponentResult", b =>
-                {
-                    b.Property<string>("WarID")
-                        .HasAnnotation("MaxLength", 30);
-
-                    b.Property<int>("ClanLevel");
-
-                    b.Property<double>("DestructionPercentage");
-
-                    b.Property<string>("Name")
-                        .HasAnnotation("MaxLength", 50);
-
-                    b.Property<int>("Stars");
-
-                    b.Property<string>("Tag")
-                        .HasAnnotation("MaxLength", 10);
-
-                    b.HasKey("WarID");
-
-                    b.HasIndex("Tag");
-
-                    b.HasIndex("WarID")
-                        .IsUnique();
-
-                    b.ToTable("WarOpponents");
                 });
 
             modelBuilder.Entity("LWFStatsWeb.Models.WarSync", b =>
@@ -415,50 +372,11 @@ namespace LWFStatsWeb.Data.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("LWFStatsWeb.Models.ClanBadgeUrls", b =>
-                {
-                    b.HasOne("LWFStatsWeb.Models.Clan", "Clan")
-                        .WithOne("BadgeUrl")
-                        .HasForeignKey("LWFStatsWeb.Models.ClanBadgeUrls", "ClanTag")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
             modelBuilder.Entity("LWFStatsWeb.Models.Member", b =>
                 {
                     b.HasOne("LWFStatsWeb.Models.Clan", "Clan")
-                        .WithMany("Members")
+                        .WithMany("MemberList")
                         .HasForeignKey("ClanTag");
-                });
-
-            modelBuilder.Entity("LWFStatsWeb.Models.War", b =>
-                {
-                    b.HasOne("LWFStatsWeb.Models.Clan", "Clan")
-                        .WithMany("Wars")
-                        .HasForeignKey("ClanTag");
-                });
-
-            modelBuilder.Entity("LWFStatsWeb.Models.WarClanResult", b =>
-                {
-                    b.HasOne("LWFStatsWeb.Models.War", "War")
-                        .WithOne("ClanResult")
-                        .HasForeignKey("LWFStatsWeb.Models.WarClanResult", "WarID")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("LWFStatsWeb.Models.WarOpponentBadgeUrls", b =>
-                {
-                    b.HasOne("LWFStatsWeb.Models.WarOpponentResult", "WarOpponent")
-                        .WithOne("BadgeUrl")
-                        .HasForeignKey("LWFStatsWeb.Models.WarOpponentBadgeUrls", "WarID")
-                        .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("LWFStatsWeb.Models.WarOpponentResult", b =>
-                {
-                    b.HasOne("LWFStatsWeb.Models.War", "War")
-                        .WithOne("OpponentResult")
-                        .HasForeignKey("LWFStatsWeb.Models.WarOpponentResult", "WarID")
-                        .OnDelete(DeleteBehavior.Cascade);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityRoleClaim<string>", b =>
