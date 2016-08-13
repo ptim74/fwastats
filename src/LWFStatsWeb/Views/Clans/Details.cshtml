@@ -172,9 +172,28 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars.Any(w =>
                 <tr class="@war_class">
                     <td>
                         @war.EndTime.ToString("yyyy-MM-dd")
+                        @if (Model.InAlliance && Model.Validity != null && Model.Validity.ValidFrom > war.SearchTime)
+                        {
+                            <span class="label label-default">Not in alliance</span>
+                        }
+                        else
+                        {
+                            @if (!war.Synced && Model.InAlliance)
+                            {
+                                <span class="label label-warning">Out of sync</span>
+                            }
+                        }
+                        @if (!Model.InAlliance && war.Matched)
+                        {
+                            <span class="label label-info">Alliance member</span>
+                        }
                     </td>
                     <td>
                         <a class="@war_class" asp-route-id="@war.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.OpponentName</a>
+                        @if (!war.Matched && Model.InAlliance)
+                        {
+                            <span class="label label-danger">War clan</span>
+                        }
                     </td>
                     <td>
                         @war.ClanStars - @war.OpponentStars

@@ -18,7 +18,16 @@
                 <span class="glyphicon glyphicon-user"></span>
             </th>
             <th>
-                <span>War Results</span>
+                <span>Group</span>
+            </th>
+            <th>
+                <span>Wars</span>
+            </th>
+            <th>
+                <span>Match%</span>
+            </th>
+            <th>
+                <span>Win%</span>
             </th>
         </tr>
     </thead>
@@ -36,21 +45,16 @@
                     @Html.DisplayFor(modelItem => clan.Members)
                 </td>
                 <td>
-                    @foreach (var warResult in clan.Results)
-                {
-                    if (warResult.Result == "win")
-                    {
-                            <div class="label label-success">&nbsp;</div>
-                        }
-                        else if (warResult.Result == "lose")
-                        {
-                            <div class="label label-danger">&nbsp;</div>
-                        }
-                        else
-                        {
-                            <div class="label label-default">&nbsp;</div>
-                        }
-                    }
+                    @clan.Group
+                </td>
+                <td>
+                    @clan.WarCount
+                </td>
+                <td>
+                    @clan.MatchPercentage
+                </td>
+                <td>
+                    @clan.WinPercentage
                 </td>
             </tr>
         }

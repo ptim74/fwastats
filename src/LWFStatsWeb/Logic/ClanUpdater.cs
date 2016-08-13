@@ -36,9 +36,14 @@ namespace LWFStatsWeb.Logic
                 task.ClanTag = oldItem.Key;
                 task.ClanName = oldItem.Value.Name;
                 if (newList.ContainsKey(oldItem.Key))
+                {
                     task.Mode = UpdateTaskMode.Update;
+                    task.ClanGroup = newList[oldItem.Key].Group;
+                }
                 else
+                {
                     task.Mode = UpdateTaskMode.Delete;
+                }
                 tasks.Add(task);
             }
 
@@ -50,6 +55,7 @@ namespace LWFStatsWeb.Logic
                     task.ID = Guid.NewGuid();
                     task.ClanTag = newItem.Key;
                     task.ClanName = newItem.Value.Name;
+                    task.ClanGroup = newItem.Value.Group;
                     task.Mode = UpdateTaskMode.Insert;
                     tasks.Add(task);
                 }

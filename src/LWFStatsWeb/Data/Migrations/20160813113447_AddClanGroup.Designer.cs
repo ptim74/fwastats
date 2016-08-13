@@ -8,9 +8,10 @@ using LWFStatsWeb.Data;
 namespace LWFStatsWeb.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20160813113447_AddClanGroup")]
+    partial class AddClanGroup
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.0.0-rtm-21431");
@@ -257,7 +258,7 @@ namespace LWFStatsWeb.Data.Migrations
 
                     b.HasIndex("EndTime");
 
-                    b.HasIndex("OpponentTag", "EndTime");
+                    b.HasIndex("OpponentTag");
 
                     b.ToTable("Wars");
                 });

@@ -72,3 +72,22 @@ html, body {
     min-height: 90%;
     border: 1px solid lightgray;
 }
+
+.header-jumbo {
+    margin-top: 20px;
+    background-image: url("/images/balloon_parade.jpg");
+    background-size: cover;
+    background-position: top center;
+}
+
+.header-jumbo h1 {
+    color: #fff;
+    font-weight: bold;
+    text-shadow: 2px 2px 3px #000;
+}
+
+.header-jumbo p {
+    color: #fff;
+    font-weight: bold;
+    text-shadow: 2px 2px 3px #000;
+}

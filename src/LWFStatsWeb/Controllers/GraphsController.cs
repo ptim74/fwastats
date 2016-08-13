@@ -29,8 +29,8 @@ namespace LWFStatsWeb.Controllers
 
             try
             {
-                var earliestStart = DateTime.Now;
-                var recentWars = db.WarSyncs.OrderByDescending(w => w.Start).Take(5).ToList();
+                var earliestStart = DateTime.UtcNow;
+                var recentWars = db.WarSyncs.OrderByDescending(w => w.Start).Take(10).ToList();
                 foreach (var recentWar in recentWars)
                 {
                     if (recentWar.Start < earliestStart)
@@ -54,7 +54,7 @@ namespace LWFStatsWeb.Controllers
 
                 foreach (var war in wars)
                 {
-                    if (clanList.ContainsKey(war.OpponentTag))
+                    if (clanList.ContainsKey(war.OpponentTag) && clanList.ContainsKey(war.ClanTag))
                     {
                         var clanId = 0;
                         var opponentId = 0;

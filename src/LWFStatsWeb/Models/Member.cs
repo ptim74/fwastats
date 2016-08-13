@@ -48,7 +48,10 @@ namespace LWFStatsWeb.Models
         public virtual Clan Clan { get; set; }
 
         [DataMember]
-        private League League;
+        private League League { get; set; }
+
+        [StringLength(30)]
+        public string LeagueName { get; set; }
 
         [StringLength(150)]
         public string BadgeUrl { get; set; }
@@ -56,9 +59,16 @@ namespace LWFStatsWeb.Models
         public void FixData(string clanTag)
         {
             ClanTag = clanTag;
+
             if (League != null)
-                if(League.IconUrls != null)
-                BadgeUrl = League.IconUrls.Small;
+            {
+                LeagueName = League.Name;
+
+                if (League.IconUrls != null)
+                {
+                    BadgeUrl = League.IconUrls.Tiny;
+                }
+            }
         }
     }
 }

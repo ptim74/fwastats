@@ -11,6 +11,7 @@ namespace LWFStatsWeb.Logic
     {
         void CalculateSyncs();
         void UpdateValidities();
+        void UpdateSyncMatch();
     }
 
     public class ClanStatistics : IClanStatistics
@@ -37,7 +38,7 @@ namespace LWFStatsWeb.Logic
                 dateQ.Enqueue(DateTime.MinValue);
 
             var oneHour = new TimeSpan(1, 0, 0);
-            var halfHour = new TimeSpan(0, 30, 0);
+            var twoHour = new TimeSpan(2, 0, 0);
 
             var sync = new WarSync();
 
@@ -49,18 +50,18 @@ namespace LWFStatsWeb.Logic
 
                 if (!sync.IsStarted)
                 {
-                    if (fewWarsStartetWithin < halfHour)
+                    if (fewWarsStartetWithin < oneHour)
                     {
                         sync.Start = fewWarsBeforeStartedAt;
                     }
                 }
                 else
                 {
-                    if (fewWarsStartetWithin > oneHour)
+                    if (fewWarsStartetWithin > twoHour)
                     {
                         //This will be fixed later, finish would be last value in queue
                         //TODO: test if dateQ.Last() would work
-                        sync.Finish = fewWarsBeforeStartedAt.Add(oneHour);
+                        sync.Finish = fewWarsBeforeStartedAt.Add(twoHour);
                         syncs.Add(sync);
                         sync = new WarSync();
                     }
@@ -72,7 +73,7 @@ namespace LWFStatsWeb.Logic
             //Latest sync is still active
             if (sync.IsStarted && !sync.IsFinished)
             {
-                sync.Finish = dateQ.Peek().Add(oneHour);
+                sync.Finish = dateQ.Peek().Add(twoHour);
                 syncs.Add(sync);
             }
 
@@ -80,7 +81,7 @@ namespace LWFStatsWeb.Logic
 
             foreach (var s in syncs)
             {
-                var searchTime = s.Start.AddHours(-47);
+                var searchTime = s.SearchTime;
                 var latestWarStarted = s.Start;
 
                 var warQ = from w in db.Wars
@@ -149,9 +150,9 @@ namespace LWFStatsWeb.Logic
                 if(!currentClans.Keys.Contains(clan))
                 {
                     var validClan = validClans[clan];
-                    if (validClan.ValidTo > DateTime.Now)
+                    if (validClan.ValidTo > DateTime.UtcNow)
                     {
-                        validClan.ValidTo = DateTime.Now;
+                        validClan.ValidTo = DateTime.UtcNow;
                         db.ClanValidities.Update(validClan);
                     }
                 }
@@ -163,31 +164,106 @@ namespace LWFStatsWeb.Logic
                 var currentClan = currentClans[clan];
                 if(!validClans.Keys.Contains(clan))
                 {
-                    var validClan = new ClanValidity() { Tag = clan, Name = currentClan.Name, ValidFrom = DateTime.Now, ValidTo = DateTime.MaxValue };
+                    var validClan = new ClanValidity() { Tag = clan, Name = currentClan.Name, ValidFrom = DateTime.UtcNow, ValidTo = DateTime.MaxValue, Group = currentClan.Group };
                     if (firstMatches.ContainsKey(clan))
-                        validClan.ValidFrom = firstMatches[clan].MinEndTime.AddDays(-1);
+                        validClan.ValidFrom = firstMatches[clan].MinEndTime.AddDays(-2);
                     db.ClanValidities.Add(validClan);
                 }
                 else
                 {
                     var validClan = validClans[clan];
-                    if(validClan.ValidTo < DateTime.Now)
+                    if(validClan.ValidTo < DateTime.UtcNow)
                     {
                         validClan.ValidTo = DateTime.MaxValue;
                         db.Entry(validClan).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                     }
                     if (firstMatches.ContainsKey(clan))
                     {
-                        if (validClan.ValidFrom > firstMatches[clan].MinEndTime)
+                        var firstSearch = firstMatches[clan].MinEndTime.AddDays(-2);
+                        if (validClan.ValidFrom > firstSearch)
                         {
-                            validClan.ValidFrom = firstMatches[clan].MinEndTime;
+                            validClan.ValidFrom = firstSearch;
                             db.Entry(validClan).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                         }
+                    }
+                    if(validClan.Group != currentClan.Group)
+                    {
+                        validClan.Group = currentClan.Group;
+                        db.Entry(validClan).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
                     }
                 }
             }
 
             db.SaveChanges();
+        }
+
+        public void UpdateSyncMatch()
+        {
+            var validClans = db.ClanValidities.ToDictionary(l => l.Tag);
+            var syncs = db.WarSyncs.OrderBy(w => w.Start).ToList();
+            var wars = db.Wars.OrderBy(w => w.EndTime).ToList();
+
+            if (syncs.Count() == 0 || validClans.Count() == 0 || wars.Count() == 0)
+                return;
+
+            var currentSync = syncs.First();
+            
+            foreach(var war in db.Wars)
+            {
+                var warModified = false;
+
+                if(war.EndTime < currentSync.Start || war.EndTime > currentSync.Finish)
+                {
+                    foreach(var sync in syncs)
+                    {
+                        if(war.EndTime >= sync.Start && war.EndTime <= sync.Finish)
+                        {
+                            currentSync = sync;
+                            break;
+                        }
+                    }
+                }
+
+                if(war.EndTime >= currentSync.Start && war.EndTime <= currentSync.Finish)
+                {
+                    if(!war.Synced)
+                    {
+                        war.Synced = true;
+                        warModified = true;
+                    }
+                }
+                else
+                {
+                    if (war.Synced)
+                    {
+                        war.Synced = false;
+                        warModified = true;
+                    }
+                }
+
+                var matched = false;
+                if(validClans.ContainsKey(war.OpponentTag))
+                {
+                    var opponent = validClans[war.OpponentTag];
+                    var searchTime = war.SearchTime;
+                    if (opponent.ValidFrom < searchTime && opponent.ValidTo > searchTime)
+                        matched = true;
+                }
+
+                if(war.Matched != matched)
+                {
+                    war.Matched = matched;
+                    warModified = true;
+                }
+
+                if(warModified)
+                {
+                    db.Update(war);
+                }
+            }
+
+            db.SaveChanges();
+
         }
     }
 }

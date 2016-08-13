@@ -40,7 +40,7 @@ namespace LWFStatsWeb.Controllers
                 {
                     var latestSync = recentSyncs.First();
 
-                    if (latestSync.Finish > DateTime.Now.AddHours(-1))
+                    if (latestSync.Start > DateTime.UtcNow.AddHours(-1))
                         latestSync = recentSyncs.Last();
 
                     model.LatestSync.Name = latestSync.Name;

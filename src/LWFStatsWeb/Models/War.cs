@@ -25,10 +25,10 @@ namespace LWFStatsWeb.Models
         public int TeamSize { get; set; } // 40
 
         [DataMember]
-        private WarClan Clan;
+        private WarClan Clan { get; set; }
 
         [DataMember]
-        private WarClan Opponent;
+        private WarClan Opponent { get; set; }
 
         [DataMember]
         public DateTime EndTime { get; set; }
@@ -58,6 +58,9 @@ namespace LWFStatsWeb.Models
  
         [StringLength(150)]
         public string OpponentBadgeUrl { get; set; }
+
+        public bool Synced { get; set; }
+        public bool Matched { get; set; }
 
         public void FixData()
         {
@@ -106,6 +109,16 @@ namespace LWFStatsWeb.Models
             get
             {
                 return OpponentTag.Replace("#", "");
+            }
+        }
+
+        public DateTime SearchTime
+        {
+            get
+            {
+                if (EndTime == DateTime.MinValue)
+                    return EndTime;
+                return EndTime.AddHours(-47);
             }
         }
 

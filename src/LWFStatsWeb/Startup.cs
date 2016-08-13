@@ -54,7 +54,7 @@ namespace LWFStatsWeb
                 .AddDefaultTokenProviders();
 
             services.AddOptions();
-            services.Configure<ClanListOptions>(Configuration.GetSection("ClanList"));
+            services.Configure<ClanListOptions>(Configuration.GetSection("ClanLists"));
             services.Configure<ClashApiOptions>(Configuration.GetSection("ClashApi"));
 
             services.AddMvc();

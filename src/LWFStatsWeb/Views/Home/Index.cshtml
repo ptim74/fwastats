@@ -1,14 +1,15 @@
 ﻿@model LWFStatsWeb.Models.HomeViewModels.IndexViewModel
 
 @{
-    ViewBag.Title = "Home Page";
-    ViewBag.MetaDescription = "Statistics of clans in Loot War Fellowship (LWF), Clash of Clans";
+    ViewBag.Title = "";
+    ViewBag.MetaDescription = "Statistics of clans in Farm War Alliance (FWA / FWAL), Clash of Clans";
 }
 
-<div class="row">
-    <div class="col">
-        <img class="img-responsive" src="~/images/clash_header.jpg" />
-    </div>
+<div class="jumbotron header-jumbo">
+    <h1>💎 FWA Stats</h1>
+    <p>
+        Statistics about FWA / FWAL clans and wars.
+    </p>
 </div>
 
 <div class="row">
@@ -90,7 +91,7 @@
         function drawChart() {
             var data = google.visualization.arrayToDataTable([
                 ['Wars', 'Count'],
-                ['LWF matches', @Model.LatestSync.AllianceMatches],
+                ['FWA matches', @Model.LatestSync.AllianceMatches],
                 ['War matches', @Model.LatestSync.WarMatches],
                 ['Did not start', @Model.LatestSync.NotStarted]
             ]);

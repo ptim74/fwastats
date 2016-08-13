@@ -56,10 +56,14 @@ namespace LWFStatsWeb.Controllers
                 if(!clans.ContainsKey(formerClan.Tag))
                 {
                     var syncClan = new SyncIndexClan { Tag = formerClan.Tag, Name = formerClan.Name, Results = new List<SyncIndexResult>() };
-                    syncClan.BadgeUrl = (from o in db.Wars
-                                            where o.OpponentTag == formerClan.Tag
-                                            orderby o.ID descending
-                                            select o.OpponentBadgeUrl).First();
+
+                    var clanBadges = (from o in db.Wars
+                                      where o.OpponentTag == formerClan.Tag
+                                      orderby o.EndTime descending
+                                      select o.OpponentBadgeUrl).ToList();
+
+                    if (clanBadges.Count > 0)
+                        syncClan.BadgeUrl = clanBadges.First();
                     
                     clans.Add(formerClan.Tag, syncClan);
                 }

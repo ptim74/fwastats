@@ -32,10 +32,18 @@ namespace LWFStatsWeb.Models
         public string Type { get; set; }
 
         [DataMember]
+        [StringLength(10)]
+        public string Group { get; set; }
+
+        [DataMember]
         public int Members { get; set; }
 
         [DataMember]
         public int RequiredTrophies { get; set; }
+
+        [DataMember]
+        [StringLength(20)]
+        public string WarFrequency { get; set; }
 
         [DataMember]
         public int WarWinStreak { get; set; }
@@ -59,6 +67,12 @@ namespace LWFStatsWeb.Models
         [DataMember]
         public virtual ICollection<Member> MemberList { get; set; }
 
+        [DataMember]
+        private Location Location { get; set; }
+
+        [StringLength(30)]
+        public string LocationName { get; set; }
+
         [NotMapped]
         [DataMember]
         public virtual ICollection<War> Wars { get; set; }
@@ -75,6 +89,11 @@ namespace LWFStatsWeb.Models
             if(BadgeUrls != null)
             {
                 BadgeUrl = BadgeUrls.Small;
+            }
+
+            if(Location != null)
+            {
+                LocationName = Location.Name;
             }
 
             if (MemberList != null)

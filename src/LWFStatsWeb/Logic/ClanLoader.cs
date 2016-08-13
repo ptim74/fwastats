@@ -9,13 +9,16 @@ using System.Threading.Tasks;
 
 namespace LWFStatsWeb.Logic
 {
-    public class ClanListOptions
+    public class ClanListOptions : List<ClanListDetails>
+    {
+    }
+
+    public class ClanListDetails
     {
         public string Url { get; set; }
-        public string Description { get; set; }
+        public string Code { get; set; }
         public int TagColumn { get; set; }
         public int NameColumn { get; set; }
-        public int DescriptionColumn { get; set; }
     }
 
     public interface IClanLoader
@@ -38,9 +41,9 @@ namespace LWFStatsWeb.Logic
 
         private List<ClanObject> Objects { get; set; }
 
-        protected async Task<string> LoadUrl()
+        protected async Task<string> LoadUrl(string url)
         {
-            var request = WebRequest.Create(options.Value.Url);
+            var request = WebRequest.Create(url);
             var response = await request.GetResponseAsync();
             using (var reader = new StreamReader(response.GetResponseStream()))
             {
@@ -54,35 +57,36 @@ namespace LWFStatsWeb.Logic
             Objects = new List<ClanObject>();
 
             var tagList = new List<string>();
-            var data = await LoadUrl();
 
-            foreach (var row in data.Split('\n'))
+            foreach(var listOptions in options.Value)
             {
-                var cells = row.Replace("\r", "").Split(',');
+                var data = await LoadUrl(listOptions.Url);
 
-                string tag = null;
-                string name = null;
-                string desc = null;
-
-                if (cells.Count() >= options.Value.TagColumn && options.Value.TagColumn > 0)
-                    tag = cells[options.Value.TagColumn - 1];
-                if (cells.Count() >= options.Value.NameColumn && options.Value.NameColumn > 0)
-                    name = cells[options.Value.NameColumn - 1];
-                if (cells.Count() >= options.Value.DescriptionColumn && options.Value.DescriptionColumn > 0)
-                    desc = cells[options.Value.DescriptionColumn - 1];
-
-                if (tag != null && tag.StartsWith("#"))
+                foreach (var row in data.Split('\n'))
                 {
-                    tag = tag.ToUpperInvariant();
-                    tag = tag.Replace("O", "0");
-                    if (!tagList.Contains(tag))
+                    var cells = row.Replace("\r", "").Split(',');
+
+                    string tag = null;
+                    string name = null;
+
+                    if (cells.Count() >= listOptions.TagColumn && listOptions.TagColumn > 0)
+                        tag = cells[listOptions.TagColumn - 1];
+                    if (cells.Count() >= listOptions.NameColumn && listOptions.NameColumn > 0)
+                        name = cells[listOptions.NameColumn - 1];
+
+                    if (tag != null && tag.StartsWith("#"))
                     {
-                        tagList.Add(tag);
-                        Objects.Add(new ClanObject { Tag = tag, Name = name, Description = desc });
-                    }
-                    else
-                    {
-                        Errors.Add(string.Format("Duplicate tag {0} for {1} in {2}", tag, name, options.Value.Description));
+                        tag = tag.ToUpperInvariant();
+                        tag = tag.Replace("O", "0");
+                        if (!tagList.Contains(tag))
+                        {
+                            tagList.Add(tag);
+                            Objects.Add(new ClanObject { Tag = tag, Name = name, Group = listOptions.Code });
+                        }
+                        else
+                        {
+                            Errors.Add(string.Format("Duplicate tag {0} for {1} in {2}", tag, name, listOptions.Code));
+                        }
                     }
                 }
             }

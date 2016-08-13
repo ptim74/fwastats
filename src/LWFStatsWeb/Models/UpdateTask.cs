@@ -20,6 +20,8 @@ namespace LWFStatsWeb.Models
         public string ClanTag { get; set; }
         [StringLength(50)]
         public string ClanName { get; set; }
+        [StringLength(10)]
+        public string ClanGroup { get; set; }
         public UpdateTaskMode Mode { get; set; }
     }
 }

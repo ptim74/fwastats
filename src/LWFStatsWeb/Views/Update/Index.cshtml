@@ -73,7 +73,7 @@
 @section scripts {
     <script type="text/javascript">
 
-    var total_updates = @insert_count + @update_count + @delete_count;
+    var total_updates = @insert_count + @update_count + @delete_count + 1;
     var updates_done = 0;
 
     function updateTask() {
@@ -92,25 +92,29 @@
         }
     }
 
+    function updateProgress(message) {
+
+        if (message)
+            $(".progress-bar").text(message);
+
+        var progress = Math.round(++updates_done * 100 / total_updates);
+
+        $(".progress-bar").attr("aria-valuenow", progress);
+        $(".progress-bar").attr("style", "width:" + progress + "%");
+
+    }
+
     function updateTaskCallback(data) {
         if (data && data.id) {
-            if(data.message)
-                $(".progress-bar").text(data.message);
-
             if(!data.status)
                 $(".alerts").append($("<div class='alert alert-danger'></div>").text(data.message));
-
-            var progress = Math.round(++updates_done * 100 / total_updates);
-
-            $(".progress-bar").attr("aria-valuenow",progress);
-            $(".progress-bar").attr("style","width:" + progress + "%");
-
+            updateProgress(data.message);
             updateTask();
         }
     }
 
     function updateFinishedCallback(data) {
-        $(".progress-bar").text(data.message);
+        updateProgress(data.message);
     }
 
     $(function () {

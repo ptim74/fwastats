@@ -36,6 +36,9 @@ namespace LWFStatsWeb.Logic
             list.Add(new ClanObject { Tag = "#LCPJL298", Name = "War Farmers 26" });
             list.Add(new ClanObject { Tag = "#LLPCJRYP", Name = "War Farmers 27" });
 
+            foreach (var clan in list)
+                clan.Group = "MOCK";
+
             return Task.FromResult(list);
         }
     }

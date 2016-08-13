@@ -48,6 +48,16 @@ namespace LWFStatsWeb.Controllers
             return model;
         }
 
+        protected async void DeleteTasks()
+        {
+            foreach(var task in db.UpdateTasks)
+            {
+                db.UpdateTasks.Remove(task);
+            }
+
+            await db.SaveChangesAsync();
+        }
+
         protected async Task<UpdateTaskResponse> PerformTask(string id)
         {
             var status = new UpdateTaskResponse();
@@ -68,7 +78,7 @@ namespace LWFStatsWeb.Controllers
 
                 if (task.Mode == UpdateTaskMode.Delete)
                 {
-                    var clan = db.Clans.Include(c => c.BadgeUrl).Single(c => c.Tag == task.ClanTag);
+                    var clan = db.Clans.Single(c => c.Tag == task.ClanTag);
                     if (clan != null)
                     {
                         var members = db.Members.Where(m => m.ClanTag == clan.Tag);
@@ -85,14 +95,18 @@ namespace LWFStatsWeb.Controllers
                 {
                     var clan = await api.GetClan(task.ClanTag, true);
 
+                    clan.Group = task.ClanGroup;
+
                     var existingClanQ = from c in db.Clans
                                         where c.Tag == task.ClanTag
                                         select new
                                         {
+                                            BadgeUrl = c.BadgeUrl,
                                             ClanLevel = c.ClanLevel,
                                             ClanPoints = c.ClanPoints,
                                             ClanType = c.Type,
                                             Description = c.Description,
+                                            Group = c.Group,
                                             IsWarLogPublic = c.IsWarLogPublic,
                                             MemberCount = c.Members,
                                             Name = c.Name,
@@ -100,8 +114,7 @@ namespace LWFStatsWeb.Controllers
                                             WarLosses = c.WarLosses,
                                             WarTies = c.WarTies,
                                             WarWins = c.WarWins,
-                                            WarWinStreak = c.WarWinStreak,
-                                            BadgeUrl = c.BadgeUrl 
+                                            WarWinStreak = c.WarWinStreak
                                         };
 
                     var existingClan = existingClanQ.ToList().First();
@@ -117,6 +130,8 @@ namespace LWFStatsWeb.Controllers
                     if (clan.Type != existingClan.ClanType)
                         clanModified = true;
                     if (clan.Description != existingClan.Description)
+                        clanModified = true;
+                    if (clan.Group != existingClan.Group)
                         clanModified = true;
                     if (clan.IsWarLogPublic != existingClan.IsWarLogPublic)
                         clanModified = true;
@@ -145,6 +160,7 @@ namespace LWFStatsWeb.Controllers
                                       select new
                                       {
                                           Tag = m.Tag,
+                                          BadgeUrl = m.BadgeUrl,
                                           ClanRank = m.ClanRank,
                                           ClanTag = m.ClanTag,
                                           Donations = m.Donations,
@@ -164,6 +180,8 @@ namespace LWFStatsWeb.Controllers
                             {
                                 var oldMember = oldMember1.First();
                                 var modified = false;
+                                if (clanMember.BadgeUrl != oldMember.BadgeUrl)
+                                    modified = true;
                                 if (clanMember.ClanRank != oldMember.ClanRank)
                                     modified = true;
                                 if (clanMember.ClanTag != oldMember.ClanTag)
@@ -227,6 +245,8 @@ namespace LWFStatsWeb.Controllers
                     var clan = await api.GetClan(task.ClanTag,true);
                     if (clan == null)
                         throw new Exception(string.Format("Clan {0} not found", task.ClanTag));
+
+                    clan.Group = task.ClanGroup;
 
                     var existingMembers = (from m in db.Members where m.ClanTag != task.ClanTag select m.Tag).ToList();
 
@@ -307,14 +327,30 @@ namespace LWFStatsWeb.Controllers
             }
         }
 
+        protected void PerformFinished()
+        {
+            this.DeleteTasks();
+            statistics.UpdateValidities();
+            statistics.CalculateSyncs();
+            statistics.UpdateSyncMatch();
+        }
+
+        // GET: Update
+        public IActionResult Finish()
+        {
+            var model = new IndexViewModel();
+            model.Errors = new List<string>();
+            model.Tasks = new List<UpdateTask>();
+            return View("Index", model);
+        }
+
         public IActionResult UpdateFinished()
         {
             var status = new UpdateTaskResponse { Message = "Done", Status = true };
 
             try
             {
-                statistics.UpdateValidities();
-                statistics.CalculateSyncs();
+                this.PerformFinished();
             }
             catch(Exception e)
             {

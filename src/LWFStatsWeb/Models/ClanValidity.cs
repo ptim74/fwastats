@@ -17,6 +17,9 @@ namespace LWFStatsWeb.Models
         [StringLength(50)]
         public string Name { get; set; }
 
+        [StringLength(10)]
+        public string Group { get; set; }
+
         [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
         public DateTime ValidFrom { get; set; }
 
@@ -25,7 +28,7 @@ namespace LWFStatsWeb.Models
 
         public bool IsValid()
         {
-            var now = DateTime.Now;
+            var now = DateTime.UtcNow;
             if (ValidFrom <= now && ValidTo >= now)
                 return true;
             return false;

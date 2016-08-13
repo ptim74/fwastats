@@ -45,5 +45,15 @@ namespace LWFStatsWeb.Models
                 return Finish != DateTime.MinValue;
             }
         }
+
+        public DateTime SearchTime
+        {
+            get
+            {
+                if (Start == DateTime.MinValue)
+                    return Start;
+                return Start.AddHours(-47);
+            }
+        }
     }
 }
