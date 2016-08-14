@@ -17,11 +17,14 @@ namespace LWFStatsWeb.Data.Migrations
                     ClanLevel = table.Column<int>(nullable: false),
                     ClanPoints = table.Column<int>(nullable: false),
                     Description = table.Column<string>(maxLength: 300, nullable: true),
+                    Group = table.Column<string>(maxLength: 10, nullable: true),
                     IsWarLogPublic = table.Column<bool>(nullable: false),
+                    LocationName = table.Column<string>(maxLength: 30, nullable: true),
                     Members = table.Column<int>(nullable: false),
                     Name = table.Column<string>(maxLength: 50, nullable: true),
                     RequiredTrophies = table.Column<int>(nullable: false),
                     Type = table.Column<string>(maxLength: 10, nullable: true),
+                    WarFrequency = table.Column<string>(maxLength: 20, nullable: true),
                     WarLosses = table.Column<int>(nullable: false),
                     WarTies = table.Column<int>(nullable: false),
                     WarWinStreak = table.Column<int>(nullable: false),
@@ -37,6 +40,7 @@ namespace LWFStatsWeb.Data.Migrations
                 columns: table => new
                 {
                     Tag = table.Column<string>(maxLength: 10, nullable: false),
+                    Group = table.Column<string>(maxLength: 10, nullable: true),
                     Name = table.Column<string>(maxLength: 50, nullable: true),
                     ValidFrom = table.Column<DateTime>(nullable: false),
                     ValidTo = table.Column<DateTime>(nullable: false)
@@ -51,6 +55,7 @@ namespace LWFStatsWeb.Data.Migrations
                 columns: table => new
                 {
                     ID = table.Column<Guid>(nullable: false),
+                    ClanGroup = table.Column<string>(maxLength: 10, nullable: true),
                     ClanName = table.Column<string>(maxLength: 50, nullable: true),
                     ClanTag = table.Column<string>(maxLength: 10, nullable: true),
                     Mode = table.Column<int>(nullable: false)
@@ -74,6 +79,7 @@ namespace LWFStatsWeb.Data.Migrations
                     ClanStars = table.Column<int>(nullable: false),
                     ClanTag = table.Column<string>(maxLength: 10, nullable: true),
                     EndTime = table.Column<DateTime>(nullable: false),
+                    Matched = table.Column<bool>(nullable: false),
                     OpponentBadgeUrl = table.Column<string>(maxLength: 150, nullable: true),
                     OpponentDestructionPercentage = table.Column<double>(nullable: false),
                     OpponentLevel = table.Column<int>(nullable: false),
@@ -81,6 +87,7 @@ namespace LWFStatsWeb.Data.Migrations
                     OpponentStars = table.Column<int>(nullable: false),
                     OpponentTag = table.Column<string>(maxLength: 10, nullable: true),
                     Result = table.Column<string>(maxLength: 10, nullable: true),
+                    Synced = table.Column<bool>(nullable: false),
                     TeamSize = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
@@ -116,6 +123,7 @@ namespace LWFStatsWeb.Data.Migrations
                     Donations = table.Column<int>(nullable: false),
                     DonationsReceived = table.Column<int>(nullable: false),
                     ExpLevel = table.Column<int>(nullable: false),
+                    LeagueName = table.Column<string>(maxLength: 30, nullable: true),
                     Name = table.Column<string>(maxLength: 50, nullable: true),
                     Role = table.Column<string>(maxLength: 10, nullable: true),
                     Trophies = table.Column<int>(nullable: false)
@@ -172,9 +180,9 @@ namespace LWFStatsWeb.Data.Migrations
                 column: "EndTime");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Wars_OpponentTag",
+                name: "IX_Wars_OpponentTag_EndTime",
                 table: "Wars",
-                column: "OpponentTag");
+                columns: new[] { "OpponentTag", "EndTime" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_WarSyncs_Finish",

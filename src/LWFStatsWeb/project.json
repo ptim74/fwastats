@@ -2,10 +2,12 @@
   "userSecretsId": "aspnet-LWFStatsWeb-38c3a7ca-3bf0-4276-9c1f-b74988336664",
 
   "dependencies": {
+    /*
     "Microsoft.NETCore.App": {
       "version": "1.0.0",
       "type": "platform"
     },
+    */
     "Microsoft.AspNetCore.Authentication.Cookies": "1.0.0",
     "Microsoft.AspNetCore.Diagnostics": "1.0.0",
     "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore": "1.0.0",
@@ -44,7 +46,8 @@
       "type": "build"
     },
     "Microsoft.Extensions.Options": "1.0.0",
-    "Microsoft.EntityFrameworkCore.Sqlite": "1.0.0"
+    "Microsoft.EntityFrameworkCore.Sqlite": "1.0.0",
+    "EPPlus": "4.1.0"
   },
 
   "tools": {
@@ -62,12 +65,25 @@
   },
 
   "frameworks": {
+    /*
     "netcoreapp1.0": {
       "imports": [
         "dotnet5.6",
         "portable-net45+win8"
       ]
-    }
+    },
+    */
+    "net46": {
+      "imports": [
+        "netcoreapp1.0",
+        "portable-net45+win8"
+      ]
+    }/*,
+    "dnx46": {
+      "frameworkAssemblies": {
+        "WindowsBase": "4.0.0"
+      }
+    }*/
   },
 
   "buildOptions": {
@@ -85,9 +101,7 @@
     "include": [
       "wwwroot",
       "Views",
-      "Areas/**/Views",
-      "appsettings.json",
-      "web.config"
+      "Areas/**/ Views", "appsettings.json", "web.config"
     ]
   },
 

@@ -8,8 +8,8 @@ using LWFStatsWeb.Data;
 namespace LWFStatsWeb.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20160809183334_AddLeagueAndLocation")]
-    partial class AddLeagueAndLocation
+    [Migration("20160813201838_AddClashTables")]
+    partial class AddClashTables
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -80,6 +80,9 @@ namespace LWFStatsWeb.Data.Migrations
                     b.Property<string>("Description")
                         .HasAnnotation("MaxLength", 300);
 
+                    b.Property<string>("Group")
+                        .HasAnnotation("MaxLength", 10);
+
                     b.Property<bool>("IsWarLogPublic");
 
                     b.Property<string>("LocationName")
@@ -116,6 +119,9 @@ namespace LWFStatsWeb.Data.Migrations
             modelBuilder.Entity("LWFStatsWeb.Models.ClanValidity", b =>
                 {
                     b.Property<string>("Tag")
+                        .HasAnnotation("MaxLength", 10);
+
+                    b.Property<string>("Group")
                         .HasAnnotation("MaxLength", 10);
 
                     b.Property<string>("Name")
@@ -180,6 +186,9 @@ namespace LWFStatsWeb.Data.Migrations
                     b.Property<Guid>("ID")
                         .ValueGeneratedOnAdd();
 
+                    b.Property<string>("ClanGroup")
+                        .HasAnnotation("MaxLength", 10);
+
                     b.Property<string>("ClanName")
                         .HasAnnotation("MaxLength", 50);
 
@@ -219,6 +228,8 @@ namespace LWFStatsWeb.Data.Migrations
 
                     b.Property<DateTime>("EndTime");
 
+                    b.Property<bool>("Matched");
+
                     b.Property<string>("OpponentBadgeUrl")
                         .HasAnnotation("MaxLength", 150);
 
@@ -237,6 +248,8 @@ namespace LWFStatsWeb.Data.Migrations
                     b.Property<string>("Result")
                         .HasAnnotation("MaxLength", 10);
 
+                    b.Property<bool>("Synced");
+
                     b.Property<int>("TeamSize");
 
                     b.HasKey("ID");
@@ -245,7 +258,7 @@ namespace LWFStatsWeb.Data.Migrations
 
                     b.HasIndex("EndTime");
 
-                    b.HasIndex("OpponentTag");
+                    b.HasIndex("OpponentTag", "EndTime");
 
                     b.ToTable("Wars");
                 });

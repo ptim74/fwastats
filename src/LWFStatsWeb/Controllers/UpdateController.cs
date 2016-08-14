@@ -294,6 +294,7 @@ namespace LWFStatsWeb.Controllers
             IndexViewModel model = null;
             try
             {
+                //db.Database.EnsureCreated();
                 db.Database.Migrate();
                 model = await GetUpdates();
             }

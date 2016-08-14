@@ -4,7 +4,7 @@
     ViewBag.Title = @Model.Clan.Name;
     if (Model.InAlliance)
     {
-        ViewBag.MetaDescription = @Model.Clan.Name + ", Loot War Fellowship (LWF), Clash of Clans";
+        ViewBag.MetaDescription = @Model.Clan.Name + ", Farm War Alliance (FWA), Clash of Clans";
     }
     else
     {
@@ -17,33 +17,38 @@
         <div class="col">
             <img src="@Model.Clan.BadgeUrl" style="float:left;margin-right:10px;margin-left:10px;margin-top:-15px;" />
             <h3 style="margin-top:10px;margin-bottom:0px">@Model.Clan.Name</h3>
-            <div class="text-muted">@Model.Clan.Tag</div>
+            <div class="text-muted">
+                @Model.Clan.Tag
+                @if(!string.IsNullOrEmpty(Model.Clan.Group))
+                {
+                    <span>#@Model.Clan.Group</span>
+                }
+                <a class="text-muted" href="http://kuilin.net/cc/clan.php?tag=@Model.Clan.LinkID"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">hocolate</span>C<span class="hidden-xs">lash</span></a>
+            </div>
         </div>
     </div>
     <div class="row">
-        <div class="col-md-6">
-            @Model.Clan.Description
-            <br class="visible-xs visible-sm" />
-            <br class="visible-xs visible-sm" />
+        <div class="col">
+            <p>@Model.Clan.Description</p>
         </div>
-        <div class="col-md-6">
+        <div class="col">
             <div class="row">
-                <div class="col-xs-3"><b>Members:</b></div>
-                <div class="col-xs-3"><b>@Html.DisplayFor(model => model.Clan.Members)/50</b></div>
-                <div class="col-xs-3"><b>Level:</b></div>
-                <div class="col-xs-3"><b>@Html.DisplayFor(model => model.Clan.ClanLevel)</b></div>
-            </div>
-            <div class="row">
-                <div class="col-xs-3"><b>W<span class="hidden-xs">in</span>/T<span class="hidden-xs">ie</span>/L<span class="hidden-xs">oss</span>:</b></div>
-                <div class="col-xs-3"><b>@Html.DisplayFor(model => model.Clan.WarWins)/@Html.DisplayFor(model => model.Clan.WarTies)/@Html.DisplayFor(model => model.Clan.WarLosses)</b></div>
-                <div class="col-xs-3"><b>Points:</b></div>
-                <div class="col-xs-3"><b>@Html.DisplayFor(model => model.Clan.ClanPoints)</b></div>
-            </div>
-            <div class="row">
-                <div class="col-xs-3"><b>Streak:</b></div>
-                <div class="col-xs-3"><b>@Html.DisplayFor(model => model.Clan.WarWinStreak)</b></div>
-                <div class="col-xs-3"><b>Trophies:</b></div>
-                <div class="col-xs-3"><b>@Html.DisplayFor(model => model.Clan.RequiredTrophies)</b></div>
+                <div class="col-xs-6 col-sm-3"><b>Location:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.LocationName)</b></div>
+                <div class="col-xs-6 col-sm-3"><b>War freq.:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.WarFrequency)</b></div>
+                <div class="col-xs-6 col-sm-3"><b>Members:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.Members)/50</b></div>
+                <div class="col-xs-6 col-sm-3"><b>Level:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.ClanLevel)</b></div>
+                <div class="col-xs-6 col-sm-3"><b>W<span class="hidden-xs">in</span>/T<span class="hidden-xs">ie</span>/L<span class="hidden-xs">oss</span>:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.WarWins)/@Html.DisplayFor(model => model.Clan.WarTies)/@Html.DisplayFor(model => model.Clan.WarLosses)</b></div>
+                <div class="col-xs-6 col-sm-3"><b>Points:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.ClanPoints)</b></div>
+                <div class="col-xs-6 col-sm-3"><b>Streak:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.WarWinStreak)</b></div>
+                <div class="col-xs-6 col-sm-3"><b>Trophies:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.RequiredTrophies)</b></div>
             </div>
         </div>
     </div>
@@ -74,9 +79,7 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars.Any(w =>
             <table id="myTable" class="table table-condensed table-hover table-responsive tablesorter">
                 <thead>
                     <tr>
-                        <th>
-                            #
-                        </th>
+                        <th width="36"></th>
                         <th>
                             L<span class="hidden-xs">evel</span>
                         </th>
@@ -98,27 +101,39 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars.Any(w =>
                     @foreach (var member in Model.Clan.MemberList.OrderBy(m => m.ClanRank))
                     {
                         var member_class = "";
+                        var member_role = "";
+                        var member_role2 = "";
                         if (member.Role == "leader")
                         {
-                            member_class = "text-danger";
+                            member_class = "label-danger";
+                            member_role = "L";
+                            member_role2 = "eader";
                         }
                         else if (member.Role == "coLeader")
                         {
-                            member_class = "text-primary";
+                            member_class = "label-primary";
+                            member_role = "C";
+                            member_role2 = "o-Leader";
                         }
-                        else if (member.Role == "member")
+                        else if (member.Role == "admin")
                         {
-                            member_class = "text-muted";
+                            member_class = "label-info";
+                            member_role = "E";
+                            member_role2 = "lder";
                         }
-                <tr class="@member_class">
-                    <td>
-                        @member.ClanRank
+                <tr>
+                    <td style="padding:0px;">
+                        <img src="@member.BadgeUrl" width="36" height="36" />
                     </td>
                     <td>
                         @member.ExpLevel
                     </td>
                     <td>
                         @member.Name
+                        @if (member_role != "")
+                        {
+                            <span class="text-right label @member_class">@member_role<span class="hidden-xs">@member_role2</span></span>
+                        }
                     </td>
                     <td>
                         @member.Donations

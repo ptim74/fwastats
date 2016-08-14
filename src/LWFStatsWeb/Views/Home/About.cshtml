@@ -3,14 +3,14 @@
     ViewBag.Title = "About";
 }
 
-<h2>About LWF Stats</h2>
+<h2>About FWA Stats</h2>
 
 <p>
     <a href="http://www.farmwaralliance.org/">FWA - Farm War Alliance</a> is alliance of clans in <a href="https://clashofclans.com/">Clash of Clans</a> game who try to sync with each other in clan wars.
 </p>
 
 <p>
-    <a href="http://fwastats.azurewebsites.net">💎 FWA Stats</a> uses clan list from <a href="tiny.cc/ProudFWA">Proud Clans of FWA</a> Google Sheet.
+    <a href="http://fwastats.azurewebsites.net">💎 FWA Stats</a> uses clan list from <a href="http://tiny.cc/ProudFWA">Proud Clans of FWA</a> Google Sheet.
     Clan and clanwar details are retrieved with <a href="https://developer.clashofclans.com/">Clash of Clans API</a>
     and stored into local <a href="https://www.sqlite.org/">SQLite</a> database to avoid exceeding API usage limits.
     Database is updated once per hour.
@@ -18,8 +18,8 @@
 
 <p>
     War sync window is calculated from all wars of entire alliance.
-    War is considered to be started when 10 wars have started within 30 minute time window,
-    and ended when less than 10 wars have started within 1 hour.
+    War is considered to be started when 10 wars have started within 1 hour time window,
+    and ended when less than 10 wars have started within 2 hours.
     If clan has started war outside calculated sync window, it is the same as if not started at all.
 </p>
 
