@@ -77,6 +77,9 @@ namespace LWFStatsWeb.Controllers
                 clanNames.Add(clan.Tag, clan.Name);
             }
 
+            ws.Cells[ws.Dimension.Address].AutoFilter = true;
+            ws.View.FreezePanes(2, 1);
+
             row = 1;
             col = 1;
 
@@ -115,6 +118,9 @@ namespace LWFStatsWeb.Controllers
                 ws.Cells[row, col++].Value = member.Role;
                 ws.Cells[row, col++].Value = member.Trophies;
             }
+
+            ws.Cells[ws.Dimension.Address].AutoFilter = true;
+            ws.View.FreezePanes(2, 1);
 
             var memorystream = new MemoryStream();
             pck.SaveAs(memorystream);
@@ -160,6 +166,9 @@ namespace LWFStatsWeb.Controllers
 
             }
 
+            ws.Cells[ws.Dimension.Address].AutoFilter = true;
+            ws.View.FreezePanes(2, 1);
+
             row = 1;
             col = 1;
 
@@ -187,6 +196,9 @@ namespace LWFStatsWeb.Controllers
                 ws.Cells[row, col++].Value = sync.WarMatches;
                 ws.Cells[row, col++].Value = sync.MissedStarts;
             }
+
+            ws.Cells[ws.Dimension.Address].AutoFilter = true;
+            ws.View.FreezePanes(2, 1);
 
             row = 1;
             col = 1;
@@ -235,6 +247,9 @@ namespace LWFStatsWeb.Controllers
                 ws.Cells[row, col++].Value = war.OpponentStars;
                 ws.Cells[row, col++].Value = war.OpponentDestructionPercentage;
             }
+
+            ws.Cells[ws.Dimension.Address].AutoFilter = true;
+            ws.View.FreezePanes(2, 1);
 
             var memorystream = new MemoryStream();
             pck.SaveAs(memorystream);

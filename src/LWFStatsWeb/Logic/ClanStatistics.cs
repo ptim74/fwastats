@@ -211,6 +211,13 @@ namespace LWFStatsWeb.Logic
             foreach(var war in db.Wars)
             {
                 var warModified = false;
+                var clanIsValid = false;
+                if(validClans.ContainsKey(war.ClanTag))
+                {
+                    var validClan = validClans[war.ClanTag];
+                    if (validClan.ValidFrom < war.SearchTime && validClan.ValidTo > war.SearchTime)
+                        clanIsValid = true;
+                }
 
                 if(war.EndTime < currentSync.Start || war.EndTime > currentSync.Finish)
                 {
@@ -224,7 +231,7 @@ namespace LWFStatsWeb.Logic
                     }
                 }
 
-                if(war.EndTime >= currentSync.Start && war.EndTime <= currentSync.Finish)
+                if(war.EndTime >= currentSync.Start && war.EndTime <= currentSync.Finish && war.TeamSize == 40 && clanIsValid)
                 {
                     if(!war.Synced)
                     {
