@@ -5,10 +5,8 @@ using System.Threading.Tasks;
 
 namespace LWFStatsWeb.Models.ClanViewModels
 {
-    public class IndexViewModel
+    public class IndexViewModel : List<ClanIndexClan>
     {
-        public bool InAlliance { get; set; }
-        public ClanValidity Validity { get; set; }
-        public Clan Clan { get; set; }
+        public string Group { get; set; }
     }
 }

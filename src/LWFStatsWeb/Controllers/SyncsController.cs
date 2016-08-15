@@ -18,19 +18,9 @@ namespace LWFStatsWeb.Controllers
             this.db = db;
         }
 
-        public ActionResult Index(int? count)
+        protected IndexViewModel GetData(string filter, int? count)
         {
             var clans = new Dictionary<string, SyncIndexClan>();
-
-            foreach (var clan in db.Clans.ToList())
-            {
-                var clanDetail = new SyncIndexClan();
-                clanDetail.Tag = clan.Tag;
-                clanDetail.Name = clan.Name;
-                clanDetail.BadgeUrl = clan.BadgeUrl;
-                clanDetail.Results = new List<SyncIndexResult>();
-                clans.Add(clan.Tag, clanDetail);
-            }
 
             var warsToTake = 3;
             if (count != null && count.HasValue)
@@ -48,8 +38,31 @@ namespace LWFStatsWeb.Controllers
 
             earliestWar = earliestWar.AddDays(-2);
 
-            var formerClans = (from f in db.ClanValidities
-                              where f.ValidTo > earliestWar select f).ToDictionary(f => f.Tag);
+            var clanQ = db.Clans.AsQueryable();
+            var formerClanQ = db.ClanValidities.Where(v => v.ValidTo > earliestWar);
+
+            if (filter.Equals("FWA"))
+            {
+                clanQ = clanQ.Where(c => c.Group == filter);
+                formerClanQ = formerClanQ.Where(c => c.Group == filter);
+            }
+            if (filter.Equals("FWAL"))
+            {
+                clanQ = clanQ.Where(c => c.Group == filter || c.Group == "LWF");
+                formerClanQ = formerClanQ.Where(c => c.Group == filter || c.Group == "LWF");
+            }
+
+            foreach (var clan in clanQ)
+            {
+                var clanDetail = new SyncIndexClan();
+                clanDetail.Tag = clan.Tag;
+                clanDetail.Name = clan.Name;
+                clanDetail.BadgeUrl = clan.BadgeUrl;
+                clanDetail.Results = new List<SyncIndexResult>();
+                clans.Add(clan.Tag, clanDetail);
+            }
+
+            var formerClans = formerClanQ.ToDictionary(f => f.Tag);
 
             foreach(var formerClan in formerClans.Values)
             {
@@ -119,11 +132,28 @@ namespace LWFStatsWeb.Controllers
 
             var data = new IndexViewModel();
 
+            data.Group = filter;
+
             data.Syncs = recentSyncs;
 
             data.Clans = clans.Values.OrderBy(c => c.Name).ToList();
 
-            return View(data);
+            return data;
+        }
+
+        public ActionResult Index(int? count)
+        {
+            return View(GetData("", count));
+        }
+
+        public ActionResult FWA(int? count)
+        {
+            return View("Index", GetData("FWA", count));
+        }
+
+        public ActionResult FWAL(int? count)
+        {
+            return View("Index", GetData("FWAL", count));
         }
     }
 }

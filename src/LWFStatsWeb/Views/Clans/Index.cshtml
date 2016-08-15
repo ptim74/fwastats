@@ -1,4 +1,4 @@
-@model List<LWFStatsWeb.Models.ClanViewModels.ClanIndexClan>
+@model LWFStatsWeb.Models.ClanViewModels.IndexViewModel
 
 @{
     ViewBag.Title = "Clans";
@@ -6,6 +6,18 @@
 }
 
 <h2>Clans</h2>
+
+@{ 
+    var grp_all = Model.Group == "" ? "active" : "";
+    var grp_fwa = Model.Group == "FWA" ? "active" : "";
+    var grp_fwal = Model.Group == "FWAL" ? "active" : "";
+}
+
+<ul class="pagination">
+    <li class="@grp_all"><a asp-area="" asp-controller="Clans" asp-action="Index">All</a></li>
+    <li class="@grp_fwa"><a asp-area="" asp-controller="Clans" asp-action="FWA">FWA</a></li>
+    <li class="@grp_fwal"><a asp-area="" asp-controller="Clans" asp-action="FWAL">FWAL</a></li>
+</ul>
 
 <table id="myTable" class="table table-hover table-responsive tablesorter">
     <thead>

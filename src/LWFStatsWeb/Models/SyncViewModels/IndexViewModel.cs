@@ -7,6 +7,8 @@ namespace LWFStatsWeb.Models.SyncViewModels
 {
     public class IndexViewModel
     {
+        public string Group { get; set; }
+
         public List<WarSync> Syncs;
 
         public List<SyncIndexClan> Clans { get; set; }

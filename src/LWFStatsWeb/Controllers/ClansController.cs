@@ -25,10 +25,11 @@ namespace LWFStatsWeb.Controllers
             this.api = api;
         }
 
-        // GET: Clans
-        public ActionResult Index()
+        public IndexViewModel GetClanList(string filter)
         {
-            var clans = new List<ClanIndexClan>();
+            var clans = new IndexViewModel();
+
+            clans.Group = filter;
 
             var wars = (from w in db.Wars
                         where w.Synced == true
@@ -45,7 +46,14 @@ namespace LWFStatsWeb.Controllers
                            group w by w.ClanTag into g
                            select new { Tag = g.Key, Matches = g.Count() }).ToDictionary(w => w.Tag);
 
-            foreach (var clan in db.Clans.ToList())
+            var clanQ = db.Clans.AsQueryable();
+
+            if (filter.Equals("FWA"))
+                clanQ = clanQ.Where(c => c.Group == filter);
+            if (filter.Equals("FWAL"))
+                clanQ = clanQ.Where(c => c.Group == filter || c.Group == "LWF");
+
+            foreach (var clan in clanQ.OrderBy(c => c.Name))
             {
                 var clanDetail = new ClanIndexClan();
                 clanDetail.Tag = clan.Tag;
@@ -54,7 +62,7 @@ namespace LWFStatsWeb.Controllers
                 clanDetail.BadgeUrl = clan.BadgeUrl;
                 clanDetail.Group = clan.Group;
 
-                if(wars.ContainsKey(clanDetail.Tag))
+                if (wars.ContainsKey(clanDetail.Tag))
                 {
                     clanDetail.WarCount = wars[clanDetail.Tag].Wars;
                     if (clanDetail.WarCount > 0)
@@ -75,7 +83,49 @@ namespace LWFStatsWeb.Controllers
                 clans.Add(clanDetail);
             }
 
-            return View(clans.OrderBy(c => c.Name).ToList());
+            return clans;
+        }
+
+        // GET: Clans
+        public ActionResult Index()
+        {
+            return View(GetClanList(""));
+        }
+
+        public ActionResult FWA()
+        {
+            return View("Index", GetClanList("FWA"));
+        }
+
+        public ActionResult FWAL()
+        {
+            return View("Index", GetClanList("FWAL"));
+        }
+
+        public ActionResult Former()
+        {
+            var clans = new List<FormerClan>();
+
+            var clanQ = from c in db.ClanValidities where c.ValidTo < DateTime.Now orderby c.Name select c;
+
+            var clanBadges = (from w in db.Wars group w by w.OpponentTag into g select new { Tag = g.Key, BadgeUrl = g.Max(w => w.OpponentBadgeUrl) }).ToDictionary(w => w.Tag);
+
+            foreach(var clan in clanQ)
+            {
+                var clanDetail = new FormerClan();
+                clanDetail.Tag = clan.Tag;
+                clanDetail.Name = clan.Name;
+                clanDetail.Group = clan.Group;
+                clanDetail.ValidFrom = clan.ValidFrom;
+                clanDetail.ValidTo = clan.ValidTo;
+
+                if (clanBadges.ContainsKey(clan.Tag))
+                    clanDetail.BadgeURL = clanBadges[clan.Tag].BadgeUrl;
+
+                clans.Add(clanDetail);
+            }
+
+            return View(clans);
         }
 
         protected List<War> GetPrivateWars(string id)
@@ -165,7 +215,7 @@ namespace LWFStatsWeb.Controllers
         public async Task<ActionResult> Details(string id)
         {
             var tag = LinkIdToTag(id);
-            var model = new IndexViewModel();
+            var model = new DetailsViewModel();
             model.InAlliance = db.Clans.Any(c => c.Tag == tag);
             model.Clan = await this.GetDetails(tag);
             model.Validity = await this.db.ClanValidities.SingleOrDefaultAsync(c => c.Tag == tag);
@@ -247,7 +297,7 @@ namespace LWFStatsWeb.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, [Bind("Tag,LinkID,ValidFrom,ValidTo")] ClanValidity clanValidity)
+        public async Task<IActionResult> Edit(string id, [Bind("Tag,Name,LinkID,Group,ValidFrom,ValidTo")] ClanValidity clanValidity)
         {
             var tag = LinkIdToTag(id);
 
@@ -260,93 +310,99 @@ namespace LWFStatsWeb.Controllers
             {
                 try
                 {
-                    var opp = db.Wars.Where(o => o.OpponentTag == tag).OrderBy(o => o.EndTime);
-                    if (opp.Count() > 0)
+                    //var opp = db.Wars.Where(o => o.OpponentTag == tag).OrderBy(o => o.EndTime).Select(o => o.OpponentName);
+                    //if (opp.Count() > 0)
+                    //{
+                    //clanValidity.Name = opp.Last();
+
+                    if (!this.ClanValidityExists(tag))
                     {
-                        clanValidity.Name = opp.Last().OpponentName;
-
-                        if (!this.ClanValidityExists(tag))
+                        if (clanValidity.ValidFrom < clanValidity.ValidTo)
                         {
-                            if (clanValidity.ValidFrom < clanValidity.ValidTo)
-                            {
-                                db.Add(clanValidity);
-                            }
+                            db.Add(clanValidity);
                         }
-                        else
+                    }
+                    else
+                    {
+                        if (clanValidity.ValidFrom == clanValidity.ValidTo)
                         {
-                            if (clanValidity.ValidFrom == clanValidity.ValidTo)
-                            {
-                                db.Remove(clanValidity);
-                            }
-                            else if (clanValidity.ValidFrom < clanValidity.ValidTo)
-                            {
-                                db.Update(clanValidity);
-                            }
+                            db.Remove(clanValidity);
                         }
-
-                        var clan = await api.GetClan(tag, true);
-
-                        if (!clan.IsWarLogPublic)
-                            clan.Wars = this.GetPrivateWars(tag);
-
-                        if (clan.Wars != null)
+                        else if (clanValidity.ValidFrom < clanValidity.ValidTo)
                         {
-                            var existingWars = db.Wars.Where(w => w.ClanTag == clan.Tag).ToDictionary(w => w.ID);
-                            var clanValidities = db.ClanValidities.ToDictionary(v => v.Tag);
-                            var syncs = db.WarSyncs.ToList();
+                            db.Update(clanValidity);
+                        }
+                    }
 
-                            foreach (var clanWar in clan.Wars)
+                    var clan = await api.GetClan(tag, true);
+
+                    if (!clan.IsWarLogPublic)
+                        clan.Wars = this.GetPrivateWars(tag);
+
+                    if (clan.Wars != null)
+                    {
+                        var existingWars = db.Wars.Where(w => w.ClanTag == clan.Tag).ToDictionary(w => w.ID);
+                        var clanValidities = db.ClanValidities.ToDictionary(v => v.Tag);
+                        var syncs = db.WarSyncs.ToList();
+
+                        foreach (var clanWar in clan.Wars)
+                        {
+                            if (clanWar.EndTime > clanValidity.ValidFrom && clanWar.EndTime < clanValidity.ValidTo)
                             {
-                                if (clanWar.EndTime > clanValidity.ValidFrom && clanWar.EndTime < clanValidity.ValidTo)
+                                if (clanValidities.ContainsKey(clanWar.OpponentTag))
                                 {
-                                    if (clanValidities.ContainsKey(clanWar.OpponentTag))
-                                    {
-                                        var opponentValidity = clanValidities[clanWar.OpponentTag];
-                                        var searchTime = clanWar.SearchTime;
-                                        if (opponentValidity.ValidFrom < searchTime && opponentValidity.ValidTo > searchTime)
-                                            clanWar.Matched = true;
-                                    }
+                                    var opponentValidity = clanValidities[clanWar.OpponentTag];
+                                    var searchTime = clanWar.SearchTime;
+                                    if (opponentValidity.ValidFrom < searchTime && opponentValidity.ValidTo > searchTime)
+                                        clanWar.Matched = true;
+                                }
 
-                                    var warSyncs = (from s in syncs where s.Start >= clanWar.EndTime && s.Finish <= clanWar.EndTime select s).ToList();
+                                var warSyncs = (from s in syncs where s.Start >= clanWar.EndTime && s.Finish <= clanWar.EndTime select s).ToList();
 
-                                    foreach (var warSync in warSyncs)
-                                    {
-                                        clanWar.Synced = true;
-                                    }
+                                foreach (var warSync in warSyncs)
+                                {
+                                    clanWar.Synced = true;
+                                }
 
-                                    if (!existingWars.ContainsKey(clanWar.ID))
+                                if (!existingWars.ContainsKey(clanWar.ID))
+                                {
+                                    db.Wars.Add(clanWar);
+                                }
+                                else
+                                {
+                                    var existingWar = existingWars[clanWar.ID];
+                                    if(existingWar.Matched != clanWar.Matched || existingWar.Synced != clanWar.Synced)
                                     {
-                                        db.Wars.Add(clanWar);
-                                    }
-                                    else
-                                    {
-                                        db.Entry(clanWar).State = EntityState.Modified;
+                                        existingWar.Matched = clanWar.Matched;
+                                        existingWar.Synced = clanWar.Synced;
+                                        db.Entry(existingWar).State = EntityState.Modified;
                                     }
                                 }
                             }
-
-                            foreach (var war in existingWars.Values)
-                                if (war.EndTime > clanValidity.ValidTo || war.EndTime < clanValidity.ValidFrom)
-                                    db.Entry(war).State = EntityState.Deleted;
                         }
 
-                        foreach(var war in opp)
-                        {
-                            var searchTime = war.SearchTime;
-                            var matched = false;
-                            if(clanValidity.ValidFrom <= searchTime && clanValidity.ValidTo >= searchTime)
-                            {
-                                matched = true;
-                            }
-                            if(war.Matched != matched)
-                            {
-                                war.Matched = matched;
-                                db.Entry(war).State = EntityState.Modified;
-                            }
-                        }
-
-                        await db.SaveChangesAsync();
+                        foreach (var war in existingWars.Values)
+                            if (war.EndTime > clanValidity.ValidTo || war.EndTime < clanValidity.ValidFrom)
+                                db.Entry(war).State = EntityState.Deleted;
                     }
+
+                    var opp = db.Wars.Where(o => o.OpponentTag == tag).OrderBy(o => o.EndTime);
+                    foreach(var war in opp)
+                    {
+                        var searchTime = war.SearchTime;
+                        var matched = false;
+                        if(clanValidity.ValidFrom <= searchTime && clanValidity.ValidTo >= searchTime)
+                        {
+                            matched = true;
+                        }
+                        if(war.Matched != matched)
+                        {
+                            war.Matched = matched;
+                            db.Entry(war).State = EntityState.Modified;
+                        }
+                    }
+ 
+                    await db.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
