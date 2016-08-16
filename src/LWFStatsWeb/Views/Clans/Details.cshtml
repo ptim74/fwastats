@@ -60,7 +60,7 @@
         Clan left alliance <a asp-route-id="@Model.Clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Edit">@Model.Validity.ValidTo.ToString("yyyy-MM-dd")</a>.
     </div>
 }
-else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars.Any(w => w.Result == "lose"))
+else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars != null && Model.Clan.Wars.Any(w => w.Result == "lose"))
 {
     <div class="alert alert-info">
         <a asp-route-id="@Model.Clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Edit">Mark clan as former alliance member</a>
@@ -157,14 +157,17 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars.Any(w =>
             <table id="myTable2" class="table table-condensed table-hover table-responsive tablesorter">
                 <thead>
                     <tr>
-                        <th>
-                            Date
+                        <th class="text-right">Clan</th>
+                        <th width="35"></th>
+                        <th class="text-nowrap text-center" width="35">
+                            Result
                         </th>
+                        <th width="35"></th>
                         <th>
                             Opponent
                         </th>
                         <th>
-                            Stars
+                            Date
                         </th>
                     </tr>
                 </thead>
@@ -185,33 +188,50 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars.Any(w =>
                     war_class = "text-muted";
                 }
                 <tr class="@war_class">
-                    <td>
-                        @war.EndTime.ToString("yyyy-MM-dd")
-                        @if (Model.InAlliance && Model.Validity != null && Model.Validity.ValidFrom > war.SearchTime)
+                    <td class="text-right text-nowrap">
+                        @if (Model.Validity != null && (Model.Validity.ValidFrom > war.SearchTime || Model.Validity.ValidTo < war.SearchTime ))
                         {
-                            <span class="label label-default">Not in alliance</span>
+                            <span class="label label-danger">W<span class="hidden-xs">ar clan</span></span>
                         }
-                        else
+                        @if (Model.Validity == null)
                         {
-                            @if (!war.Synced && Model.InAlliance)
-                            {
-                                <span class="label label-warning">Out of sync</span>
-                            }
+                            <span class="label label-danger">W<span class="hidden-xs">ar clan</span></span>
                         }
-                        @if (!Model.InAlliance && war.Matched)
-                        {
-                            <span class="label label-info">Alliance member</span>
-                        }
+                        @war.ClanName
+                        <br />
+                        <small class="text-info">@war.ClanExpEarned xp</small>
+                        <small class="text-muted">@war.ClanDestructionPercentage.ToString("0.#") %</small>
+                        <small class="text-warning" style="font-weight:bold">@war.ClanStars <span class="glyphicon glyphicon-star" /></small>
                     </td>
-                    <td>
+                    <td style="vertical-align:middle">
+                        <img src="@war.ClanBadgeUrl" width="35" height="35" />
+                    </td>
+                    <td class="text-nowrap text-center" width="35">
+                        @war.Result
+                        <br />
+                        <small class="text-muted text-center text-nowrap">@war.TeamSize vs @war.TeamSize</small>
+                    </td>
+                    <td style="vertical-align:middle">
+                        <img src="@war.OpponentBadgeUrl" width="35" height="35" />
+                    </td>
+                    <td class="text-nowrap">
                         <a class="@war_class" asp-route-id="@war.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.OpponentName</a>
                         @if (!war.Matched && Model.InAlliance)
                         {
-                            <span class="label label-danger">War clan</span>
+                            <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
                         }
+                        <br />
+                        <small class="text-warning" style="font-weight:bold">@war.OpponentStars <span class="glyphicon glyphicon-star" /></small>
+                        <small class="text-muted">@war.OpponentDestructionPercentage.ToString("0.#") %</small>
                     </td>
-                    <td>
-                        @war.ClanStars - @war.OpponentStars
+                    <td class="text-nowrap">
+                        <span class="hidden-xs">@war.EndTime.ToString("yyyy-MM-dd")</span>
+                        <span class="visible-xs">@DateTime.UtcNow.Subtract(@war.EndTime).Days<span>d ago</span></span>
+                        <br />
+                        @if (!war.Synced)
+                        {
+                            <small class="label label-warning">Out of sync</small>
+                        }
                     </td>
                 </tr>
                     }

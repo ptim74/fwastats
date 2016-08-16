@@ -39,7 +39,7 @@
                     @Html.DisplayFor(modelItem => clan.Wars)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => clan.LatestDate)
+                    @clan.LatestDate.ToString("yyyy-MM-dd")
                 </td>
                 <td>
                     <a asp-route-id="@clan.LatestLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.LatestClan</a>

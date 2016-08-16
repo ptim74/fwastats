@@ -13,7 +13,7 @@ namespace LWFStatsWeb.Models.ClanViewModels
         public int Wars { get; set; }
         public string LatestClan { get; set; }
         public string LatestTag { get; set; }
-        public string LatestDate { get; set; }
+        public DateTime LatestDate { get; set; }
 
         public string LinkID
         {

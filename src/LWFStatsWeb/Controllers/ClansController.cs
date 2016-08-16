@@ -224,35 +224,32 @@ namespace LWFStatsWeb.Controllers
 
         public ActionResult Following()
         {
-            var clans = new List<FollowingClan>();
+            var clans = new Dictionary<string, FollowingClan>();
 
-            var followers = from o in db.Wars
-                            where !db.ClanValidities.Any(v => v.Tag == o.OpponentTag)
-                            group o by new { o.OpponentTag, o.OpponentName } into grp
-                            where grp.Count() > 1
-                            select new { Tag = grp.Key.OpponentTag, Name = grp.Key.OpponentName, Count = grp.Count(), WarID = grp.Max(o => o.ID) };
+            var mismatches = from w in db.Wars where w.Synced == true && w.Matched == false orderby w.ID select w;
 
-            foreach (var follower in followers.ToList())
+            foreach(var mismatch in mismatches)
             {
-                var clan = new FollowingClan { Tag = follower.Tag, Name = follower.Name, Wars = follower.Count };
-
-                var extraQ = from w in db.Wars
-                             join v in db.ClanValidities on w.ClanTag equals v.Tag
-                             where w.ID == follower.WarID
-                             select new { Tag = v.Tag, ClanName = v.Name, EndTime = w.EndTime, BadgeURL = w.ClanBadgeUrl };
-
-                foreach (var extra in extraQ.ToList())
+                FollowingClan followingClan = null;
+                if (!clans.ContainsKey(mismatch.OpponentTag))
                 {
-                    clan.BadgeURL = extra.BadgeURL;
-                    clan.LatestClan = extra.ClanName;
-                    clan.LatestTag = extra.Tag;
-                    clan.LatestDate = extra.EndTime.ToString("yyyy-MM-dd");
+                    followingClan = new FollowingClan { Tag = mismatch.OpponentTag };
+                    clans.Add(mismatch.OpponentTag, followingClan);
+                }
+                else
+                {
+                    followingClan = clans[mismatch.OpponentTag];
                 }
 
-                clans.Add(clan);
+                followingClan.Name = mismatch.OpponentName;
+                followingClan.BadgeURL = mismatch.OpponentBadgeUrl;
+                followingClan.Wars++;
+                followingClan.LatestTag = mismatch.ClanTag;
+                followingClan.LatestClan = mismatch.ClanName;
+                followingClan.LatestDate = mismatch.EndTime;
             }
 
-            return View(clans.OrderByDescending(c => c.LatestDate).ToList());
+            return View(clans.Values.Where(c => c.Wars > 1).OrderByDescending(c => c.LatestDate).ToList());
         }
 
         // GET: Clans/Edit/5
