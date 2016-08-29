@@ -30,7 +30,7 @@ namespace LWFStatsWeb.Controllers
             try
             {
                 var earliestStart = DateTime.UtcNow;
-                var recentWars = db.WarSyncs.OrderByDescending(w => w.Start).Take(10).ToList();
+                var recentWars = db.WarSyncs.OrderByDescending(w => w.Start).Take(6).ToList();
                 foreach (var recentWar in recentWars)
                 {
                     if (recentWar.Start < earliestStart)

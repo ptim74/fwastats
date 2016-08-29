@@ -46,16 +46,13 @@
                 @foreach (var warResult in clan.Results)
                 {
                     var result_class = "";
-                    if (warResult.IsAlliance)
+                    if (warResult.Result == "win")
                     {
-                        if (warResult.Result == "win")
-                        {
-                            result_class = "text-success";
-                        }
-                        else
-                        {
-                            result_class = "text-danger";
-                        }
+                        result_class = "text-success";
+                    }
+                    else if (warResult.Result == "lose")
+                    {
+                        result_class = "text-danger";
                     }
                     else
                     {
@@ -63,6 +60,10 @@
                     }
                     <td>
                         <a class="@result_class" asp-route-id="@warResult.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@warResult.OpponentName</a>
+                        @if (!string.IsNullOrEmpty(warResult.OpponentTag) && !warResult.IsAlliance)
+                        {
+                            <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
+                        }
                     </td>
                 }
             </tr>

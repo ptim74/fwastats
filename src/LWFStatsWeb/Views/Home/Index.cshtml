@@ -16,34 +16,20 @@
     @if (Model.ClansNeedingHelp.Count > 0)
     {
         <div class="col-sm-6">
-            <h2>Clans recruiting</h2>
+            <h2>Clans needing help</h2>
             @foreach (var clan in Model.ClansNeedingHelp.OrderBy(c => c.Members))
             {
-                var members_needed = 40 - clan.Members;
-                var plural = "s";
-                var extra_members = members_needed * -1;
-                if (extra_members == 1 || members_needed == 1)
+                var members_class = "text-success";
+                if (clan.Members < 40)
                 {
-                    plural = "";
+                    members_class = "text-danger";
                 }
-                if (members_needed > 0)
-                {
-                    <div>
-                        <a class="text-danger" asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">
-                            <img src="@clan.BadgeUrl" width="35" height="35" />
-                            @clan.Name needs <b>@members_needed</b> member<span>@plural</span>
-                        </a>
-                    </div>
-                }
-                else
-                {
-                    <div>
-                        <a class="text-success" asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">
-                            <img src="@clan.BadgeUrl" width="35" height="35" />
-                            @clan.Name has <b>@extra_members</b> spare member<span>@plural</span>
-                        </a>
-                    </div>
-                }
+                <div>
+                    <a class="@members_class" asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">
+                        <img src="@clan.BadgeUrl" width="35" height="35" />
+                        @clan.Name has <b>@clan.Members</b> members<span></span>
+                    </a>
+                </div>
             }
         </div>
     }

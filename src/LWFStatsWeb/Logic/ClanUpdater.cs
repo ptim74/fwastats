@@ -35,10 +35,11 @@ namespace LWFStatsWeb.Logic
                 task.ID = Guid.NewGuid();
                 task.ClanTag = oldItem.Key;
                 task.ClanName = oldItem.Value.Name;
-                if (newList.ContainsKey(oldItem.Key))
+                ClanObject newItem;
+                if (newList.TryGetValue(oldItem.Key, out newItem))
                 {
                     task.Mode = UpdateTaskMode.Update;
-                    task.ClanGroup = newList[oldItem.Key].Group;
+                    task.ClanGroup = newItem.Group;
                 }
                 else
                 {

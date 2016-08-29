@@ -27,60 +27,53 @@ namespace LWFStatsWeb.Controllers
 
         public IndexViewModel GetClanList(string filter)
         {
-            var clans = new IndexViewModel();
+            var clans = new IndexViewModel { Group = filter };
 
-            clans.Group = filter;
-
-            var wars = (from w in db.Wars
+            var wars = (from w in db.Wars.Select(w => new { w.ClanTag, w.Synced })
                         where w.Synced == true
                         group w by w.ClanTag into g
-                        select new { Tag = g.Key, Wars = g.Count() }).ToDictionary(w => w.Tag);
+                        select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
 
-            var wins = (from w in db.Wars
+            var wins = (from w in db.Wars.Select(w => new { w.ClanTag, w.Synced, w.Result })
                         where w.Synced == true && w.Result == "win"
                         group w by w.ClanTag into g
-                        select new { Tag = g.Key, Wins = g.Count() }).ToDictionary(w => w.Tag);
+                        select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
 
-            var matches = (from w in db.Wars
+            var matches = (from w in db.Wars.Select(w => new { w.ClanTag, w.Synced, w.Matched })
                            where w.Synced == true && w.Matched == true
                            group w by w.ClanTag into g
-                           select new { Tag = g.Key, Matches = g.Count() }).ToDictionary(w => w.Tag);
+                           select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
 
-            var clanQ = db.Clans.AsQueryable();
+            var clanQ = db.Clans.Select(c => new ClanIndexClan
+            {
+                Tag = c.Tag,
+                Name = c.Name,
+                Members = c.Members,
+                BadgeUrl = c.BadgeUrl,
+                Group = c.Group
+            });
 
             if (filter.Equals("FWA"))
                 clanQ = clanQ.Where(c => c.Group == filter);
             if (filter.Equals("FWAL"))
                 clanQ = clanQ.Where(c => c.Group == filter || c.Group == "LWF");
 
-            foreach (var clan in clanQ.OrderBy(c => c.Name))
+            foreach (var clan in clanQ.OrderBy(c => c.Name.ToLower()))
             {
-                var clanDetail = new ClanIndexClan();
-                clanDetail.Tag = clan.Tag;
-                clanDetail.Name = clan.Name;
-                clanDetail.Members = clan.Members;
-                clanDetail.BadgeUrl = clan.BadgeUrl;
-                clanDetail.Group = clan.Group;
+                int warCount, winCount, matchCount;
 
-                if (wars.ContainsKey(clanDetail.Tag))
+                if (wars.TryGetValue(clan.Tag, out warCount))
+                    clan.WarCount = warCount;
+
+                if(clan.WarCount > 0)
                 {
-                    clanDetail.WarCount = wars[clanDetail.Tag].Wars;
-                    if (clanDetail.WarCount > 0)
-                    {
-                        if (wins.ContainsKey(clanDetail.Tag))
-                        {
-                            var winCount = wins[clanDetail.Tag].Wins;
-                            clanDetail.WinPercentage = winCount * 100 / clanDetail.WarCount;
-                        }
-                        if (matches.ContainsKey(clanDetail.Tag))
-                        {
-                            var matchCount = matches[clanDetail.Tag].Matches;
-                            clanDetail.MatchPercentage = matchCount * 100 / clanDetail.WarCount;
-                        }
-                    }
+                    if (wins.TryGetValue(clan.Tag, out winCount))
+                        clan.WinPercentage = winCount * 100 / clan.WarCount;
+                    if (matches.TryGetValue(clan.Tag, out matchCount))
+                        clan.MatchPercentage = matchCount * 100 / clan.WarCount;
                 }
 
-                clans.Add(clanDetail);
+                clans.Add(clan);
             }
 
             return clans;
@@ -106,9 +99,9 @@ namespace LWFStatsWeb.Controllers
         {
             var clans = new List<FormerClan>();
 
-            var clanQ = from c in db.ClanValidities where c.ValidTo < DateTime.Now orderby c.Name select c;
+            var clanQ = from c in db.ClanValidities where c.ValidTo < DateTime.Now orderby c.Name.ToLower() select c;
 
-            var clanBadges = (from w in db.Wars group w by w.OpponentTag into g select new { Tag = g.Key, BadgeUrl = g.Max(w => w.OpponentBadgeUrl) }).ToDictionary(w => w.Tag);
+            var clanBadges = (from w in db.Wars group w by w.OpponentTag into g select new { Tag = g.Key, BadgeUrl = g.Max(w => w.OpponentBadgeUrl) }).ToDictionary(w => w.Tag, w => w.BadgeUrl);
 
             foreach(var clan in clanQ)
             {
@@ -119,8 +112,10 @@ namespace LWFStatsWeb.Controllers
                 clanDetail.ValidFrom = clan.ValidFrom;
                 clanDetail.ValidTo = clan.ValidTo;
 
-                if (clanBadges.ContainsKey(clan.Tag))
-                    clanDetail.BadgeURL = clanBadges[clan.Tag].BadgeUrl;
+                string badgeUrl;
+
+                if (clanBadges.TryGetValue(clan.Tag, out badgeUrl))
+                    clanDetail.BadgeURL = badgeUrl;
 
                 clans.Add(clanDetail);
             }
@@ -231,14 +226,10 @@ namespace LWFStatsWeb.Controllers
             foreach(var mismatch in mismatches)
             {
                 FollowingClan followingClan = null;
-                if (!clans.ContainsKey(mismatch.OpponentTag))
+                if (!clans.TryGetValue(mismatch.OpponentTag, out followingClan))
                 {
                     followingClan = new FollowingClan { Tag = mismatch.OpponentTag };
                     clans.Add(mismatch.OpponentTag, followingClan);
-                }
-                else
-                {
-                    followingClan = clans[mismatch.OpponentTag];
                 }
 
                 followingClan.Name = mismatch.OpponentName;

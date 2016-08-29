@@ -51,9 +51,7 @@ namespace LWFStatsWeb.Controllers
             ws.Cells[row, col++].Value = "WarWins";
             ws.Cells[row, col++].Value = "WarWinStreak";
 
-            var clanNames = new Dictionary<string, string>();
-
-            foreach (var clan in db.Clans)
+            foreach (var clan in db.Clans.OrderBy(c => c.Name.ToLower()))
             {
                 row++;
                 col = 1;
@@ -73,8 +71,6 @@ namespace LWFStatsWeb.Controllers
                 ws.Cells[row, col++].Value = clan.WarTies;
                 ws.Cells[row, col++].Value = clan.WarWins;
                 ws.Cells[row, col++].Value = clan.WarWinStreak;
-
-                clanNames.Add(clan.Tag, clan.Name);
             }
 
             ws.Cells[ws.Dimension.Address].AutoFilter = true;
@@ -99,15 +95,13 @@ namespace LWFStatsWeb.Controllers
             ws.Cells[row, col++].Value = "Role";
             ws.Cells[row, col++].Value = "Trophies";
 
-            foreach (var member in from m in db.Members orderby m.ClanTag, m.ClanRank select m)
+            foreach (var clanMember in from m in db.Members join c in db.Clans on m.ClanTag equals c.Tag orderby c.Name.ToLower(), m.ClanRank select new { ClanName = c.Name, Member = m })
             {
-                var clanName = "";
-                if (clanNames.ContainsKey(member.ClanTag))
-                    clanName = clanNames[member.ClanTag];
+                var member = clanMember.Member;
                 row++;
                 col = 1;
                 ws.Cells[row, col++].Value = member.ClanTag;
-                ws.Cells[row, col++].Value = clanName;
+                ws.Cells[row, col++].Value = clanMember.ClanName;
                 ws.Cells[row, col++].Value = member.Tag;
                 ws.Cells[row, col++].Value = member.Name;
                 ws.Cells[row, col++].Value = member.ClanRank;
@@ -149,7 +143,7 @@ namespace LWFStatsWeb.Controllers
 
             var activeClans = db.Clans.Select(c => c.Tag).ToList();
 
-            foreach (var clan in db.ClanValidities.OrderBy(c => c.Name))
+            foreach (var clan in db.ClanValidities.OrderBy(c => c.Name.ToLower()))
             {
                 row++;
                 col = 1;

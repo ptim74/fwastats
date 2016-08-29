@@ -36,6 +36,7 @@ namespace LWFStatsWeb.Controllers
                 model.Counters.SyncCount = db.WarSyncs.Count();
 
                 var recentSyncs = db.WarSyncs.OrderByDescending(w => w.Start).Take(2).ToList();
+
                 if(recentSyncs.Count > 1)
                 {
                     var latestSync = recentSyncs.First();
@@ -68,11 +69,10 @@ namespace LWFStatsWeb.Controllers
                        }
                 }
 
-                var clansNeedingHelp = db.Clans.Where(c => c.Members >= 25).OrderBy(c => c.Members).Take(5);
+                var clansNeedingHelp = db.Clans.Where(c => c.Members >= 0).OrderBy(c => c.Members).Take(5).Select(c => new ClanDetails { Tag = c.Tag, Name = c.Name, Members = c.Members, BadgeUrl = c.BadgeUrl });
                 foreach(var clan in clansNeedingHelp)
-                {
-                    model.ClansNeedingHelp.Add(new ClanDetails { Tag = clan.Tag, Name = clan.Name, Members = clan.Members, BadgeUrl = clan.BadgeUrl });
-                }
+                    model.ClansNeedingHelp.Add(clan);
+
             }
             catch(Exception)
             {

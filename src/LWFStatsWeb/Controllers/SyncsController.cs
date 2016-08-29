@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using LWFStatsWeb.Models.SyncViewModels;
 using LWFStatsWeb.Data;
 using Microsoft.EntityFrameworkCore;
+using LWFStatsWeb.Models;
 
 namespace LWFStatsWeb.Controllers
 {
@@ -92,13 +93,13 @@ namespace LWFStatsWeb.Controllers
 
                 foreach (var r in q)
                 {
-                    if (clans.ContainsKey(r.ClanTag))
+                    SyncIndexClan clan;
+                    if(clans.TryGetValue(r.ClanTag, out clan))
                     {
-                        var clan = clans[r.ClanTag];
                         var isAlliance = false;
-                        if(formerClans.ContainsKey(r.OpponentTag))
+                        ClanValidity opponentClan;
+                        if (formerClans.TryGetValue(r.OpponentTag, out opponentClan))
                         {
-                            var opponentClan = formerClans[r.OpponentTag];
                             if (opponentClan.ValidFrom < s.Start && opponentClan.ValidTo > s.Start)
                                 isAlliance = true;
                         }
