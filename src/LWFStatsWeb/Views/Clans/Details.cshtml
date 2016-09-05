@@ -19,7 +19,7 @@
             <h3 style="margin-top:10px;margin-bottom:0px">@Model.Clan.Name</h3>
             <div class="text-muted">
                 @Model.Clan.Tag
-                @if(!string.IsNullOrEmpty(Model.Clan.Group))
+                @if (!string.IsNullOrEmpty(Model.Clan.Group))
                 {
                     <span>#@Model.Clan.Group</span>
                 }
@@ -52,7 +52,18 @@
             </div>
         </div>
     </div>
+    @if (Model.InAlliance)
+    {
+        <div class="row">
+            <div class="col">
+                <br />
+                <a class="btn btn-default" asp-route-id="@Model.Clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Weight">Edit War Weights</a>
+            </div>
+        </div>
+    }
 </div>
+
+
 
 @if (!Model.InAlliance && Model.Validity != null && !Model.Validity.IsValid())
 {
@@ -99,52 +110,52 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars != null 
                 </thead>
                 <tbody>
                     @foreach (var member in Model.Clan.MemberList.OrderBy(m => m.ClanRank))
-                    {
-                        var member_class = "";
-                        var member_role = "";
-                        var member_role2 = "";
-                        if (member.Role == "leader")
-                        {
-                            member_class = "label-danger";
-                            member_role = "L";
-                            member_role2 = "eader";
-                        }
-                        else if (member.Role == "coLeader")
-                        {
-                            member_class = "label-primary";
-                            member_role = "C";
-                            member_role2 = "o-Leader";
-                        }
-                        else if (member.Role == "admin")
-                        {
-                            member_class = "label-info";
-                            member_role = "E";
-                            member_role2 = "lder";
-                        }
-                <tr>
-                    <td style="padding:0px;">
-                        <img src="@member.BadgeUrl" width="36" height="36" />
-                    </td>
-                    <td>
-                        @member.ExpLevel
-                    </td>
-                    <td>
-                        @member.Name
-                        @if (member_role != "")
-                        {
-                            <span class="text-right label @member_class">@member_role<span class="hidden-xs">@member_role2</span></span>
-                        }
-                    </td>
-                    <td>
-                        @member.Donations
-                    </td>
-                    <td>
-                        @member.DonationsReceived
-                    </td>
-                    <td>
-                        @member.Trophies
-                    </td>
-                </tr>
+        {
+            var member_class = "";
+            var member_role = "";
+            var member_role2 = "";
+            if (member.Role == "leader")
+            {
+                member_class = "label-danger";
+                member_role = "L";
+                member_role2 = "eader";
+            }
+            else if (member.Role == "coLeader")
+            {
+                member_class = "label-primary";
+                member_role = "C";
+                member_role2 = "o-Leader";
+            }
+            else if (member.Role == "admin")
+            {
+                member_class = "label-info";
+                member_role = "E";
+                member_role2 = "lder";
+            }
+            <tr>
+                <td style="padding:0px;">
+                    <img src="@member.BadgeUrl" width="36" height="36" />
+                </td>
+                <td>
+                    @member.ExpLevel
+                </td>
+                <td>
+                    @member.Name
+                    @if (member_role != "")
+            {
+                        <span class="text-right label @member_class">@member_role<span class="hidden-xs">@member_role2</span></span>
+                    }
+                </td>
+                <td>
+                    @member.Donations
+                </td>
+                <td>
+                    @member.DonationsReceived
+                </td>
+                <td>
+                    @member.Trophies
+                </td>
+            </tr>
                     }
                 </tbody>
             </table>
@@ -173,67 +184,67 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars != null 
                 </thead>
                 <tbody>
                     @foreach (var war in Model.Clan.Wars.OrderByDescending(w => w.EndTime))
+                    {
+                        var war_class = "";
+                        if (war.Result == "win")
+                        {
+                            war_class = "text-success";
+                        }
+                        else if (war.Result == "lose")
+                        {
+                            war_class = "text-danger";
+                        }
+                        else
+                        {
+                            war_class = "text-muted";
+                        }
+                        <tr class="@war_class">
+                            <td class="text-right text-nowrap">
+                                @if (Model.Validity != null && (Model.Validity.ValidFrom > war.SearchTime || Model.Validity.ValidTo < war.SearchTime))
+                                {
+                                    <span class="label label-danger">W<span class="hidden-xs">ar clan</span></span>
+                                }
+                                @if (Model.Validity == null)
             {
-                var war_class = "";
-                if (war.Result == "win")
-                {
-                    war_class = "text-success";
-                }
-                else if (war.Result == "lose")
-                {
-                    war_class = "text-danger";
-                }
-                else
-                {
-                    war_class = "text-muted";
-                }
-                <tr class="@war_class">
-                    <td class="text-right text-nowrap">
-                        @if (Model.Validity != null && (Model.Validity.ValidFrom > war.SearchTime || Model.Validity.ValidTo < war.SearchTime ))
-                        {
-                            <span class="label label-danger">W<span class="hidden-xs">ar clan</span></span>
-                        }
-                        @if (Model.Validity == null)
-                        {
-                            <span class="label label-danger">W<span class="hidden-xs">ar clan</span></span>
-                        }
-                        @war.ClanName
-                        <br />
-                        <small class="text-info">@war.ClanExpEarned xp</small>
-                        <small class="text-muted">@war.ClanDestructionPercentage.ToString("0.#") %</small>
-                        <small class="text-warning" style="font-weight:bold">@war.ClanStars <span class="glyphicon glyphicon-star" /></small>
-                    </td>
-                    <td style="vertical-align:middle">
-                        <img src="@war.ClanBadgeUrl" width="35" height="35" />
-                    </td>
-                    <td class="text-nowrap text-center" width="35">
-                        @war.Result
-                        <br />
-                        <small class="text-muted text-center text-nowrap">@war.TeamSize vs @war.TeamSize</small>
-                    </td>
-                    <td style="vertical-align:middle">
-                        <img src="@war.OpponentBadgeUrl" width="35" height="35" />
-                    </td>
-                    <td class="text-nowrap">
-                        <a class="@war_class" asp-route-id="@war.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.OpponentName</a>
-                        @if (!war.Matched && Model.InAlliance)
-                        {
-                            <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
-                        }
-                        <br />
-                        <small class="text-warning" style="font-weight:bold">@war.OpponentStars <span class="glyphicon glyphicon-star" /></small>
-                        <small class="text-muted">@war.OpponentDestructionPercentage.ToString("0.#") %</small>
-                    </td>
-                    <td class="text-nowrap">
-                        <span class="hidden-xs">@war.EndTime.ToString("yyyy-MM-dd")</span>
-                        <span class="visible-xs">@DateTime.UtcNow.Subtract(@war.EndTime).Days<span>d ago</span></span>
-                        <br />
-                        @if (!war.Synced)
-                        {
-                            <small class="label label-warning">Out of sync</small>
-                        }
-                    </td>
-                </tr>
+                                    <span class="label label-danger">W<span class="hidden-xs">ar clan</span></span>
+                                }
+                                @war.ClanName
+                                <br />
+                                <small class="text-info">@war.ClanExpEarned xp</small>
+                                <small class="text-muted">@war.ClanDestructionPercentage.ToString("0.#") %</small>
+                                <small class="text-warning" style="font-weight:bold">@war.ClanStars <span class="glyphicon glyphicon-star" /></small>
+                            </td>
+                            <td style="vertical-align:middle">
+                                <img src="@war.ClanBadgeUrl" width="35" height="35" />
+                            </td>
+                            <td class="text-nowrap text-center" width="35">
+                                @war.Result
+                                <br />
+                                <small class="text-muted text-center text-nowrap">@war.TeamSize vs @war.TeamSize</small>
+                            </td>
+                            <td style="vertical-align:middle">
+                                <img src="@war.OpponentBadgeUrl" width="35" height="35" />
+                            </td>
+                            <td class="text-nowrap">
+                                <a class="@war_class" asp-route-id="@war.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.OpponentName</a>
+                                @if (!war.Matched && Model.InAlliance)
+            {
+                                    <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
+                                }
+                                <br />
+                                <small class="text-warning" style="font-weight:bold">@war.OpponentStars <span class="glyphicon glyphicon-star" /></small>
+                                <small class="text-muted">@war.OpponentDestructionPercentage.ToString("0.#") %</small>
+                            </td>
+                            <td class="text-nowrap">
+                                <span class="hidden-xs">@war.EndTime.ToString("yyyy-MM-dd")</span>
+                                <span class="visible-xs">@DateTime.UtcNow.Subtract(@war.EndTime).Days<span>d ago</span></span>
+                                <br />
+                                @if (!war.Synced)
+            {
+                                    <small class="label label-warning">Out of sync</small>
+                                }
+                            </td>
+                        </tr>
                     }
                 </tbody>
             </table>

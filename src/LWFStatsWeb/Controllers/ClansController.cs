@@ -9,6 +9,7 @@ using LWFStatsWeb.Data;
 using LWFStatsWeb.Models;
 using LWFStatsWeb.Models.ClanViewModels;
 using LWFStatsWeb.Logic;
+using System.IO;
 
 namespace LWFStatsWeb.Controllers
 {
@@ -412,5 +413,67 @@ namespace LWFStatsWeb.Controllers
         {
             return db.ClanValidities.Any(e => e.Tag == id);
         }
+
+        public IActionResult Weight(string id)
+        {
+            var tag = LinkIdToTag(id);
+
+            var clan = db.Clans.Where(c => c.Tag == tag).SingleOrDefault();
+
+            var model = new WeightViewModel { ClanTag = clan.Tag, ClanLink = clan.LinkID, ClanName = clan.Name, ClanBadge = clan.BadgeUrl };
+
+            var members = db.Members.Where(m => m.ClanTag == tag).OrderBy(m => m.ClanRank).ToList();
+
+            var weights = (from m in db.Members join w in db.Weights on m.Tag equals w.Tag select w).ToDictionary(w => w.Tag);
+
+            var memberWeights = new List<MemberWeightModel>();
+
+            foreach(var member in members)
+            {
+                var memberWeight = new MemberWeightModel { Tag = member.Tag, Name = member.Name };
+                Weight weight;
+                if(weights.TryGetValue(member.Tag, out weight))
+                {
+                    memberWeight.InWar = weight.InWar;
+                    memberWeight.Weight = weight.WarWeight;
+                }
+                memberWeights.Add(memberWeight);
+            }
+
+            model.Members = memberWeights.OrderByDescending(w => w.Weight).ToList();
+
+            return View(model);
+        }
+
+        [HttpPost]
+        public IActionResult Weight(string id, WeightViewModel model)
+        {
+            var tag = LinkIdToTag(id);
+
+            foreach(var member in model.Members)
+            {
+                var weight = db.Weights.Where(w => w.Tag == member.Tag).SingleOrDefault();
+                if (weight == null)
+                {
+                    weight = new Weight { Tag = member.Tag, WarWeight = member.Weight, InWar = member.InWar, LastModified = DateTime.UtcNow };
+                    db.Add(weight);
+                }
+                else
+                {
+                    if (weight.WarWeight != member.Weight || weight.InWar != member.InWar)
+                    {
+                        weight.WarWeight = member.Weight;
+                        weight.InWar = member.InWar;
+                        weight.LastModified = DateTime.UtcNow;
+                        db.Entry(weight).State = EntityState.Modified;
+                    }
+                }
+            }
+
+            db.SaveChanges();
+
+            return Weight(id);
+        }
+
     }
 }

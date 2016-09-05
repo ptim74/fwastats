@@ -1,0 +1,261 @@
+@model LWFStatsWeb.Models.ClanViewModels.WeightViewModel
+
+@{
+    ViewBag.Title = Model.ClanName + " Weight";
+    ViewBag.MetaRobots = "noindex, nofollow";
+    int member_id = 0;
+}
+
+<h2>@Model.ClanName Weight</h2>
+
+<form asp-action="Weight">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="ClanTag" />
+    <table id="myTable" style="margin-bottom:70px" class="table table-condensed table-hover tablesorter">
+        <thead>
+            <tr>
+                <th>
+                    Name
+                </th>
+                <th>
+                    Weight
+                </th>
+                <th>
+                    InWar
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var member in Model.Members)
+            {
+                var member_class = member.InWar ? "success" : "danger";
+                var member_checked = member.InWar ? "checked" : "";
+                <tr class="@member_class">
+                    <td>
+                        <input type="hidden" name="Members[@member_id].Tag" value="@member.Tag" />
+                        @member.Name
+                    </td>
+                    <td>
+                        <div class="input-group" style="max-width:300px;min-width:190px;">
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-danger btn-number" data-type="minus" data-field="Members[@member_id].Weight">
+                                    <span class="glyphicon glyphicon-minus"></span>
+                                </button>
+                            </span>
+                            <input type="number" name="Members[@member_id].Weight" war-check="Members[@member_id].InWar" class="form-control input-number member-weight" value="@member.Weight" min="0" max="110000" step="1000">
+                            <span class="input-group-btn">
+                                <button type="button" style="border-radius:0px;" class="btn btn-success btn-number" data-type="plus" data-field="Members[@member_id].Weight">
+                                    <span class="glyphicon glyphicon-plus"></span>
+                                </button>
+                            </span>
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a class="weight-multiply" multiplier="3" data-field="Members[@member_id].Weight">3x</a></li>
+                                    <li><a class="weight-multiply" multiplier="4" data-field="Members[@member_id].Weight">4x</a></li>
+                                    <li><a class="weight-multiply" multiplier="5" data-field="Members[@member_id].Weight">5x</a></li>
+                                </ul>
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <input type="checkbox" class="form-control input-sm member-in-war" style="max-width:30px;" name="Members[@member_id].InWar" value="true" @(member.InWar ? "checked=\"checked\"" : "") />
+                    </td>
+                </tr>
+                member_id++;
+            }
+        </tbody>
+    </table>
+
+    <div style="position:fixed;bottom:0px;left:0px;width:100%;height:50px;background-color:black;color:white;z-index:1030;">
+        <div class="container">
+            <div class="row" style="margin:5px;">
+                <div class="col-xs-10">
+                    <div class="text-nowrap">W<span class="hidden-xs">eight</span>: <span id="war-weight"></span> ( <span id="war-members"></span> )</div>
+                    <div class="text-nowrap">TH<span class="hidden-xs"> Comp</span>: <span id="war-composition"></span></div>
+                </div>
+                <div class="col-xs-2">
+                    <input type="submit" class="btn btn-save" value="Save">
+                </div>
+            </div>
+        </div>
+    </div>
+
+</form>
+
+@section scripts {
+    <script type="text/javascript">
+
+        $(function () {
+            $("#myTable").tablesorter();
+        });
+
+        //plugin bootstrap minus and plus
+        //http://jsfiddle.net/laelitenetwork/puJ6G/
+        $(function () {
+            $('.btn-number').click(function (e) {
+                e.preventDefault();
+                var fieldName = $(this).attr('data-field');
+                var type = $(this).attr('data-type');
+                var input = $("input[name='" + fieldName + "']");
+                var currentVal = parseInt(input.val());
+                if (!isNaN(currentVal)) {
+                    var stepValue = parseInt(input.attr('step'));
+                    if (!stepValue) stepValue = 1;
+                    currentVal = Math.round(currentVal / stepValue) * stepValue;
+                    if (type == 'minus') {
+                        var minValue = parseInt(input.attr('min'));
+                        if (!minValue) minValue = 0;
+                        if (currentVal - stepValue >= minValue) {
+                            input.val(currentVal - stepValue).change();
+                        }
+                        if (parseInt(input.val()) == minValue) {
+                            $(this).attr('disabled', true);
+                        }
+
+                    } else if (type == 'plus') {
+                        var maxValue = parseInt(input.attr('max'));
+                        if (!maxValue) maxValue = 999;
+                        if (currentVal + stepValue <= maxValue) {
+                            input.val(currentVal + stepValue).change();
+                        }
+                        if (parseInt(input.val()) == maxValue) {
+                            $(this).attr('disabled', true);
+                        }
+
+                    }
+                } else {
+                    input.val(0);
+                }
+            });
+            $('.input-number').focusin(function () {
+                $(this).data('oldValue', $(this).val());
+            });
+            $('.input-number').change(function () {
+                var minValue = parseInt($(this).attr('min'));
+                var maxValue = parseInt($(this).attr('max'));
+                var stepValue = parseInt($(this).attr('step'));
+                if (!stepValue) stepValue = 1;
+                if (!minValue) minValue = 0;
+                if (!maxValue) maxValue = 999;
+                var valueCurrent = parseInt($(this).val());
+                //valueCurrent = Math.round(valueCurrent / stepValue) * stepValue;
+
+                var name = $(this).attr('name');
+                if (valueCurrent > minValue) {
+                    $(".btn-number[data-type='minus'][data-field='" + name + "']").removeAttr('disabled')
+                } else {
+                    //alert('Sorry, the minimum value was reached');
+                    //$(this).val($(this).data('oldValue'));
+                    $(this).val(minValue);
+                }
+                if (valueCurrent < maxValue) {
+                    $(".btn-number[data-type='plus'][data-field='" + name + "']").removeAttr('disabled')
+                } else {
+                    //alert('Sorry, the maximum value was reached');
+                    //$(this).val($(this).data('oldValue'));
+                    $(this).val(maxValue);
+                }
+
+
+            });
+
+            /*
+            $(".input-number").keydown(function (e) {
+                // Allow: backspace, delete, tab, escape and enter
+                if ($.inArray(e.keyCode, [46, 8, 9, 27, 13]) !== -1 ||
+                    // Allow: Ctrl+A
+                    (e.keyCode == 65 && e.ctrlKey === true) ||
+                    // Allow: home, end, left, right
+                    (e.keyCode >= 35 && e.keyCode <= 39)) {
+                    // let it happen, don't do anything
+                    return;
+                }
+                // Ensure that it is a number and stop the keypress
+                if ((e.shiftKey || (e.keyCode < 48 || e.keyCode > 57)) && (e.keyCode < 96 || e.keyCode > 105)) {
+                    e.preventDefault();
+                }
+            });
+            */
+        });
+
+        $(function () {
+            $('.member-in-war').change(function (e) {
+                $(this).parent().parent().addClass($(this).is(':checked') ? 'success' : 'danger');
+                $(this).parent().parent().removeClass($(this).is(':checked') ? 'danger' : 'success');
+                calculateWarWeight();
+            });
+        });
+
+        $(function () {
+            $('.member-weight').change(function (e) {
+                calculateWarWeight();
+            });
+        });
+
+        $(function () {
+            $('.weight-multiply').click(function (e) {
+                var fieldName = $(this).attr('data-field');
+                var input = $("input[name='" + fieldName + "']");
+                var multiplier = parseInt($(this).attr('multiplier'));
+                var currentVal = parseInt(input.val());
+                var newVal = currentVal * multiplier;
+                if (newVal <= 110000)
+                    input.val(newVal).change();
+             });
+        });
+
+        function calculateWarWeight()
+        {
+            var members_total = 0;
+            var members_in_war = 0;
+
+            $('.member-in-war').each(function (e) {
+                members_total++;
+                if ($(this).is(':checked'))
+                    members_in_war++;
+            });
+
+            $('#war-members').text(members_in_war + ' / ' + members_total);
+
+            var th11_count = 0;
+            var th10_count = 0;
+            var th9_count = 0;
+            var th8_count = 0;
+            var th7_count = 0;
+            var war_weight = 0;
+
+            $('.member-weight').each(function (e) {
+                var member_weight = parseInt($(this).val());
+                var checkName = $(this).attr('war-check');
+                if ($("input[name='" + checkName + "']").is(':checked'))
+                {
+                    war_weight += member_weight;
+                    if (member_weight > 90000)
+                        th11_count++;
+                    else if (member_weight > 70000)
+                        th10_count++;
+                    else if (member_weight > 55000)
+                        th9_count++;
+                    else if (member_weight > 40000)
+                        th8_count++;
+                    else
+                        th7_count++;
+                }
+            });
+
+            $('#war-weight').text(war_weight);
+            $('#war-composition').text(th11_count + ' / ' + th10_count + ' / ' + th9_count + ' / ' + th8_count + ' / ' + th7_count);
+
+            $('.btn-save').addClass(members_in_war == 40 ? 'btn-success' : 'btn-danger');
+            $('.btn-save').removeClass(members_in_war == 40 ? 'btn-danger' : 'btn-success');
+        }
+
+        $(function () {
+            calculateWarWeight();
+        });
+
+    </script>
+}

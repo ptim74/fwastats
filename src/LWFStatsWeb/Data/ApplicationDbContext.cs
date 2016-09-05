@@ -40,6 +40,7 @@ namespace LWFStatsWeb.Data
         public virtual DbSet<War> Wars { get; set; }
         public virtual DbSet<WarSync> WarSyncs { get; set; }
         public virtual DbSet<ClanValidity> ClanValidities { get; set; }
+        public virtual DbSet<Weight> Weights { get; set; }
 
         // Add Migration:
         // CMD> dotnet ef migrations add {MigrationName}

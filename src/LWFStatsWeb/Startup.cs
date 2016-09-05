@@ -97,6 +97,7 @@ namespace LWFStatsWeb
             {
                 routes.MapRoute("ClanDetails", "Clan/{id}", new { controller = "Clans", action = "Details" });
                 routes.MapRoute("ClanEdit", "Clan/{id}/Edit", new { controller = "Clans", action = "Edit" });
+                routes.MapRoute("ClanWeight", "Clan/{id}/Weight", new { controller = "Clans", action = "Weight" });
 
                 routes.MapRoute(
                     name: "default",
