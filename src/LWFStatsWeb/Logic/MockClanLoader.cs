@@ -16,7 +16,7 @@ namespace LWFStatsWeb.Logic
             var list = new List<ClanObject>();
 
             //list.Add(new ClanObject { Tag = "#YPJ28YJG", Name = "War Farmers 01" });
-            list.Add(new ClanObject { Tag = "#8C80VQ2Y", Name = "War Farmers 02" });
+            list.Add(new ClanObject { Tag = "#8C80VQ2Yxx", Name = "War Farmers 02" });
             list.Add(new ClanObject { Tag = "#YVVJ00Y8", Name = "War Farmers 04" });
             list.Add(new ClanObject { Tag = "#Y8VGCVYC", Name = "War Farmers 06" });
             list.Add(new ClanObject { Tag = "#YRRUCQRR", Name = "War Farmers 07" });

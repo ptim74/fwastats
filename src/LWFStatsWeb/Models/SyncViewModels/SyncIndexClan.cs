@@ -10,6 +10,9 @@ namespace LWFStatsWeb.Models.SyncViewModels
         public string Tag { get; set; }
         public string Name { get; set; }
         public string BadgeUrl { get; set; }
+        public bool New { get; set; }
+        public bool Departed { get; set; }
+        public bool HiddenLog { get; set; }
 
         public string LinkID
         {

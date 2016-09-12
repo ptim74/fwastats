@@ -41,6 +41,7 @@ namespace LWFStatsWeb.Controllers
 
             var clanQ = db.Clans.AsQueryable();
             var formerClanQ = db.ClanValidities.Where(v => v.ValidTo > earliestWar);
+            var newClanQ = db.ClanValidities.Where(v => v.ValidFrom > earliestWar);
 
             if (filter.Equals("FWA"))
             {
@@ -60,6 +61,7 @@ namespace LWFStatsWeb.Controllers
                 clanDetail.Name = clan.Name;
                 clanDetail.BadgeUrl = clan.BadgeUrl;
                 clanDetail.Results = new List<SyncIndexResult>();
+                clanDetail.HiddenLog = !clan.IsWarLogPublic;
                 clans.Add(clan.Tag, clanDetail);
             }
 
@@ -69,7 +71,7 @@ namespace LWFStatsWeb.Controllers
             {
                 if(!clans.ContainsKey(formerClan.Tag))
                 {
-                    var syncClan = new SyncIndexClan { Tag = formerClan.Tag, Name = formerClan.Name, Results = new List<SyncIndexResult>() };
+                    var syncClan = new SyncIndexClan { Tag = formerClan.Tag, Name = formerClan.Name, Results = new List<SyncIndexResult>(), Departed = true };
 
                     var clanBadges = (from o in db.Wars
                                       where o.OpponentTag == formerClan.Tag
@@ -78,8 +80,17 @@ namespace LWFStatsWeb.Controllers
 
                     if (clanBadges.Count > 0)
                         syncClan.BadgeUrl = clanBadges.First();
-                    
+
                     clans.Add(formerClan.Tag, syncClan);
+                }
+            }
+
+            foreach (var newClan in newClanQ)
+            {
+                SyncIndexClan syncClan;
+                if (clans.TryGetValue(newClan.Tag,out syncClan))
+                {
+                    syncClan.New = true;
                 }
             }
 

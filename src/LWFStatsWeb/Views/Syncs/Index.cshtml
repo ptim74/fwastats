@@ -42,6 +42,18 @@
                 </td>
                 <td>
                     <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
+                    @if (clan.New)
+                    {
+                        <small class="label label-success">N<span class="hidden-xs">ew</span></small>
+                    }
+                    @if (clan.Departed)
+                    {
+                        <small class="label label-info">D<span class="hidden-xs">eparted</span></small>
+                    }
+                    @if (clan.HiddenLog)
+                    {
+                        <small class="label label-warning">H<span class="hidden-xs">idden log</span></small>
+                    }
                 </td>
                 @foreach (var warResult in clan.Results)
                 {

@@ -10,7 +10,7 @@
     @foreach (var error in Model.Errors)
     {
         <div class="alert alert-warning">
-            <strong>Warning!</strong> @error
+            <strong>Warning: </strong>@error
         </div>
     }
 </div>
@@ -73,8 +73,10 @@
 @section scripts {
     <script type="text/javascript">
 
-    var total_updates = @insert_count + @update_count + @delete_count + 1;
+    var updates_remaining = @insert_count + @update_count + @delete_count;
+    var total_updates = updates_remaining + 1;
     var updates_done = 0;
+    var update_threads = 4;
 
     function updateTask() {
 
@@ -86,10 +88,7 @@
         if(updateTaskElement && updateTaskElement.attr("id")) {
             updateTaskElement.removeClass("update-task-id");
             $.getJSON('@Url.Action("UpdateTask","Update")/' + updateTaskElement.attr("id"),updateTaskCallback);
-        } else {
-            $(".progress-bar").text("Almost done");
-            $.getJSON('@Url.Action("UpdateFinished", "Update")',updateFinishedCallback);
-        }
+        } 
     }
 
     function updateProgress(message) {
@@ -101,15 +100,23 @@
 
         $(".progress-bar").attr("aria-valuenow", progress);
         $(".progress-bar").attr("style", "width:" + progress + "%");
-
     }
 
     function updateTaskCallback(data) {
         if (data && data.id) {
             if(!data.status)
-                $(".alerts").append($("<div class='alert alert-danger'></div>").text(data.message));
+                $(".alerts").append($("<div class='alert alert-danger'><strong>Error: </strong></div>").append($("<span></span>").text(data.message)));
             updateProgress(data.message);
-            updateTask();
+            updates_remaining--;
+            if(updates_remaining > 0)
+            {
+                updateTask();
+            }
+            else
+            {
+                $(".progress-bar").text("Finishing up");
+                $.getJSON('@Url.Action("UpdateFinished", "Update")',updateFinishedCallback);
+            }
         }
     }
 
@@ -121,7 +128,8 @@
         $("#confirm-btn").click(function () {
             $(this).addClass('disabled');
             $(".progress").removeClass('hidden');
-            updateTask();
+            for (var i = 0; i < update_threads; i++)
+                updateTask();
         });
     });
 

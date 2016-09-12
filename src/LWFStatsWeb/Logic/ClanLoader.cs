@@ -56,11 +56,14 @@ namespace LWFStatsWeb.Logic
             Errors = new List<string>();
             Objects = new List<ClanObject>();
 
-            var tagList = new List<string>();
+            //var tagList = new List<string>();
+            var tagDict = new Dictionary<string, string>();
 
             foreach(var listOptions in options.Value)
             {
                 var data = await LoadUrl(listOptions.Url);
+
+                var countBefore = Objects.Count();
 
                 foreach (var row in data.Split('\n'))
                 {
@@ -74,20 +77,32 @@ namespace LWFStatsWeb.Logic
                     if (cells.Count() >= listOptions.NameColumn && listOptions.NameColumn > 0)
                         name = cells[listOptions.NameColumn - 1];
 
+                    if(tag != null && tag.StartsWith("\"") && tag.EndsWith("\""))
+                    {
+                        tag = tag.Substring(1, tag.Length -2);
+                        tag = tag.Replace("\"\"", "\"");
+                    }
+
                     if (tag != null && tag.StartsWith("#"))
                     {
                         tag = tag.ToUpperInvariant();
                         tag = tag.Replace("O", "0");
-                        if (!tagList.Contains(tag))
+                        string existingName;
+                        if(tagDict.TryGetValue(tag,out existingName))
                         {
-                            tagList.Add(tag);
-                            Objects.Add(new ClanObject { Tag = tag, Name = name, Group = listOptions.Code });
+                            Errors.Add(string.Format("Duplicate tag {0} for {1} ({2}) and {3}", tag, name, listOptions.Code, existingName));
                         }
                         else
                         {
-                            Errors.Add(string.Format("Duplicate tag {0} for {1} in {2}", tag, name, listOptions.Code));
+                            tagDict.Add(tag, string.Format("{0} ({1})", name, listOptions.Code));
+                            Objects.Add(new ClanObject { Tag = tag, Name = name, Group = listOptions.Code });
                         }
                     }
+                }
+
+                if(Objects.Count() == countBefore)
+                {
+                    Errors.Add(string.Format("{0}-list is empty",listOptions.Code));
                 }
             }
 

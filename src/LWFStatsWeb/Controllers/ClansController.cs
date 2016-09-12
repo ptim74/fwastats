@@ -96,7 +96,7 @@ namespace LWFStatsWeb.Controllers
             return View("Index", GetClanList("FWAL"));
         }
 
-        public ActionResult Former()
+        public ActionResult Departed()
         {
             var clans = new List<FormerClan>();
 
