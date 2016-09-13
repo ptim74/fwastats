@@ -1,2 +1,5 @@
-﻿// Write your Javascript code.
+﻿// Tablesorter
 
+$(function () {
+    $(".tablesorter").tablesorter();
+});

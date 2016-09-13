@@ -19,7 +19,7 @@
     <li class="@grp_fwal"><a asp-area="" asp-controller="Clans" asp-action="FWAL">FWAL</a></li>
 </ul>
 
-<table id="myTable" class="table table-hover table-responsive tablesorter">
+<table class="table table-hover table-responsive tablesorter">
     <thead>
         <tr>
             <th width="35"></th>
@@ -72,13 +72,3 @@
         }
     </tbody>
 </table>
-
-@section scripts {
-    <script type="text/javascript">
-
-    $(function () {
-        $("#myTable").tablesorter();
-    });
-
-    </script>
-}
