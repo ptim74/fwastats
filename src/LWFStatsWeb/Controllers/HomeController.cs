@@ -113,6 +113,7 @@ namespace LWFStatsWeb.Controllers
                         model.LastSyncs.Add(new SyncStats
                         {
                             Name = syncHistory.Name,
+                            LastSyncName = lastSync.Name,
                             AllianceMatches = lastSync.AllianceMatches,
                             WarMatches = lastSync.WarMatches,
                             NotStarted = lastSync.NotStarted

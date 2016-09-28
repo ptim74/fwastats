@@ -23,6 +23,9 @@
     var grp_all = Model.Group == "" ? "active" : "";
     var grp_fwa = Model.Group == "FWA" ? "active" : "";
     var grp_fwal = Model.Group == "FWAL" ? "active" : "";
+
+    var viewAction = Model.Group + "Details";
+
 }
 
 <ul class="pagination">
@@ -41,7 +44,7 @@
             @foreach (var warSync in Model.Syncs)
             {
                 <th>
-                    @Html.DisplayFor(s => warSync.Name)
+                    <a asp-area="" asp-controller="Syncs" asp-action="@viewAction" asp-route-id="@warSync.Name">@warSync.Name</a>
                 </th>
             }
         </tr>

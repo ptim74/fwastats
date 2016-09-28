@@ -19,10 +19,11 @@
 <div class="row">
     @foreach (var stats in Model.LastSyncs)
     {
+        var viewAction = stats.Name + "Details";
         <div class="col-sm-6">
             <h3>Latest @stats.Name war</h3>
             <div id="piechart_@stats.Name" style="width:300px;height:200px"><p><span class="glyphicon glyphicon-hourglass"></span> Loading...</p></div>
-            <div style="margin-top:10px;"><a asp-area="" asp-controller="Syncs" asp-action="@stats.Name" class="btn btn-default">More details</a></div>
+            <div style="margin-top:10px;"><a asp-area="" asp-controller="Syncs" asp-action="@viewAction" asp-route-id="@stats.LastSyncName" class="btn btn-default">More details</a></div>
         </div>
     }
     @foreach (var history in Model.SyncHistories)
@@ -30,6 +31,7 @@
         <div class="col-sm-6">
             <h3>Last @history.Syncs.Count @history.Name wars</h3>
             <div id="areachart_@history.Name" style="width:300px;height:200px"><p><span class="glyphicon glyphicon-hourglass"></span> Loading...</p></div>
+            <div style="margin-top:10px;"><a asp-area="" asp-controller="Syncs" asp-action="@history.Name" class="btn btn-default">More details</a></div>
         </div>
     }
     @foreach (var counters in Model.Counters)

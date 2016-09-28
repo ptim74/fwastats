@@ -43,17 +43,6 @@ namespace LWFStatsWeb.Controllers
             var formerClanQ = db.ClanValidities.Where(v => v.ValidTo > earliestWar);
             var newClanQ = db.ClanValidities.Where(v => v.ValidFrom > earliestWar);
 
-            if (filter.Equals("FWA"))
-            {
-                clanQ = clanQ.Where(c => c.Group == filter);
-                formerClanQ = formerClanQ.Where(c => c.Group == filter);
-            }
-            if (filter.Equals("FWAL"))
-            {
-                clanQ = clanQ.Where(c => c.Group == filter || c.Group == "LWF");
-                formerClanQ = formerClanQ.Where(c => c.Group == filter || c.Group == "LWF");
-            }
-
             foreach (var clan in clanQ)
             {
                 var clanDetail = new SyncIndexClan();
@@ -62,26 +51,31 @@ namespace LWFStatsWeb.Controllers
                 clanDetail.BadgeUrl = clan.BadgeUrl;
                 clanDetail.Results = new List<SyncIndexResult>();
                 clanDetail.HiddenLog = !clan.IsWarLogPublic;
-                clans.Add(clan.Tag, clanDetail);
+
+                if(string.IsNullOrEmpty(filter) || filter.Equals(clan.Group,StringComparison.InvariantCultureIgnoreCase))
+                    clans.Add(clan.Tag, clanDetail);
             }
 
             var formerClans = formerClanQ.ToDictionary(f => f.Tag);
 
             foreach(var formerClan in formerClans.Values)
             {
-                if(!clans.ContainsKey(formerClan.Tag))
+                if (filter == null || filter.Equals(formerClan.Group, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    var syncClan = new SyncIndexClan { Tag = formerClan.Tag, Name = formerClan.Name, Results = new List<SyncIndexResult>(), Departed = true };
+                    if (!clans.ContainsKey(formerClan.Tag))
+                    {
+                        var syncClan = new SyncIndexClan { Tag = formerClan.Tag, Name = formerClan.Name, Results = new List<SyncIndexResult>(), Departed = true };
 
-                    var clanBadges = (from o in db.Wars
-                                      where o.OpponentTag == formerClan.Tag
-                                      orderby o.EndTime descending
-                                      select o.OpponentBadgeUrl).ToList();
+                        var clanBadges = (from o in db.Wars
+                                          where o.OpponentTag == formerClan.Tag
+                                          orderby o.EndTime descending
+                                          select o.OpponentBadgeUrl).ToList();
 
-                    if (clanBadges.Count > 0)
-                        syncClan.BadgeUrl = clanBadges.First();
+                        if (clanBadges.Count > 0)
+                            syncClan.BadgeUrl = clanBadges.First();
 
-                    clans.Add(formerClan.Tag, syncClan);
+                        clans.Add(formerClan.Tag, syncClan);
+                    }
                 }
             }
 
@@ -166,6 +160,54 @@ namespace LWFStatsWeb.Controllers
         public ActionResult FWAL(int? count)
         {
             return View("Index", GetData("FWAL", count));
+        }
+
+        public DetailsViewModel GetWars(string filter, string id)
+        {
+            var model = new DetailsViewModel();
+            model.Filter = filter;
+
+            model.Sync = db.WarSyncs.Where(s => s.Name == id).FirstOrDefault();
+
+            var searchTime = model.Sync.SearchTime;
+
+            var validClans = new HashSet<string>();
+
+            foreach(var validity in db.ClanValidities.Where(v => v.ValidTo > searchTime && v.ValidFrom < searchTime))
+            {
+                if (string.IsNullOrEmpty(filter) || filter.Equals(validity.Group, StringComparison.InvariantCultureIgnoreCase))
+                    validClans.Add(validity.Tag);
+            }
+
+            model.Wars = new List<War>();
+
+            foreach(var war in db.Wars.Where(w => w.EndTime >= model.Sync.Start && w.EndTime <= model.Sync.Finish && w.Synced == true))
+            {
+                if (validClans.Contains(war.ClanTag))
+                    model.Wars.Add(war);
+            }
+
+            //Hide sync time
+            foreach (var war in model.Wars)
+                war.EndTime = new DateTime(2000, 1, 1).AddSeconds(war.EndTime.Subtract(model.Sync.Start).TotalSeconds);
+
+            model.Wars = model.Wars.OrderBy(w => w.ClanName.ToLower()).ToList();
+            return model;
+        }
+
+        public ActionResult Details(string id)
+        {
+            return View(GetWars("", id));
+        }
+
+        public ActionResult FWADetails(string id)
+        {
+            return View("Details", GetWars("FWA", id));
+        }
+
+        public ActionResult FWALDetails(string id)
+        {
+            return View("Details", GetWars("FWAL", id));
         }
     }
 }

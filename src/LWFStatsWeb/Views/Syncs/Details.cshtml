@@ -1,0 +1,91 @@
+﻿@model LWFStatsWeb.Models.SyncViewModels.DetailsViewModel
+
+@{
+    ViewBag.Title = Model.Filter + " Sync " + Model.Sync.Name;
+}
+
+<ol class="breadcrumb">
+    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+    <li><a asp-area="" asp-controller="Syncs" asp-action="Index">Syncs</a></li>
+    @if(!string.IsNullOrEmpty(Model.Filter))
+    {
+        <li><a asp-area="" asp-controller="Syncs" asp-action="@Model.Filter">@Model.Filter</a></li>
+    }
+    <li class="active">@Model.Sync.Name</li>
+</ol>
+
+<h2>@ViewBag.Title</h2>
+
+<table id="myTable2" class="table table-condensed table-hover table-responsive tablesorter">
+    <thead>
+        <tr>
+            <th class="text-right">Clan</th>
+            <th width="35"></th>
+            <th class="text-nowrap text-center" width="35">
+                Result
+            </th>
+            <th width="35"></th>
+            <th>
+                Opponent
+            </th>
+            <th>
+                Time offset
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var war in Model.Wars)
+        {
+            var war_class = "";
+            var opp_class = "";
+            if (war.Result == "win")
+            {
+                war_class = "text-success";
+                opp_class = "text-danger";
+            }
+            else if (war.Result == "lose")
+            {
+                war_class = "text-danger";
+                opp_class = "text-success";
+            }
+            else
+            {
+                war_class = "text-muted";
+                opp_class = "text-muted";
+            }
+            <tr class="@war_class">
+                <td class="text-right text-nowrap">
+                    <a class="@war_class" asp-route-id="@war.ClanLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.ClanName</a>
+                    <br />
+                    <small class="text-info">@war.ClanExpEarned xp</small>
+                    <small class="text-muted">@war.ClanDestructionPercentage.ToString("0.#") %</small>
+                    <small class="text-warning" style="font-weight:bold">@war.ClanStars <span class="glyphicon glyphicon-star" /></small>
+                </td>
+                <td style="vertical-align:middle">
+                    <img src="@war.ClanBadgeUrl" width="35" height="35" />
+                </td>
+                <td class="text-nowrap text-center" width="35">
+                    @war.Result
+                    <br />
+                    <small class="text-muted text-center text-nowrap">@war.TeamSize vs @war.TeamSize</small>
+                </td>
+                <td style="vertical-align:middle">
+                    <img src="@war.OpponentBadgeUrl" width="35" height="35" />
+                </td>
+                <td class="text-nowrap">
+                    <a class="@opp_class" asp-route-id="@war.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.OpponentName</a>
+                    @if (!war.Matched)
+                    {
+                        <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
+                    }
+                    <br />
+                    <small class="text-warning" style="font-weight:bold">@war.OpponentStars <span class="glyphicon glyphicon-star" /></small>
+                    <small class="text-muted">@war.OpponentDestructionPercentage.ToString("0.#") %</small>
+                </td>
+                <td class="text-nowrap">
+                    @war.EndTime.ToString("HH:mm:ss",System.Globalization.CultureInfo.InvariantCulture)
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
