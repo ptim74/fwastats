@@ -5,7 +5,21 @@
     ViewBag.MetaRobots = "noindex, nofollow";
 }
 
+<ol class="breadcrumb">
+    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
+    <li class="active">Departed Clans</li>
+</ol>
+
 <h2>Departed Clans</h2>
+
+<ul class="pagination">
+    <li><a asp-area="" asp-controller="Clans" asp-action="Index">All</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="FWA">FWA</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="FWAL">FWAL</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Following">Following</a></li>
+    <li class="active"><a asp-area="" asp-controller="Clans" asp-action="Departed">Departed</a></li>
+</ul>
 
 <table class="table table-hover table-responsive tablesorter">
     <thead>
@@ -18,10 +32,10 @@
                 Group
             </th>
             <th>
-                ValidFrom
+                Joined
             </th>
             <th>
-                ValidTo
+                Departed
             </th>
         </tr>
     </thead>

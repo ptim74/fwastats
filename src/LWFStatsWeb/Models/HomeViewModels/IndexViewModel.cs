@@ -7,9 +7,10 @@ namespace LWFStatsWeb.Models.HomeViewModels
 {
     public class IndexViewModel
     {
-        public SyncStats LatestSync { get; set; }
-        public CounterStats Counters { get; set; }
-        public List<ClanDetails> ClansNeedingHelp { get; set; }
+        public List<SyncStats> LastSyncs { get; set; }
+        public List<SyncHistory> SyncHistories { get; set; }
+        public List<CounterStats> Counters { get; set; }
+        //public List<ClanDetails> ClansNeedingHelp { get; set; }
     }
 
     public class SyncStats
@@ -20,12 +21,23 @@ namespace LWFStatsWeb.Models.HomeViewModels
         public int NotStarted { get; set; }
     }
 
+    public class SyncHistory
+    {
+        public string Name { get; set; }
+        //public int AllianceMatches { get; set; }
+        //public int WarMatches { get; set; }
+        //public int NotStarted { get; set; }
+        //public int WarWins { get; set; }
+        public List <SyncStats> Syncs { get; set; }
+    }
+
     public class CounterStats
     {
+        public string Name { get; set; }
         public int ClanCount { get; set; }
         public int MemberCount { get; set; }
-        public int WarCount { get; set; }
-        public int SyncCount { get; set; }
+        public double MatchPercentage { get; set; }
+        public double WinPercentage { get; set; }
     }
 
     public class ClanDetails

@@ -56,8 +56,10 @@
                     <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
                     <li><a asp-area="" asp-controller="Syncs" asp-action="Index">Syncs</a></li>
                     <li><a asp-area="" asp-controller="Clans" asp-action="Following">Followers</a></li>
+                    @*
                     <li><a asp-area="" asp-controller="Download" asp-action="Index">Downloads</a></li>
                     <li><a asp-area="" asp-controller="Graphs" asp-action="Index">Graph</a></li>
+                    *@
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li><a asp-area="" asp-controller="Home" asp-action="About">About</a></li>
@@ -71,6 +73,15 @@
     </div>
     <div class="container body-content fill">
         @RenderBody()
+        <div>
+            <hr />
+            <p>
+                <small class="text-muted">
+                    This content is not affiliated with, endorsed, sponsored, or specifically approved by Supercell and Supercell is not responsible for it.
+                    For more information see Supercell’s Fan Content Policy: <a href="www.supercell.com/fan-content-policy">www.supercell.com/fan-content-policy</a>.
+                </small>
+            </p>
+        </div>
     </div>
 
     <environment names="Development">

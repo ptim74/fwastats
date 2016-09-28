@@ -4,6 +4,12 @@
     ViewData["Title"] = "Edit";
 }
 
+<ol class="breadcrumb">
+    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
+    <li class="active">@Model.Name</li>
+</ol>
+
 <h2>@Model.Name</h2>
 
 <form asp-action="Edit">

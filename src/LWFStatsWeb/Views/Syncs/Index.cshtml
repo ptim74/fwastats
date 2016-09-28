@@ -1,10 +1,23 @@
 ﻿@model LWFStatsWeb.Models.SyncViewModels.IndexViewModel
 
 @{
-    ViewBag.Title = "Syncs";
+    ViewBag.Title = Model.Group + " Syncs";
 }
 
-<h2>Syncs</h2>
+<ol class="breadcrumb">
+    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+    @if (Model.Group == "")
+    {
+        <li class="active">Syncs</li>
+    }
+    else
+    {
+        <li><a asp-area="" asp-controller="Syncs" asp-action="Index">Syncs</a></li>
+        <li class="active">@Model.Group</li>
+    }
+</ol>
+
+<h2>@Model.Group Syncs</h2>
 
 @{
     var grp_all = Model.Group == "" ? "active" : "";

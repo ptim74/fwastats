@@ -1,5 +1,5 @@
 ﻿body {
-    padding-top: 50px;
+    padding-top: 70px;
     padding-bottom: 20px;
 }
 
@@ -74,7 +74,6 @@ html, body {
 }
 
 .header-jumbo {
-    margin-top: 20px;
     background-image: url("/images/balloon_parade.jpg");
     background-size: cover;
     background-position: top center;

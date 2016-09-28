@@ -5,6 +5,10 @@
     ViewBag.MetaDescription = "Statistics of clans in Farm War Alliance (FWA / FWAL), Clash of Clans";
 }
 
+<ol class="breadcrumb">
+    <li class="active">Home</li>
+</ol>
+
 <div class="jumbotron header-jumbo">
     <h1>💎 FWA Stats</h1>
     <p>
@@ -13,62 +17,46 @@
 </div>
 
 <div class="row">
-    @if (Model.ClansNeedingHelp.Count > 0)
+    @foreach (var stats in Model.LastSyncs)
     {
         <div class="col-sm-6">
-            <h2>Clans needing help</h2>
-            @foreach (var clan in Model.ClansNeedingHelp.OrderBy(c => c.Members))
-            {
-                var members_class = "text-success";
-                if (clan.Members < 40)
-                {
-                    members_class = "text-danger";
-                }
-                <div>
-                    <a class="@members_class" asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">
-                        <img src="@clan.BadgeUrl" width="35" height="35" />
-                        @clan.Name has <b>@clan.Members</b> members<span></span>
-                    </a>
-                </div>
-            }
+            <h3>Latest @stats.Name war</h3>
+            <div id="piechart_@stats.Name" style="width:300px;height:200px"><p><span class="glyphicon glyphicon-hourglass"></span> Loading...</p></div>
+            <div style="margin-top:10px;"><a asp-area="" asp-controller="Syncs" asp-action="@stats.Name" class="btn btn-default">More details</a></div>
         </div>
     }
-    <div class="col-sm-6">
-        <h2>Latest War</h2>
-        <div id="piechart" style="width:300px;height:200px"><p><span class="glyphicon glyphicon-hourglass"></span> Loading...</p></div>
-    </div>
-    <div class="col-sm-6">
-        <h2>Key Numbers</h2>
-        <p><b>@Model.Counters.ClanCount</b> clans</p>
-        <p><b>@Model.Counters.MemberCount</b> members</p>
-        <p><b>@Model.Counters.SyncCount</b> war syncs</p>
-        <p><b>@Model.Counters.WarCount</b> war results</p>
-    </div>
-    <div class="col-sm-6">
-        <h2>Clans</h2>
-        <p>View all the clans in the Farm War Alliance alliance.</p>
-        <p><a class="btn btn-default" asp-area="" asp-controller="Clans" asp-action="Index">Show clan list &raquo;</a></p>
-    </div>
-    <div class="col-sm-6">
-        <h2>War Syncs</h2>
-        <p>View status of recent war syncs.</p>
-        <p><a class="btn btn-default" asp-area="" asp-controller="Syncs" asp-action="Index">Show war syncs &raquo;</a></p>
-    </div>
-    <div class="col-sm-6">
-        <h2>Following Clans</h2>
-        <p>View war clans that are syncing with us.</p>
-        <p><a class="btn btn-default" asp-area="" asp-controller="Clans" asp-action="Following">Show following clans &raquo;</a></p>
-    </div>
-    <div class="col-sm-6">
-        <h2>Graph</h2>
-        <p>View graph visualization of latest 5 wars.</p>
-        <p><a class="btn btn-default" asp-area="" asp-controller="Graphs" asp-action="Index">Show graph &raquo;</a></p>
-    </div>
-    <div class="col-sm-6">
-        <h2>Downloads</h2>
-        <p>Download clan and war details as Excel worksheet.</p>
-        <p><a class="btn btn-default" asp-area="" asp-controller="Download" asp-action="Index">Go to downloads &raquo;</a></p>
-    </div>
+    @foreach (var history in Model.SyncHistories)
+    {
+        <div class="col-sm-6">
+            <h3>Last @history.Syncs.Count @history.Name wars</h3>
+            <div id="areachart_@history.Name" style="width:300px;height:200px"><p><span class="glyphicon glyphicon-hourglass"></span> Loading...</p></div>
+        </div>
+    }
+    @foreach (var counters in Model.Counters)
+    {
+        <div class="col-sm-6">
+            <h3>@counters.Name key numbers</h3>
+            <table>
+                <tr>
+                    <td style="padding:5px;"><b>@counters.ClanCount</b></td>
+                    <td style="padding:5px;">clans</td>
+                </tr>
+                <tr>
+                    <td style="padding:5px;"><b>@counters.MemberCount</b></td>
+                    <td style="padding:5px;">members</td>
+                </tr>
+                <tr>
+                    <td style="padding:5px;"><b>@counters.WinPercentage%</b></td>
+                    <td style="padding:5px;">win ratio</td>
+                </tr>
+                <tr>
+                    <td style="padding:5px;"><b>@counters.MatchPercentage%</b></td>
+                    <td style="padding:5px;">match ratio</td>
+                </tr>
+            </table>
+            <p style="margin-top:20px;"><a asp-area="" asp-controller="Clans" asp-action="@counters.Name" class="btn btn-default">View all @counters.Name clans</a></p>
+        </div>
+    }
 </div>
 
 @section scripts {
@@ -77,24 +65,57 @@
 
     <script type="text/javascript">
         google.charts.load('current', {'packages':['corechart']});
-        google.charts.setOnLoadCallback(drawChart);
+        google.charts.setOnLoadCallback(function() {
 
-        function drawChart() {
-            var data = google.visualization.arrayToDataTable([
-                ['Wars', 'Count'],
-                ['FWA matches', @Model.LatestSync.AllianceMatches],
-                ['War matches', @Model.LatestSync.WarMatches],
-                ['Did not start', @Model.LatestSync.NotStarted]
-            ]);
+            @foreach (var group in Model.LastSyncs)
+            {
+                var data = "piedata_" + group.Name;
+                var options = "pieoptions_" + group.Name;
+                var chart = "piechart_" + group.Name;
+                <text>
+                var @data = google.visualization.arrayToDataTable([
+                    ['Wars', 'Count'],
+                    ['Matches', @group.AllianceMatches],
+                    ['Mismatches', @group.WarMatches],
+                    ['Didn\'t start', @group.NotStarted]
+                ]);
 
-            var options = {
-                pieHole: 0.4,
-                chartArea: { left: 15, top: 15, width: '270', height: '170' }
-            };
+                var @options = {
+                    pieHole: 0.4,
+                    chartArea: { left: 15, top: 15, width: '270', height: '170' }
+                };
 
-            var chart = new google.visualization.PieChart(document.getElementById('piechart'));
-            chart.draw(data, options);
-        }
+                new google.visualization.PieChart(document.getElementById('@chart')).draw(@data, @options);
+                </text>
+            }
+            @foreach(var history in Model.SyncHistories)
+            {
+                var data = "areadata_" + history.Name;
+                var options = "areaoptions_" + history.Name;
+                var chart = "areachart_" + history.Name;
+                <text>
+                var @data = google.visualization.arrayToDataTable([
+                    ['Date', 'Matches', 'Mismatches', 'Didn\'t start']
+                </text>
+                @foreach(var sync in history.Syncs)
+                {
+                    @: ,['@sync.Name', @sync.AllianceMatches, @sync.WarMatches, @sync.NotStarted]
+                }
+                <text>
+                ]);
+
+                var @options = {
+                    isStacked: 'relative',
+                    legend: {position: 'top', maxLines: 3},
+                    vAxis: {format: 'percent' },
+                    chartArea: { left: 35, top: 15, width: '250', height: '170' }
+                };
+
+                new google.visualization.AreaChart(document.getElementById('@chart')).draw(@data, @options);
+                </text>
+            }
+
+        });
 
     </script>
 }

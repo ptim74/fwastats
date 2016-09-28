@@ -6,7 +6,27 @@
     int member_id = 0;
 }
 
-<h2>@Model.ClanName Weight</h2>
+<ol class="breadcrumb">
+    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Details" asp-route-id="@Model.ClanLink">@Model.ClanName</a></li>
+    <li class="active">Weight</li>
+</ol>
+
+<div class="well" style="margin-top:20px;">
+    <div class="row">
+        <div class="col">
+            <img src="@Model.ClanBadge" style="float:left;margin-right:10px;margin-left:10px;margin-top:-15px;" />
+            <h3 style="margin-top:10px;margin-bottom:0px">@Model.ClanName</h3>
+            <div class="text-muted">
+                @Model.ClanTag
+                <a class="text-muted" href="http://kuilin.net/cc/clan.php?tag=@Model.ClanLink"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">hocolate</span>C<span class="hidden-xs">lash</span></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h4>Edit Clan Weight</h4>
 
 <form asp-action="Weight">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>

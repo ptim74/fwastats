@@ -12,6 +12,20 @@
     }
 }
 
+<ol class="breadcrumb">
+    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
+    @if (Model.Validity != null && !Model.Validity.IsValid())
+    {
+        <li><a asp-area="" asp-controller="Clans" asp-action="Departed">Departed</a></li>
+    }
+    else if (!Model.InAlliance)
+    {
+        <li><a asp-area="" asp-controller="Clans" asp-action="Following">Following</a></li>
+    }
+    <li class="active">@Model.Clan.Name</li>
+</ol>
+
 <div class="well" style="margin-top:20px;">
     <div class="row">
         <div class="col">

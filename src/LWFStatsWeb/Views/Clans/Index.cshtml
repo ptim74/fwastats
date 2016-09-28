@@ -1,22 +1,37 @@
 @model LWFStatsWeb.Models.ClanViewModels.IndexViewModel
 
 @{
-    ViewBag.Title = "Clans";
+    ViewBag.Title = Model.Group + " Clans";
     ViewBag.MetaDescription = "List of clans in FWA, Farm War Alliance, Clash of Clans";
 }
 
-<h2>Clans</h2>
-
-@{ 
+@{
     var grp_all = Model.Group == "" ? "active" : "";
     var grp_fwa = Model.Group == "FWA" ? "active" : "";
     var grp_fwal = Model.Group == "FWAL" ? "active" : "";
 }
 
+<ol class="breadcrumb">
+    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+    @if (Model.Group == "")
+    {
+        <li class="active">Clans</li>
+    }
+    else
+    {
+        <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
+        <li class="active">@Model.Group</li>
+    }
+</ol>
+
+<h2>@Model.Group Clans</h2>
+
 <ul class="pagination">
     <li class="@grp_all"><a asp-area="" asp-controller="Clans" asp-action="Index">All</a></li>
     <li class="@grp_fwa"><a asp-area="" asp-controller="Clans" asp-action="FWA">FWA</a></li>
     <li class="@grp_fwal"><a asp-area="" asp-controller="Clans" asp-action="FWAL">FWAL</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Following">Following</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Departed">Departed</a></li>
 </ul>
 
 <table class="table table-hover table-responsive tablesorter">
