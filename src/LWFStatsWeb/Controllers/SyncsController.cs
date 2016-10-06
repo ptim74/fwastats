@@ -180,16 +180,21 @@ namespace LWFStatsWeb.Controllers
             }
 
             model.Wars = new List<War>();
+            var syncStart = model.Sync.Finish;
 
             foreach(var war in db.Wars.Where(w => w.EndTime >= model.Sync.Start && w.EndTime <= model.Sync.Finish && w.Synced == true))
             {
                 if (validClans.Contains(war.ClanTag))
+                {
                     model.Wars.Add(war);
+                    if (war.EndTime < syncStart)
+                        syncStart = war.EndTime;
+                }
             }
 
             //Hide sync time
             foreach (var war in model.Wars)
-                war.EndTime = new DateTime(2000, 1, 1).AddSeconds(war.EndTime.Subtract(model.Sync.Start).TotalSeconds);
+                war.EndTime = new DateTime(2000, 1, 1).AddSeconds(war.EndTime.Subtract(syncStart).TotalSeconds);
 
             model.Wars = model.Wars.OrderBy(w => w.ClanName.ToLower()).ToList();
             return model;
