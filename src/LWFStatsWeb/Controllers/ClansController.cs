@@ -10,6 +10,7 @@ using LWFStatsWeb.Models;
 using LWFStatsWeb.Models.ClanViewModels;
 using LWFStatsWeb.Logic;
 using System.IO;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace LWFStatsWeb.Controllers
 {
@@ -17,16 +18,19 @@ namespace LWFStatsWeb.Controllers
     {
         private readonly ApplicationDbContext db;
         private readonly IClashApi api;
+        private IMemoryCache memoryCache;
 
         public ClansController(
             ApplicationDbContext db,
-            IClashApi api)
+            IClashApi api,
+            IMemoryCache memoryCache)
         {
             this.db = db;
             this.api = api;
+            this.memoryCache = memoryCache;
         }
 
-        public IndexViewModel GetClanList(string filter)
+        protected IndexViewModel GetClanList(string filter)
         {
             var clans = new IndexViewModel { Group = filter };
 
@@ -83,45 +87,66 @@ namespace LWFStatsWeb.Controllers
         // GET: Clans
         public ActionResult Index()
         {
-            return View(GetClanList(""));
+            var model = memoryCache.GetOrCreate("Clans.All", entry => {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                return GetClanList("");
+            });
+
+            return View(model);
         }
 
         public ActionResult FWA()
         {
-            return View("Index", GetClanList("FWA"));
+            var model = memoryCache.GetOrCreate("Clans.FWA", entry => {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                return GetClanList("FWA");
+            });
+
+            return View("Index", model);
         }
 
         public ActionResult FWAL()
         {
-            return View("Index", GetClanList("FWAL"));
+            var model = memoryCache.GetOrCreate("Clans.FWAL", entry => {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                return GetClanList("FWAL");
+            });
+
+            return View("Index", model);
         }
 
         public ActionResult Departed()
         {
-            var clans = new List<FormerClan>();
+            var model = memoryCache.GetOrCreate("Clans.Departed", entry => {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
 
-            var clanQ = from c in db.ClanValidities where c.ValidTo < DateTime.Now orderby c.Name.ToLower() select c;
+                var clans = new List<FormerClan>();
 
-            var clanBadges = (from w in db.Wars group w by w.OpponentTag into g select new { Tag = g.Key, BadgeUrl = g.Max(w => w.OpponentBadgeUrl) }).ToDictionary(w => w.Tag, w => w.BadgeUrl);
+                var clanQ = from c in db.ClanValidities where c.ValidTo < DateTime.Now orderby c.Name.ToLower() select c;
 
-            foreach(var clan in clanQ)
-            {
-                var clanDetail = new FormerClan();
-                clanDetail.Tag = clan.Tag;
-                clanDetail.Name = clan.Name;
-                clanDetail.Group = clan.Group;
-                clanDetail.ValidFrom = clan.ValidFrom;
-                clanDetail.ValidTo = clan.ValidTo;
+                var clanBadges = (from w in db.Wars group w by w.OpponentTag into g select new { Tag = g.Key, BadgeUrl = g.Max(w => w.OpponentBadgeUrl) }).ToDictionary(w => w.Tag, w => w.BadgeUrl);
 
-                string badgeUrl;
+                foreach (var clan in clanQ)
+                {
+                    var clanDetail = new FormerClan();
+                    clanDetail.Tag = clan.Tag;
+                    clanDetail.Name = clan.Name;
+                    clanDetail.Group = clan.Group;
+                    clanDetail.ValidFrom = clan.ValidFrom;
+                    clanDetail.ValidTo = clan.ValidTo;
 
-                if (clanBadges.TryGetValue(clan.Tag, out badgeUrl))
-                    clanDetail.BadgeURL = badgeUrl;
+                    string badgeUrl;
 
-                clans.Add(clanDetail);
-            }
+                    if (clanBadges.TryGetValue(clan.Tag, out badgeUrl))
+                        clanDetail.BadgeURL = badgeUrl;
 
-            return View(clans);
+                    clans.Add(clanDetail);
+                }
+
+                return clans;
+            });
+
+            return View(model);
         }
 
         protected List<War> GetPrivateWars(string id)
@@ -211,37 +236,51 @@ namespace LWFStatsWeb.Controllers
         public async Task<ActionResult> Details(string id)
         {
             var tag = LinkIdToTag(id);
-            var model = new DetailsViewModel();
-            model.InAlliance = db.Clans.Any(c => c.Tag == tag);
-            model.Clan = await this.GetDetails(tag);
-            model.Validity = await this.db.ClanValidities.SingleOrDefaultAsync(c => c.Tag == tag);
+
+            var model = await memoryCache.GetOrCreateAsync("ClanDetails." + tag, async entry => {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+
+                var details = new DetailsViewModel();
+                details.InAlliance = db.Clans.Any(c => c.Tag == tag);
+                details.Clan = await this.GetDetails(tag);
+                details.Validity = this.db.ClanValidities.SingleOrDefault(c => c.Tag == tag);
+
+                return details;
+            });
+            
             return View(model);
         }
 
         public ActionResult Following()
         {
-            var clans = new Dictionary<string, FollowingClan>();
+            var model = memoryCache.GetOrCreate("Clans.Following", entry => {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
 
-            var mismatches = from w in db.Wars where w.Synced == true && w.Matched == false orderby w.ID select w;
+                var clans = new Dictionary<string, FollowingClan>();
 
-            foreach(var mismatch in mismatches)
-            {
-                FollowingClan followingClan = null;
-                if (!clans.TryGetValue(mismatch.OpponentTag, out followingClan))
+                var mismatches = from w in db.Wars where w.Synced == true && w.Matched == false orderby w.ID select w;
+
+                foreach (var mismatch in mismatches)
                 {
-                    followingClan = new FollowingClan { Tag = mismatch.OpponentTag };
-                    clans.Add(mismatch.OpponentTag, followingClan);
+                    FollowingClan followingClan = null;
+                    if (!clans.TryGetValue(mismatch.OpponentTag, out followingClan))
+                    {
+                        followingClan = new FollowingClan { Tag = mismatch.OpponentTag };
+                        clans.Add(mismatch.OpponentTag, followingClan);
+                    }
+
+                    followingClan.Name = mismatch.OpponentName;
+                    followingClan.BadgeURL = mismatch.OpponentBadgeUrl;
+                    followingClan.Wars++;
+                    followingClan.LatestTag = mismatch.ClanTag;
+                    followingClan.LatestClan = mismatch.ClanName;
+                    followingClan.LatestDate = mismatch.EndTime;
                 }
 
-                followingClan.Name = mismatch.OpponentName;
-                followingClan.BadgeURL = mismatch.OpponentBadgeUrl;
-                followingClan.Wars++;
-                followingClan.LatestTag = mismatch.ClanTag;
-                followingClan.LatestClan = mismatch.ClanName;
-                followingClan.LatestDate = mismatch.EndTime;
-            }
+                return clans.Values.Where(c => c.Wars > 1).OrderByDescending(c => c.LatestDate).ToList();
+            });
 
-            return View(clans.Values.Where(c => c.Wars > 1).OrderByDescending(c => c.LatestDate).ToList());
+            return View(model);
         }
 
         // GET: Clans/Edit/5
@@ -278,6 +317,7 @@ namespace LWFStatsWeb.Controllers
                 }
 
             }
+
             return View(clanValidity);
         }
 
@@ -299,10 +339,6 @@ namespace LWFStatsWeb.Controllers
             {
                 try
                 {
-                    //var opp = db.Wars.Where(o => o.OpponentTag == tag).OrderBy(o => o.EndTime).Select(o => o.OpponentName);
-                    //if (opp.Count() > 0)
-                    //{
-                    //clanValidity.Name = opp.Last();
 
                     if (!this.ClanValidityExists(tag))
                     {
@@ -390,7 +426,14 @@ namespace LWFStatsWeb.Controllers
                             db.Entry(war).State = EntityState.Modified;
                         }
                     }
- 
+
+                    memoryCache.Remove("ClanDetails." + tag);
+                    memoryCache.Remove("Clans.All");
+                    memoryCache.Remove("Clans.FWA");
+                    memoryCache.Remove("Clans.FWAL");
+                    memoryCache.Remove("Clans.Following");
+                    memoryCache.Remove("Clans.Departed");
+
                     await db.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)

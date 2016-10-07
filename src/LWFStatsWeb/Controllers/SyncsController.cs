@@ -7,16 +7,21 @@ using LWFStatsWeb.Models.SyncViewModels;
 using LWFStatsWeb.Data;
 using Microsoft.EntityFrameworkCore;
 using LWFStatsWeb.Models;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace LWFStatsWeb.Controllers
 {
     public class SyncsController : Controller
     {
         private readonly ApplicationDbContext db;
+        private IMemoryCache memoryCache;
 
-        public SyncsController(ApplicationDbContext db)
+        public SyncsController(
+            ApplicationDbContext db,
+            IMemoryCache memoryCache)
         {
             this.db = db;
+            this.memoryCache = memoryCache;
         }
 
         protected IndexViewModel GetData(string filter, int? count)
@@ -149,20 +154,35 @@ namespace LWFStatsWeb.Controllers
 
         public ActionResult Index(int? count)
         {
-            return View(GetData("", count));
+            var model = memoryCache.GetOrCreate("Syncs.All"+count, entry => {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                return GetData("", count);
+            });
+
+            return View(model);
         }
 
         public ActionResult FWA(int? count)
         {
-            return View("Index", GetData("FWA", count));
+            var model = memoryCache.GetOrCreate("Syncs.FWA" + count, entry => {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                return GetData("FWA", count);
+            });
+
+            return View("Index", model);
         }
 
         public ActionResult FWAL(int? count)
         {
-            return View("Index", GetData("FWAL", count));
+            var model = memoryCache.GetOrCreate("Syncs.FWAL" + count, entry => {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                return GetData("FWAL", count);
+            });
+
+            return View("Index", model);
         }
 
-        public DetailsViewModel GetWars(string filter, string id)
+        protected DetailsViewModel GetWars(string filter, string id)
         {
             var model = new DetailsViewModel();
             model.Filter = filter;
@@ -202,17 +222,32 @@ namespace LWFStatsWeb.Controllers
 
         public ActionResult Details(string id)
         {
-            return View(GetWars("", id));
+            var model = memoryCache.GetOrCreate("Sync.All" + id, entry => {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                return GetWars("", id);
+            });
+
+            return View(model);
         }
 
         public ActionResult FWADetails(string id)
         {
-            return View("Details", GetWars("FWA", id));
+            var model = memoryCache.GetOrCreate("Sync.FWA" + id, entry => {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                return GetWars("FWA", id);
+            });
+
+            return View("Details", model);
         }
 
         public ActionResult FWALDetails(string id)
         {
-            return View("Details", GetWars("FWAL", id));
+            var model = memoryCache.GetOrCreate("Sync.FWAL" + id, entry => {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                return GetWars("FWAL", id);
+            });
+
+            return View("Details", model);
         }
     }
 }

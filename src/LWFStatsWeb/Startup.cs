@@ -68,6 +68,9 @@ namespace LWFStatsWeb
             services.AddTransient<IClanUpdater, ClanUpdater>();
             services.AddTransient<IClanStatistics, ClanStatistics>();
             services.AddTransient<IClashApi, ClashApi>();
+
+            // Caching
+            services.AddMemoryCache();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
