@@ -65,7 +65,7 @@ namespace LWFStatsWeb.Controllers
 
             foreach(var formerClan in formerClans.Values)
             {
-                if (filter == null || filter.Equals(formerClan.Group, StringComparison.InvariantCultureIgnoreCase))
+                if (string.IsNullOrEmpty(filter) || filter.Equals(formerClan.Group, StringComparison.InvariantCultureIgnoreCase))
                 {
                     if (!clans.ContainsKey(formerClan.Tag))
                     {
