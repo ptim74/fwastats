@@ -16,7 +16,12 @@
 
 <h2>@ViewBag.Title</h2>
 
-<table id="myTable2" class="table table-condensed table-hover table-responsive tablesorter">
+<div class="input-group" style="margin-bottom:20px;">
+    <span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-search"></span></span>
+    <input type="text" id="search" class="form-control" placeholder="Search" aria-describedby="basic-addon1" />
+</div>
+
+<table id="table" class="table table-condensed table-hover table-responsive tablesorter">
     <thead>
         <tr>
             <th class="text-right">Clan</th>
@@ -54,7 +59,7 @@
                 opp_class = "text-muted";
             }
             <tr class="@war_class">
-                <td class="text-right text-nowrap">
+                <td class="text-right text-nowrap search">
                     <a class="@war_class" asp-route-id="@war.ClanLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.ClanName</a>
                     <br />
                     <small class="text-info">@war.ClanExpEarned xp</small>
@@ -72,7 +77,7 @@
                 <td style="vertical-align:middle">
                     <img src="@war.OpponentBadgeUrl" width="35" height="35" />
                 </td>
-                <td class="text-nowrap">
+                <td class="text-nowrap search">
                     <a class="@opp_class" asp-route-id="@war.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.OpponentName</a>
                     @if (!war.Matched)
                     {
@@ -89,3 +94,17 @@
         }
     </tbody>
 </table>
+
+@section scripts {
+    <script type="text/javascript">
+
+        $('#search').keyup(function () {
+            var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+            $('#table > tbody > tr').show().filter(function () {
+                var text = $(this).children("td.search").children("a").text().replace(/\s+/g, ' ').toLowerCase();
+                return !~text.indexOf(val);
+            }).hide();
+        });
+
+    </script>
+}

@@ -13,6 +13,7 @@ using LWFStatsWeb.Data;
 using LWFStatsWeb.Models;
 using LWFStatsWeb.Services;
 using LWFStatsWeb.Logic;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LWFStatsWeb
 {
@@ -23,7 +24,8 @@ namespace LWFStatsWeb
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+                .AddJsonFile(@"d:\home\data\appsettings.json", optional: true, reloadOnChange: true);
 
             if (env.IsDevelopment())
             {
@@ -57,7 +59,14 @@ namespace LWFStatsWeb
             services.Configure<ClanListOptions>(Configuration.GetSection("ClanLists"));
             services.Configure<ClashApiOptions>(Configuration.GetSection("ClashApi"));
 
+            //services.Configure<GoogleOptions>(Configuration.GetSection("GoogleAuth"));
+
             services.AddMvc();
+
+            //services.AddMvc(options =>
+            //{
+            //    options.Filters.Add(new RequireHttpsAttribute());
+            //});
 
             // Add application services.
             services.AddTransient<IEmailSender, AuthMessageSender>();
@@ -71,6 +80,12 @@ namespace LWFStatsWeb
 
             // Caching
             services.AddMemoryCache();
+
+            //services.AddAuthorization(options =>
+            //{
+            //    options.AddPolicy("AdministratorOnly", policy => policy.RequireRole("Administrator"));
+            //    options.AddPolicy("EmployeeId", policy => policy.RequireClaim("EmployeeId", "123", "456"));
+            //});
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -96,6 +111,8 @@ namespace LWFStatsWeb
 
             // Add external authentication middleware below. To configure them please see http://go.microsoft.com/fwlink/?LinkID=532715
 
+            //app.UseGoogleAuthentication();
+
             app.UseMvc(routes =>
             {
                 routes.MapRoute("ClanDetails", "Clan/{id}", new { controller = "Clans", action = "Details" });
@@ -110,6 +127,7 @@ namespace LWFStatsWeb
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
+
         }
     }
 }

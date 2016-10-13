@@ -55,58 +55,59 @@
                 <ul class="nav navbar-nav">
                     <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
                     <li><a asp-area="" asp-controller="Syncs" asp-action="Index">Syncs</a></li>
-                    <li><a asp-area="" asp-controller="Clans" asp-action="Following">Followers</a></li>
-                    @*
-                    <li><a asp-area="" asp-controller="Download" asp-action="Index">Downloads</a></li>
-                    <li><a asp-area="" asp-controller="Graphs" asp-action="Index">Graph</a></li>
-                    *@
+@*
+    <li><a asp-area="" asp-controller="Clans" asp-action="Following">Followers</a></li>
+    <li><a asp-area="" asp-controller="Download" asp-action="Index">Downloads</a></li>
+    <li><a asp-area="" asp-controller="Graphs" asp-action="Index">Graph</a></li>
+*@
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li><a asp-area="" asp-controller="Home" asp-action="About">About</a></li>
+
                 </ul>
-                @*
-                @await Html.PartialAsync("_LoginPartial")
-                *@
+@*
+    @await Html.PartialAsync("_LoginPartial")
+*@
+                </div>
+
             </div>
-            
         </div>
-    </div>
-    <div class="container body-content fill">
-        @RenderBody()
-        <div>
-            <hr />
-            <p>
-                <small class="text-muted">
-                    This content is not affiliated with, endorsed, sponsored, or specifically approved by Supercell and Supercell is not responsible for it.
-                    For more information see Supercell’s Fan Content Policy: <a href="http://www.supercell.com/fan-content-policy">www.supercell.com/fan-content-policy</a>.
-                </small>
-            </p>
+        <div class="container body-content fill">
+            @RenderBody()
+            <div class="col-sm-12">
+                <hr />
+                <p>
+                    <small class="text-muted">
+                        This content is not affiliated with, endorsed, sponsored, or specifically approved by Supercell and Supercell is not responsible for it.
+                        For more information see Supercell’s Fan Content Policy: <a href="http://www.supercell.com/fan-content-policy">www.supercell.com/fan-content-policy</a>.
+                    </small>
+                </p>
+            </div>
         </div>
-    </div>
 
-    <environment names="Development">
-        <script src="~/lib/jquery/dist/jquery.js"></script>
-        <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
-        <script src="~/lib/jquery.tablesorter/dist/js/jquery.tablesorter.js"></script>
-        <script src="~/js/site.js" asp-append-version="true"></script>
-    </environment>
-    <environment names="Staging,Production">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"
-                asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
-                asp-fallback-test="window.jQuery">
-        </script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js"
-                asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js"
-                asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal">
-        </script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.26.5/js/jquery.tablesorter.min.js"
-                asp-fallback-src="~/lib/jquery.tablesorter/dist/js/jquery.tablesorter.min.js"
-                asp-fallback-test="window.jQuery && window.jQuery.tablesorter">
-        </script>
-        <script src="~/js/site.min.js" asp-append-version="true"></script>
-    </environment>
+        <environment names="Development">
+            <script src="~/lib/jquery/dist/jquery.js"></script>
+            <script src="~/lib/bootstrap/dist/js/bootstrap.js"></script>
+            <script src="~/lib/jquery.tablesorter/dist/js/jquery.tablesorter.js"></script>
+            <script src="~/js/site.js" asp-append-version="true"></script>
+        </environment>
+        <environment names="Staging,Production">
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.3/jquery.min.js"
+                    asp-fallback-src="~/lib/jquery/dist/jquery.min.js"
+                    asp-fallback-test="window.jQuery">
+            </script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js"
+                    asp-fallback-src="~/lib/bootstrap/dist/js/bootstrap.min.js"
+                    asp-fallback-test="window.jQuery && window.jQuery.fn && window.jQuery.fn.modal">
+            </script>
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.26.5/js/jquery.tablesorter.min.js"
+                    asp-fallback-src="~/lib/jquery.tablesorter/dist/js/jquery.tablesorter.min.js"
+                    asp-fallback-test="window.jQuery && window.jQuery.tablesorter">
+            </script>
+            <script src="~/js/site.min.js" asp-append-version="true"></script>
+        </environment>
 
-    @RenderSection("scripts", required: false)
+        @RenderSection("scripts", required: false)
 
-</body>
-</html>
+    </body>
+    </html>
