@@ -159,7 +159,7 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars != null 
                     @member.ExpLevel
                 </td>
                 <td>
-                    @member.Name
+                    <a asp-route-id="@member.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@member.Name</a>
                     @if (member_role != "")
             {
                         <span class="text-right label @member_class">@member_role<span class="hidden-xs">@member_role2</span></span>

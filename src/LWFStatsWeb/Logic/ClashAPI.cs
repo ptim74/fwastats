@@ -21,6 +21,7 @@ namespace LWFStatsWeb.Logic
     {
         Task<List<War>> GetClanWarlog(string clanTag);
         Task<Clan> GetClan(string clanTag, bool withWarDetails);
+        Task<Player> GetPlayer(string playerTag);
     }
 
     public class ClashApi : IClashApi
@@ -73,6 +74,16 @@ namespace LWFStatsWeb.Logic
 
             if (data.IsWarLogPublic && withWarDetails)
                 data.Wars = await GetClanWarlog(clanTag);
+
+            data.FixData();
+
+            return data;
+        }
+
+        public async Task<Player> GetPlayer(string playerTag)
+        {
+            var url = string.Format("players/{0}", Uri.EscapeDataString(playerTag));
+            var data = await Request<Player>(url);
 
             data.FixData();
 

@@ -123,6 +123,8 @@ namespace LWFStatsWeb
                 routes.MapRoute("FWASyncDetails", "Sync/FWA/{id}", new { controller = "Syncs", action = "FWADetails" });
                 routes.MapRoute("FWALSyncDetails", "Sync/FWAL/{id}", new { controller = "Syncs", action = "FWALDetails" });
 
+                routes.MapRoute("PlayerDetails", "Player/{id}", new { controller = "Players", action = "Details" });
+
                 routes.MapRoute(
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");

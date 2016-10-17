@@ -1,0 +1,165 @@
+@model LWFStatsWeb.Models.Player
+
+@{
+    ViewBag.Title = @Model.Name;
+    ViewBag.MetaRobots = "noindex, nofollow";
+}
+
+<ol class="breadcrumb">
+    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+    <li><a asp-area="" asp-controller="Players" asp-action="Index">Players</a></li>
+    <li class="active">@Model.Name</li>
+</ol>
+
+<div class="well" style="margin-top:20px;">
+    <div class="row">
+        <div class="col">
+            <img src="@Model.BadgeUrl" style="float:left;margin-right:10px;margin-left:10px;margin-top:-15px;" />
+            <h3 style="margin-top:10px;margin-bottom:0px">@Model.Name</h3>
+            <div class="text-muted">
+                <a asp-area="" asp-route-id="@Model.Clan.LinkID" asp-controller="Clans" asp-action="Details">@Model.Clan.Name</a>
+                <a class="text-muted" href="http://kuilin.net/cc/member.php?tag=@Model.LinkID"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">hocolate</span>C<span class="hidden-xs">lash</span></a>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="row">
+                <div class="col-xs-6 col-sm-3"><b>ExpLevel:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.ExpLevel)</b></div>
+                <div class="col-xs-6 col-sm-3"><b>Trophies:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Trophies)</b></div>
+                <div class="col-xs-6 col-sm-3"><b>Donations:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Donations)</b></div>
+                <div class="col-xs-6 col-sm-3"><b>Received:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.DonationsReceived)</b></div>
+                <div class="col-xs-6 col-sm-3"><b>AttackWins:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.AttackWins)</b></div>
+                <div class="col-xs-6 col-sm-3"><b>DefenseWins:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.DefenseWins)</b></div>
+                <div class="col-xs-6 col-sm-3"><b>BestTrophies:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.BestTrophies)</b></div>
+                <div class="col-xs-6 col-sm-3"><b>TownHallLevel:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.TownHallLevel)</b></div>
+                <div class="col-xs-6 col-sm-3"><b>WarStars:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.WarStars)</b></div>
+                <div class="col-xs-6 col-sm-3"><b>Role:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Role)</b></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3>Heroes</h3>
+
+<table id="table" class="table table-hover table-responsive tablesorter">
+    <thead>
+        <tr>
+            <th>
+                Name
+            </th>
+            <th>
+                Level
+            </th>
+            <th>
+                MaxLevel
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var hero in Model.Heroes)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => hero.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => hero.Level)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => hero.MaxLevel)
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h3>Troops</h3>
+
+<table id="table" class="table table-hover table-responsive tablesorter">
+    <thead>
+        <tr>
+            <th>
+                Name
+            </th>
+            <th>
+                Level
+            </th>
+            <th>
+                MaxLevel
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var troop in Model.Troops)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => troop.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => troop.Level)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => troop.MaxLevel)
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h3>Achievements</h3>
+
+<table id="table" class="table table-hover table-responsive tablesorter">
+    <thead>
+        <tr>
+            <th>
+                Name
+            </th>
+            <th>
+                Stars
+            </th>
+            <th>
+                Value
+            </th>
+            <th>
+                Target
+            </th>
+            <th>
+                Info
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var achievement in Model.Achievements)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => achievement.Name)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => achievement.Stars)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => achievement.Value)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => achievement.Target)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => achievement.CompletionInfo)
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
