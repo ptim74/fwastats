@@ -7,5 +7,7 @@ namespace LWFStatsWeb.Models.PlayerViewModels
 {
     public class IndexViewModel
     {
+        public Player Player { get; set; }
+        public List<PlayerDetailsEvent> Events { get; set; } 
     }
 }

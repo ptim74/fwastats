@@ -23,5 +23,13 @@ namespace LWFStatsWeb.Models
         [StringLength(10)]
         public string ClanGroup { get; set; }
         public UpdateTaskMode Mode { get; set; }
+
+        public string LinkID
+        {
+            get
+            {
+                return ClanTag.Replace("#", "");
+            }
+        }
     }
 }

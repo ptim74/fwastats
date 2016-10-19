@@ -13,8 +13,8 @@ namespace LWFStatsWeb.Models
     {
         //[ForeignKey("Clan")]
         //[DataMember]
-        [StringLength(10)]
-        public string ClanTag { get; set; }
+        //[StringLength(10)]
+        //public string ClanTag { get; set; }
 
         [Key]
         [DataMember]
@@ -26,22 +26,24 @@ namespace LWFStatsWeb.Models
         [StringLength(50)]
         public string Name { get; set; }
 
+        [NotMapped]
         [DataMember]
         public int ExpLevel { get; set; }
 
+        [NotMapped]
         [DataMember]
         public int Trophies { get; set; }
 
+        [NotMapped]
         [DataMember]
         [StringLength(10)]
         public string Role { get; set; }
 
-        //[DataMember]
-        //public int ClanRank { get; set; }
-
+        [NotMapped]
         [DataMember]
         public int Donations { get; set; }
 
+        [NotMapped]
         [DataMember]
         public int DonationsReceived { get; set; }
 
@@ -62,8 +64,9 @@ namespace LWFStatsWeb.Models
 
         [NotMapped]
         [DataMember]
-        public PlayerClan Clan { get; set; }
+        protected PlayerClan Clan { get; set; }
 
+        [NotMapped]
         [DataMember]
         private League League { get; set; }
 
@@ -83,11 +86,23 @@ namespace LWFStatsWeb.Models
         [DataMember]
         public virtual ICollection<PlayerResource> Spells { get; set; }
 
+        [NotMapped]
         [StringLength(30)]
         public string LeagueName { get; set; }
 
+        [NotMapped]
         [StringLength(150)]
         public string BadgeUrl { get; set; }
+
+        [NotMapped]
+        [StringLength(10)]
+        public string ClanTag { get; set; }
+
+        [NotMapped]
+        [StringLength(50)]
+        public string ClanName { get; set; }
+
+        public DateTime LastUpdated { get; set; }
 
         public void FixData()
         {
@@ -100,6 +115,11 @@ namespace LWFStatsWeb.Models
                     BadgeUrl = League.IconUrls.Small;
                 }
             }
+            if(Clan != null)
+            {
+                ClanTag = Clan.Tag;
+                ClanName = Clan.Name;
+            }
         }
 
         public string LinkID
@@ -107,6 +127,14 @@ namespace LWFStatsWeb.Models
             get
             {
                 return Tag.Replace("#", "");
+            }
+        }
+
+        public string ClanLinkID
+        {
+            get
+            {
+                return ClanTag.Replace("#", "");
             }
         }
     }

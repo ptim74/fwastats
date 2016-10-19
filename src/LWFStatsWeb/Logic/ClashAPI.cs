@@ -11,6 +11,12 @@ using System.Threading.Tasks;
 
 namespace LWFStatsWeb.Logic
 {
+    public class ClashApiError
+    {
+        public string Reason { get; set; }
+        public string Message { get; set; }
+    }
+
     public class ClashApiOptions
     {
         public string Url { get; set; }
@@ -38,11 +44,28 @@ namespace LWFStatsWeb.Logic
             var url = string.Format("{0}/{1}", options.Value.Url, page);
             var request = WebRequest.Create(url);
             request.Headers["Authorization"] = string.Format("Bearer {0}", options.Value.Token);
-            var response = await request.GetResponseAsync();
-            using (var reader = new StreamReader(response.GetResponseStream()))
+            try
             {
-                var data = reader.ReadToEnd();
-                return data;
+                var response = await request.GetResponseAsync();
+                using (var reader = new StreamReader(response.GetResponseStream()))
+                {
+                    var data = reader.ReadToEnd();
+                    return data;
+                }
+            }
+            catch (WebException e)
+            {
+                using (var reader = new StreamReader(e.Response.GetResponseStream()))
+                {
+                    var data = reader.ReadToEnd();
+                    var error = JsonConvert.DeserializeObject<ClashApiError>(data);
+                    if(error != null)
+                    {
+                        var msg = $"API Error {e.Status}, Reason: {error.Reason}, Message: {error.Message}";
+                        throw new Exception(msg, e);
+                    }
+                }
+                throw e;
             }
         }
 

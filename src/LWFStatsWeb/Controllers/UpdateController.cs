@@ -65,6 +65,65 @@ namespace LWFStatsWeb.Controllers
             await db.SaveChangesAsync();
         }
 
+        protected async Task<UpdateTaskResponse> UpdatePlayer(string playerTag)
+        {
+            var status = new UpdateTaskResponse();
+            status.ID = playerTag;
+            var playerName = playerTag;
+
+            try
+            {
+                var newPlayer = await api.GetPlayer(playerTag);
+                playerName = $"{newPlayer.Name} / {newPlayer.ClanName}";
+                var oldPlayer = db.Players.SingleOrDefault(e => e.Tag == playerTag);
+                if (oldPlayer == null)
+                {
+                    db.Entry(newPlayer).State = EntityState.Added;
+                }
+                else
+                {
+                    if (oldPlayer.TownHallLevel != newPlayer.TownHallLevel)
+                        db.Add(new PlayerEvent {
+                            ClanTag = newPlayer.ClanTag,
+                            PlayerTag = newPlayer.Tag,
+                            EventDate = DateTime.UtcNow,
+                            EventType = PlayerEventType.Stars,
+                            Value = newPlayer.WarStars - oldPlayer.WarStars
+                        });
+
+                    if (oldPlayer.WarStars != newPlayer.WarStars)
+                        db.Add(new PlayerEvent {
+                            ClanTag = newPlayer.ClanTag,
+                            PlayerTag = newPlayer.Tag,
+                            EventDate = DateTime.UtcNow,
+                            EventType = PlayerEventType.Stars,
+                            Value = newPlayer.WarStars - oldPlayer.WarStars
+                        });
+
+                    oldPlayer.AttackWins = newPlayer.AttackWins;
+                    oldPlayer.BestTrophies = newPlayer.BestTrophies;
+                    oldPlayer.DefenseWins = newPlayer.DefenseWins;
+                    oldPlayer.TownHallLevel = newPlayer.TownHallLevel;
+                    oldPlayer.WarStars = newPlayer.WarStars;
+                    oldPlayer.LastUpdated = DateTime.UtcNow;
+
+                    db.Entry(oldPlayer).State = EntityState.Modified;
+                }
+
+                db.SaveChanges();
+
+                status.Message = playerName;
+                status.Status = true;
+            }
+            catch(Exception e)
+            {
+                status.Message = string.Format("{0} Failed: {1}", playerName, e.Message);
+                status.Status = false;
+            }
+
+            return status;
+        }
+
         protected async Task<UpdateTaskResponse> PerformTask(string id)
         {
             var status = new UpdateTaskResponse();
@@ -167,8 +226,6 @@ namespace LWFStatsWeb.Controllers
                         if (clanModified)
                             db.Entry(clan).State = EntityState.Modified;
 
-                        var allMembers = (from m in db.Members select m.Tag).ToList();
-
                         var oldMembers = (from m in db.Members
                                           where m.ClanTag == clan.Tag
                                           select new
@@ -209,7 +266,21 @@ namespace LWFStatsWeb.Controllers
                                     if (clanMember.Name != oldMember.Name)
                                         modified = true;
                                     if (clanMember.Role != oldMember.Role)
+                                    {
+                                        var eventType = PlayerEventType.Promote;
+                                        if (PlayerEvent.RoleToValue(oldMember.Role) < PlayerEvent.RoleToValue(clanMember.Role))
+                                            eventType = PlayerEventType.Demote;
+
+                                        db.Add(new PlayerEvent
+                                        {
+                                            ClanTag = clanTag,
+                                            PlayerTag = clanMember.Tag,
+                                            EventDate = DateTime.UtcNow,
+                                            EventType = eventType,
+                                            Role = clanMember.Role
+                                        });
                                         modified = true;
+                                    }
                                     if (clanMember.Trophies != oldMember.Trophies)
                                         modified = true;
                                     if (modified)
@@ -219,10 +290,43 @@ namespace LWFStatsWeb.Controllers
                                 }
                                 else
                                 {
-                                    if (allMembers.Contains(clanMember.Tag))
+                                    var oldMember = db.Members.Select(m => new { Tag = m.Tag, ClanTag = m.ClanTag }).FirstOrDefault(m => m.Tag == clanMember.Tag);
+                                    if (oldMember != null)
+                                    {
                                         db.Entry(clanMember).State = EntityState.Modified;
+
+                                        db.Add(new PlayerEvent
+                                        {
+                                            ClanTag = oldMember.ClanTag,
+                                            PlayerTag = clanMember.Tag,
+                                            EventDate = DateTime.UtcNow,
+                                            EventType = PlayerEventType.Leave
+                                        });
+                                    }
                                     else
+                                    {
                                         db.Entry(clanMember).State = EntityState.Added;
+                                    }
+
+                                    db.Add(new PlayerEvent
+                                    {
+                                        ClanTag = clanTag,
+                                        PlayerTag = clanMember.Tag,
+                                        EventDate = DateTime.UtcNow,
+                                        EventType = PlayerEventType.Join
+                                    });
+
+                                    if(clanMember.Role != "member")
+                                    {
+                                        db.Add(new PlayerEvent
+                                        {
+                                            ClanTag = clanTag,
+                                            PlayerTag = clanMember.Tag,
+                                            EventDate = DateTime.UtcNow,
+                                            EventType = PlayerEventType.Promote,
+                                            Role = clanMember.Role
+                                        });
+                                    }
                                 }
                             }
 
@@ -233,6 +337,15 @@ namespace LWFStatsWeb.Controllers
                                 {
                                     var formerMember = new Member { Tag = clanMember.Tag };
                                     db.Entry(formerMember).State = EntityState.Deleted;
+
+                                    db.Add(new PlayerEvent
+                                    {
+                                        ClanTag = clanTag,
+                                        PlayerTag = clanMember.Tag,
+                                        EventDate = DateTime.UtcNow,
+                                        EventType = PlayerEventType.Leave
+                                    });
+
                                 }
                             }
 
@@ -292,19 +405,38 @@ namespace LWFStatsWeb.Controllers
                     }
                 }
 
+                if(task.Mode != UpdateTaskMode.Delete)
+                {
+                    await RefreshPlayers(task.ClanTag);
+                }
+
                 status.Message = clanName;
                 status.Status = true;
             }
             catch (Exception e)
             {
-                var innerMessage = "";
-                if (e.InnerException != null)
-                    innerMessage = e.InnerException.Message;
-                status.Message = string.Format("{0} {1} {2} Failed: {3}, {4}", clanTag, clanName, updateMode, e.Message, innerMessage);
+                status.Message = string.Format("{0} {1} {2} Failed: {3}}", clanTag, clanName, updateMode, e.Message);
                 status.Status = false;
             }
 
             return status;
+        }
+
+        protected async Task RefreshPlayers(string clanTag)
+        {
+            const int MAX_UPDATES = 5;
+
+            var memberTags = db.Members.Where(m => m.ClanTag == clanTag && !db.Players.Where(p => p.Tag == m.Tag).Any()).Select(m => m.Tag).Take(MAX_UPDATES).ToList();
+
+            if(memberTags.Count < MAX_UPDATES)
+            {
+                var playerTags = db.Players.Where(p => db.Members.Where(m => m.ClanTag == clanTag && m.Tag == p.Tag).Any()).OrderBy(p => p.LastUpdated).Select(p => p.Tag).Take(MAX_UPDATES - memberTags.Count).ToList();
+                foreach (var playerTag in playerTags)
+                    memberTags.Add(playerTag);
+            }
+
+            foreach (var memberTag in memberTags)
+                await UpdatePlayer(memberTag);
         }
 
         // GET: Update
@@ -347,6 +479,20 @@ namespace LWFStatsWeb.Controllers
             }
         }
 
+        public async Task<IActionResult> UpdatePlayerTask(string id)
+        {
+            var playerTag = LinkIdToTag(id);
+
+            try
+            {
+                return Json(await UpdatePlayer(playerTag));
+            }
+            catch (Exception e)
+            {
+                return Json(new UpdateTaskResponse { ID = id, Message = e.Message, Status = false });
+            }
+        }
+
         protected void PerformFinished()
         {
             lock (lockObject)
@@ -358,7 +504,6 @@ namespace LWFStatsWeb.Controllers
             }
         }
 
-        // GET: Update
         public IActionResult Finish()
         {
             var model = new IndexViewModel();
@@ -382,6 +527,47 @@ namespace LWFStatsWeb.Controllers
             }
 
             return Json(status);
+        }
+
+        public IActionResult Players()
+        {
+            var model = new PlayersViewModel();
+            model.Errors = new List<string>();
+            model.Tasks = new List<PlayerUpdateTask>();
+
+            var playerEvent = db.PlayerEvents.FirstOrDefault();
+            if(playerEvent == null)
+            {
+                foreach( var member in db.Members.Where(m => m.Role != "member").Select(m => new { Tag = m.Tag, ClanTag = m.ClanTag, Role = m.Role }).ToList())
+                {
+                    db.Add(new PlayerEvent
+                    {
+                        ClanTag = member.ClanTag,
+                        PlayerTag = member.Tag,
+                        EventDate = DateTime.UtcNow,
+                        EventType = PlayerEventType.Promote,
+                        Role = member.Role
+                    });
+                }
+                db.SaveChanges();
+            }
+
+            foreach(var member in db.Members.Select(m => new { Tag = m.Tag, Name = m.Name }))
+            {
+                var task = new PlayerUpdateTask
+                {
+                    Tag = member.Tag,
+                    Name = member.Name
+                };
+                model.Tasks.Add(task);
+            }
+
+            return View(model);
+        }
+
+        protected string LinkIdToTag(string id)
+        {
+            return string.Concat("#", id.Replace("#", ""));
         }
     }
 }

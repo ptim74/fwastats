@@ -32,15 +32,20 @@ namespace LWFStatsWeb.Data
             builder.Entity<WarSync>().HasIndex(e => e.Finish);
             builder.Entity<ClanValidity>().HasIndex(v => v.ValidFrom);
             builder.Entity<ClanValidity>().HasIndex(v => v.ValidTo);
+            builder.Entity<PlayerEvent>().HasIndex(e => new { e.ClanTag, e.EventDate });
+            builder.Entity<PlayerEvent>().HasIndex(e => new { e.PlayerTag, e.EventDate });
         }
 
         public virtual DbSet<Clan> Clans { get; set; }
         public virtual DbSet<Member> Members { get; set; }
+        public virtual DbSet<Player> Players { get; set; }
+        public virtual DbSet<PlayerEvent> PlayerEvents { get; set; }
         public virtual DbSet<UpdateTask> UpdateTasks { get; set; }
         public virtual DbSet<War> Wars { get; set; }
         public virtual DbSet<WarSync> WarSyncs { get; set; }
         public virtual DbSet<ClanValidity> ClanValidities { get; set; }
         public virtual DbSet<Weight> Weights { get; set; }
+
 
         // Add Migration:
         // CMD> dotnet ef migrations add {MigrationName}

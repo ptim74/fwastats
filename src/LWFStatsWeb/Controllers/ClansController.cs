@@ -244,6 +244,27 @@ namespace LWFStatsWeb.Controllers
                 details.InAlliance = db.Clans.Any(c => c.Tag == tag);
                 details.Clan = await this.GetDetails(tag);
                 details.Validity = this.db.ClanValidities.SingleOrDefault(c => c.Tag == tag);
+                details.Events = new List<ClanDetailsEvent>();
+
+                var clanEvents = from e in db.PlayerEvents
+                                join p in db.Players on e.PlayerTag equals p.Tag
+                                where e.ClanTag == tag
+                                orderby e.EventDate descending
+                                select new { Event = e, Name = p.Name };
+
+                foreach(var clanEvent in clanEvents.Take(50))
+                {
+                    var e = new ClanDetailsEvent { Tag = clanEvent.Event.PlayerTag, Name = clanEvent.Name, EventDate = clanEvent.Event.EventDate, EventType = clanEvent.Event.EventType };
+                    if(e.EventType == PlayerEventType.Promote || e.EventType == PlayerEventType.Demote)
+                    {
+                        e.Value = clanEvent.Event.Role;
+                    }
+                    else
+                    {
+                        e.Value = clanEvent.Event.Value.ToString();
+                    }
+                    details.Events.Add(e);
+                }
 
                 return details;
             });

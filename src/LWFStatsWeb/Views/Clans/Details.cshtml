@@ -100,13 +100,14 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars != null 
 <ul class="nav nav-tabs">
     <li class="active"><a data-toggle="tab" href="#members">Members</a></li>
     <li><a data-toggle="tab" href="#wars">Wars</a></li>
+    <li><a data-toggle="tab" href="#events">Events</a></li>
 </ul>
 
 <div class="tab-content">
-    <div id="members" class="tab-pane in active">
+    <div id="members" class="tab-pane active">
         @if (Model.Clan.MemberList != null)
         {
-            <table id="myTable" class="table table-condensed table-hover table-responsive tablesorter">
+            <table class="table table-condensed table-hover table-responsive tablesorter">
                 <thead>
                     <tr>
                         <th width="36"></th>
@@ -128,7 +129,7 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars != null 
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var member in Model.Clan.MemberList.OrderBy(m => m.ClanRank))
+        @foreach (var member in Model.Clan.MemberList.OrderBy(m => m.ClanRank))
         {
             var member_class = "";
             var member_role = "";
@@ -179,12 +180,11 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars != null 
                 </tbody>
             </table>
         }
-
     </div>
     <div id="wars" class="tab-pane">
         @if (Model.Clan.Wars != null)
         {
-            <table id="myTable2" class="table table-condensed table-hover table-responsive tablesorter">
+            <table class="table table-condensed table-hover table-responsive tablesorter">
                 <thead>
                     <tr>
                         <th class="text-right">Clan</th>
@@ -228,7 +228,7 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars != null 
                                     <span class="label label-danger">W<span class="hidden-xs">ar clan</span></span>
                                 }
                                 @if (Model.Validity == null)
-            {
+                                {
                                     <span class="label label-danger">W<span class="hidden-xs">ar clan</span></span>
                                 }
                                 @war.ClanName
@@ -251,7 +251,7 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars != null 
                             <td class="text-nowrap">
                                 <a class="@opp_class" asp-route-id="@war.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.OpponentName</a>
                                 @if (!war.Matched && Model.InAlliance)
-            {
+                                {
                                     <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
                                 }
                                 <br />
@@ -263,10 +263,55 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars != null 
                                 <span class="visible-xs">@DateTime.UtcNow.Subtract(@war.EndTime).Days<span>d ago</span></span>
                                 <br />
                                 @if (!war.Synced)
-            {
+                                {
                                     <small class="label label-warning">Out of sync</small>
                                 }
                             </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+    <div id="events" class="tab-pane">
+        @if (Model.Events != null)
+        {
+            <table class="table table-condensed table-hover table-responsive tablesorter">
+                <thead>
+                    <tr>
+                        <th class="text">Date</th>
+                        <th>Event</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var clanEvent in Model.Events)
+                    {
+                        <tr>
+                            <td>@clanEvent.EventDate</td>
+                        @if (clanEvent.EventType == PlayerEventType.Join)
+                        {
+                            <td class="text-success"><b><a class="text-success" asp-route-id="@clanEvent.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@clanEvent.Name</a></b> joined clan</td>
+                        }
+                        @if (clanEvent.EventType == PlayerEventType.Leave)
+                        {
+                            <td class="text-warning"><b><a class="text-warning" asp-route-id="@clanEvent.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@clanEvent.Name</a></b> left clan</td>
+                        }
+                        @if (clanEvent.EventType == PlayerEventType.Promote)
+                        {
+                            <td class="text-success"><b><a class="text-success" asp-route-id="@clanEvent.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@clanEvent.Name</a></b> is promoted to @clanEvent.Value</td>
+                        }
+                        @if (clanEvent.EventType == PlayerEventType.Demote)
+                        {
+                            <td class="text-danger"><b><a class="text-danger" asp-route-id="@clanEvent.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@clanEvent.Name</a></b> is demoted to @clanEvent.Value</td>
+                        }
+                        @if (clanEvent.EventType == PlayerEventType.Stars)
+                        {
+                            <td class="text-warning"><b><a class="text-warning" asp-route-id="@clanEvent.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@clanEvent.Name</a></b> scored @clanEvent.Value stars</td>
+                        }
+                        @if (clanEvent.EventType == PlayerEventType.Townhall)
+                        {
+                            <td class="text-primary"><b><a class="text-primary" asp-route-id="@clanEvent.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@clanEvent.Name</a></b> upgraded to TH<span>@clanEvent.Value</span></td>
+                        }
                         </tr>
                     }
                 </tbody>
