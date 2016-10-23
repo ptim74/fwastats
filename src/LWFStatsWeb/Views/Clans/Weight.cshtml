@@ -54,6 +54,26 @@
                     <td>
                         <input type="hidden" name="Members[@member_id].Tag" value="@member.Tag" />
                         @member.Name
+                        @if (member.TownHallLevel == 11)
+                        {
+                            <span class="label label-primary">@member.TownHallLevel</span>
+                        }
+                        else if (member.TownHallLevel == 10)
+                        {
+                            <span class="label label-success">@member.TownHallLevel</span>
+                        }
+                        else if (member.TownHallLevel == 9)
+                        {
+                            <span class="label label-info">@member.TownHallLevel</span>
+                        }
+                        else if (member.TownHallLevel == 8)
+                        {
+                            <span class="label label-warning">@member.TownHallLevel</span>
+                        }
+                        else
+                        {
+                            <span class="label label-danger">@member.TownHallLevel</span>
+                        }
                     </td>
                     <td>
                         <div class="input-group" style="max-width:300px;min-width:190px;">

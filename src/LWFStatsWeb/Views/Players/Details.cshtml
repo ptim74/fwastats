@@ -8,6 +8,10 @@
     <ol class="breadcrumb">
         <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
         <li><a asp-area="" asp-controller="Players" asp-action="Index">Players</a></li>
+        @if (!string.IsNullOrEmpty(Model.Player.ClanTag))
+        {
+            <li><a asp-area="" asp-route-id="@Model.Player.ClanLinkID" asp-controller="Clans" asp-action="Details">@Model.Player.ClanName</a></li>
+        }
         <li class="active">@Model.Player.Name</li>
     </ol>
 
@@ -17,7 +21,9 @@
                 <img src="@Model.Player.BadgeUrl" style="float:left;margin-right:10px;margin-left:10px;margin-top:-15px;" />
                 <h3 style="margin-top:10px;margin-bottom:0px">@Model.Player.Name</h3>
                 <div class="text-muted">
-                    <a asp-area="" asp-route-id="@Model.Player.ClanLinkID" asp-controller="Clans" asp-action="Details">@Model.Player.ClanName</a>
+                    @if (!string.IsNullOrEmpty(Model.Player.ClanTag)) {
+                        <a asp-area="" asp-route-id="@Model.Player.ClanLinkID" asp-controller="Clans" asp-action="Details">@Model.Player.ClanName</a>
+                    }
                     <a class="text-muted" href="http://kuilin.net/cc/member.php?tag=@Model.Player.LinkID"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">hocolate</span>C<span class="hidden-xs">lash</span></a>
                 </div>
             </div>
@@ -70,9 +76,6 @@
                         <th>
                             Level
                         </th>
-                        <th>
-                            MaxLevel
-                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -84,9 +87,6 @@
                             </td>
                             <td>
                                 @Html.DisplayFor(modelItem => hero.Level)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => hero.MaxLevel)
                             </td>
                         </tr>
                     }
@@ -103,9 +103,6 @@
                         <th>
                             Level
                         </th>
-                        <th>
-                            MaxLevel
-                        </th>
                     </tr>
                 </thead>
                 <tbody>
@@ -118,10 +115,7 @@
                             <td>
                                 @Html.DisplayFor(modelItem => troop.Level)
                             </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => troop.MaxLevel)
-                            </td>
-                        </tr>
+                         </tr>
                     }
                 </tbody>
             </table>
@@ -161,9 +155,6 @@
                             Name
                         </th>
                         <th>
-                            Stars
-                        </th>
-                        <th>
                             Value
                         </th>
                     </tr>
@@ -174,9 +165,6 @@
                         <tr>
                             <td>
                                 @Html.DisplayFor(modelItem => achievement.Name)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => achievement.Stars)
                             </td>
                             <td>
                                 @Html.DisplayFor(modelItem => achievement.Value)
@@ -203,11 +191,11 @@
                                 <td>@clanEvent.EventDate</td>
                                 @if (clanEvent.EventType == PlayerEventType.Join)
                                 {
-                                    <td class="text-success">Joined clan <b><a class="text-success" asp-route-id="@clanEvent.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clanEvent.Name</a></b></td>
+                                    <td class="text-success">Joined to <b><a class="text-success" asp-route-id="@clanEvent.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clanEvent.Name</a></b></td>
                                 }
                                 @if (clanEvent.EventType == PlayerEventType.Leave)
                                 {
-                                    <td class="text-warning">Left clan <b><a class="text-warning" asp-route-id="@clanEvent.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clanEvent.Name</a></b></td>
+                                    <td class="text-danger">Left from <b><a class="text-danger" asp-route-id="@clanEvent.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clanEvent.Name</a></b></td>
                                 }
                                 @if (clanEvent.EventType == PlayerEventType.Promote)
                                 {

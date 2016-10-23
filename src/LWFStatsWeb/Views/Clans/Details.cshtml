@@ -294,7 +294,7 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars != null 
                         }
                         @if (clanEvent.EventType == PlayerEventType.Leave)
                         {
-                            <td class="text-warning"><b><a class="text-warning" asp-route-id="@clanEvent.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@clanEvent.Name</a></b> left clan</td>
+                            <td class="text-danger"><b><a class="text-danger" asp-route-id="@clanEvent.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@clanEvent.Name</a></b> left clan</td>
                         }
                         @if (clanEvent.EventType == PlayerEventType.Promote)
                         {

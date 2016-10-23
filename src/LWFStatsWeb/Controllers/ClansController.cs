@@ -490,6 +490,10 @@ namespace LWFStatsWeb.Controllers
 
             var weights = (from m in db.Members join w in db.Weights on m.Tag equals w.Tag select w).ToDictionary(w => w.Tag);
 
+            var thlevels = (from p in db.Players join m in db.Members on p.Tag equals m.Tag where m.ClanTag == tag select new { p.Tag, p.TownHallLevel }).ToDictionary(p => p.Tag, t => t.TownHallLevel);
+
+            //var wars = (from w in db.Wars where w.ClanTag == tag && w.Synced orderby w.EndTime descending).Take(3).Select()
+
             var memberWeights = new List<MemberWeightModel>();
 
             foreach(var member in members)
@@ -501,6 +505,9 @@ namespace LWFStatsWeb.Controllers
                     memberWeight.InWar = weight.InWar;
                     memberWeight.Weight = weight.WarWeight;
                 }
+                int thlevel = 0;
+                if (thlevels.TryGetValue(member.Tag, out thlevel))
+                    memberWeight.TownHallLevel = thlevel;
                 memberWeights.Add(memberWeight);
             }
 

@@ -14,6 +14,7 @@ using LWFStatsWeb.Models;
 using LWFStatsWeb.Services;
 using LWFStatsWeb.Logic;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace LWFStatsWeb
 {
@@ -130,6 +131,8 @@ namespace LWFStatsWeb
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
 
+            if (ServicePointManager.DefaultConnectionLimit < 8)
+                ServicePointManager.DefaultConnectionLimit = 8;
         }
     }
 }

@@ -87,8 +87,8 @@ namespace LWFStatsWeb.Controllers
                             ClanTag = newPlayer.ClanTag,
                             PlayerTag = newPlayer.Tag,
                             EventDate = DateTime.UtcNow,
-                            EventType = PlayerEventType.Stars,
-                            Value = newPlayer.WarStars - oldPlayer.WarStars
+                            EventType = PlayerEventType.Townhall,
+                            Value = newPlayer.TownHallLevel
                         });
 
                     if (oldPlayer.WarStars != newPlayer.WarStars)
@@ -268,7 +268,7 @@ namespace LWFStatsWeb.Controllers
                                     if (clanMember.Role != oldMember.Role)
                                     {
                                         var eventType = PlayerEventType.Promote;
-                                        if (PlayerEvent.RoleToValue(oldMember.Role) < PlayerEvent.RoleToValue(clanMember.Role))
+                                        if (PlayerEvent.RoleToValue(oldMember.Role) > PlayerEvent.RoleToValue(clanMember.Role))
                                             eventType = PlayerEventType.Demote;
 
                                         db.Add(new PlayerEvent
@@ -405,10 +405,12 @@ namespace LWFStatsWeb.Controllers
                     }
                 }
 
+                /*
                 if(task.Mode != UpdateTaskMode.Delete)
                 {
                     await RefreshPlayers(task.ClanTag);
                 }
+                */
 
                 status.Message = clanName;
                 status.Status = true;
@@ -420,23 +422,6 @@ namespace LWFStatsWeb.Controllers
             }
 
             return status;
-        }
-
-        protected async Task RefreshPlayers(string clanTag)
-        {
-            const int MAX_UPDATES = 5;
-
-            var memberTags = db.Members.Where(m => m.ClanTag == clanTag && !db.Players.Where(p => p.Tag == m.Tag).Any()).Select(m => m.Tag).Take(MAX_UPDATES).ToList();
-
-            if(memberTags.Count < MAX_UPDATES)
-            {
-                var playerTags = db.Players.Where(p => db.Members.Where(m => m.ClanTag == clanTag && m.Tag == p.Tag).Any()).OrderBy(p => p.LastUpdated).Select(p => p.Tag).Take(MAX_UPDATES - memberTags.Count).ToList();
-                foreach (var playerTag in playerTags)
-                    memberTags.Add(playerTag);
-            }
-
-            foreach (var memberTag in memberTags)
-                await UpdatePlayer(memberTag);
         }
 
         // GET: Update
@@ -527,6 +512,22 @@ namespace LWFStatsWeb.Controllers
             }
 
             return Json(status);
+        }
+
+        public IActionResult PlayerBatch()
+        {
+            const int MAX_UPDATES = 2000;
+
+            var memberTags = db.Members.Where(m => !db.Players.Where(p => p.Tag == m.Tag).Any()).Select(m => m.Tag).Take(MAX_UPDATES).ToList();
+
+            if (memberTags.Count < MAX_UPDATES)
+            {
+                var playerTags = db.Players.Where(p => db.Members.Where(m => m.Tag == p.Tag).Any()).OrderBy(p => p.LastUpdated).Select(p => p.Tag).Take(MAX_UPDATES - memberTags.Count).ToList();
+                foreach (var playerTag in playerTags)
+                    memberTags.Add(playerTag);
+            }
+
+            return Json(memberTags);
         }
 
         public IActionResult Players()

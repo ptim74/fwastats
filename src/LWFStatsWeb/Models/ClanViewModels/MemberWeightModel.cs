@@ -11,5 +11,6 @@ namespace LWFStatsWeb.Models.ClanViewModels
         public string Name { get; set; }
         public int Weight { get; set; }
         public bool InWar { get; set; }
+        public int TownHallLevel { get; set; }
     }
 }

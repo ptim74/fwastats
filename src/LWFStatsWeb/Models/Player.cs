@@ -134,6 +134,8 @@ namespace LWFStatsWeb.Models
         {
             get
             {
+                if (string.IsNullOrEmpty(ClanTag))
+                    return ClanTag;
                 return ClanTag.Replace("#", "");
             }
         }

@@ -98,7 +98,7 @@ namespace LWFStatsWeb.Controllers
             foreach (var s in recentSyncs)
             {
                 var q = from w in db.Wars
-                        where w.EndTime >= s.Start && w.EndTime <= s.Finish
+                        where w.EndTime >= s.Start && w.EndTime <= s.Finish && w.Synced == true
                         select new { ClanTag = w.ClanTag, Result = w.Result, OpponentTag = w.OpponentTag, OpponentName = w.OpponentName, OpponentBadge = w.OpponentBadgeUrl };
 
                 foreach (var r in q)
