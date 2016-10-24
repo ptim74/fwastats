@@ -20,7 +20,7 @@ namespace LWFStatsWeb.Models.ClanViewModels
         {
             get
             {
-                return Tag.Replace("#", "");
+                return Logic.Utils.TagToLinkId(Tag);
             }
         }
     }

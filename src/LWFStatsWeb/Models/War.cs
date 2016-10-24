@@ -100,7 +100,7 @@ namespace LWFStatsWeb.Models
         {
             get
             {
-                return ClanTag.Replace("#", "");
+                return Logic.Utils.TagToLinkId(ClanTag);
             }
         }
 
@@ -108,7 +108,7 @@ namespace LWFStatsWeb.Models
         {
             get
             {
-                return OpponentTag.Replace("#", "");
+                return Logic.Utils.TagToLinkId(OpponentTag);
             }
         }
 

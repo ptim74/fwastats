@@ -122,7 +122,7 @@ namespace LWFStatsWeb.Controllers
 
                 var clans = new List<FormerClan>();
 
-                var clanQ = from c in db.ClanValidities where c.ValidTo < DateTime.Now orderby c.Name.ToLower() select c;
+                var clanQ = from c in db.ClanValidities where c.ValidTo < DateTime.Now orderby c.ValidTo descending select c;
 
                 var clanBadges = (from w in db.Wars group w by w.OpponentTag into g select new { Tag = g.Key, BadgeUrl = g.Max(w => w.OpponentBadgeUrl) }).ToDictionary(w => w.Tag, w => w.BadgeUrl);
 
@@ -228,14 +228,9 @@ namespace LWFStatsWeb.Controllers
             return clan;
         }
 
-        protected string LinkIdToTag(string id)
-        {
-            return string.Concat("#", id.Replace("#", ""));
-        }
-
         public async Task<ActionResult> Details(string id)
         {
-            var tag = LinkIdToTag(id);
+            var tag = Utils.LinkIdToTag(id);
 
             var model = await memoryCache.GetOrCreateAsync("ClanDetails." + tag, async entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
@@ -254,10 +249,10 @@ namespace LWFStatsWeb.Controllers
 
                 foreach(var clanEvent in clanEvents.Take(50))
                 {
-                    var e = new ClanDetailsEvent { Tag = clanEvent.Event.PlayerTag, Name = clanEvent.Name, EventDate = clanEvent.Event.EventDate, EventType = clanEvent.Event.EventType };
+                    var e = new ClanDetailsEvent { Tag = clanEvent.Event.PlayerTag, Name = clanEvent.Name, EventDate = clanEvent.Event.EventDate, EventType = clanEvent.Event.EventType, TimeDesc = clanEvent.Event.TimeDesc() };
                     if(e.EventType == PlayerEventType.Promote || e.EventType == PlayerEventType.Demote)
                     {
-                        e.Value = clanEvent.Event.Role;
+                        e.Value = clanEvent.Event.RoleName;
                     }
                     else
                     {
@@ -307,7 +302,7 @@ namespace LWFStatsWeb.Controllers
         // GET: Clans/Edit/5
         public async Task<IActionResult> Edit(string id)
         {
-            var tag = LinkIdToTag(id);
+            var tag = Utils.LinkIdToTag(id);
             if (tag == null)
             {
                 return NotFound();
@@ -349,7 +344,7 @@ namespace LWFStatsWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string id, [Bind("Tag,Name,LinkID,Group,ValidFrom,ValidTo")] ClanValidity clanValidity)
         {
-            var tag = LinkIdToTag(id);
+            var tag = Utils.LinkIdToTag(id);
 
             if (tag != clanValidity.Tag)
             {
@@ -480,7 +475,7 @@ namespace LWFStatsWeb.Controllers
 
         public IActionResult Weight(string id)
         {
-            var tag = LinkIdToTag(id);
+            var tag = Utils.LinkIdToTag(id);
 
             var clan = db.Clans.Where(c => c.Tag == tag).SingleOrDefault();
 
@@ -511,7 +506,7 @@ namespace LWFStatsWeb.Controllers
                 memberWeights.Add(memberWeight);
             }
 
-            model.Members = memberWeights.OrderByDescending(w => w.Weight).ToList();
+            model.Members = memberWeights.OrderByDescending(w => w.Weight + w.TownHallLevel).ToList();
 
             return View(model);
         }
@@ -519,7 +514,7 @@ namespace LWFStatsWeb.Controllers
         [HttpPost]
         public IActionResult Weight(string id, WeightViewModel model)
         {
-            var tag = LinkIdToTag(id);
+            var tag = Utils.LinkIdToTag(id);
 
             foreach(var member in model.Members)
             {

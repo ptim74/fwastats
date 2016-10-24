@@ -1,4 +1,5 @@
 @model LWFStatsWeb.Models.PlayerViewModels.IndexViewModel
+@using LWFStatsWeb.Logic
 
     @{
         ViewBag.Title = @Model.Player.Name;
@@ -50,7 +51,7 @@
                     <div class="col-xs-6 col-sm-3"><b>WarStars:</b></div>
                     <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Player.WarStars)</b></div>
                     <div class="col-xs-6 col-sm-3"><b>Role:</b></div>
-                    <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Player.Role)</b></div>
+                    <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Player.RoleName)</b></div>
                 </div>
             </div>
         </div>
@@ -58,15 +59,15 @@
 
 
     <ul class="nav nav-tabs">
-        <li class="active"><a data-toggle="tab" href="#heroes">Heroes</a></li>
+        <li class="active"><a data-toggle="tab" href="#events">Events</a></li>
+        <li><a data-toggle="tab" href="#heroes">Heroes</a></li>
         <li><a data-toggle="tab" href="#troops">Troops</a></li>
         <li><a data-toggle="tab" href="#spells">Spells</a></li>
         <li><a data-toggle="tab" href="#achievements">Achievements</a></li>
-        <li><a data-toggle="tab" href="#events">Events</a></li>
     </ul>
 
     <div class="tab-content">
-        <div id="heroes" class="tab-pane active">
+        <div id="heroes" class="tab-pane">
             <table class="table table-hover table-responsive tablesorter">
                 <thead>
                     <tr>
@@ -152,10 +153,7 @@
                 <thead>
                     <tr>
                         <th>
-                            Name
-                        </th>
-                        <th>
-                            Value
+                            Achievement
                         </th>
                     </tr>
                 </thead>
@@ -164,31 +162,36 @@
                     {
                         <tr>
                             <td>
-                                @Html.DisplayFor(modelItem => achievement.Name)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => achievement.Value)
+                                @if (string.IsNullOrEmpty(achievement.CompletionInfo))
+                                {
+                                    @Html.DisplayFor(modelItem => achievement.Name)
+                                    <text>:</text>
+                                    @Html.DisplayFor(modelItem => achievement.Info)
+                                }
+                                else
+                                {
+                                    @Html.DisplayFor(modelItem => achievement.CompletionInfo)
+                                }
                             </td>
                         </tr>
                     }
                 </tbody>
             </table>
         </div>
-        <div id="events" class="tab-pane">
+        <div id="events" class="tab-pane active">
             @if (Model.Events != null)
             {
                 <table class="table table-condensed table-hover table-responsive tablesorter">
                     <thead>
                         <tr>
-                            <th class="text">Date</th>
                             <th>Event</th>
+                            <th>Time</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var clanEvent in Model.Events)
                         {
                             <tr>
-                                <td>@clanEvent.EventDate</td>
                                 @if (clanEvent.EventType == PlayerEventType.Join)
                                 {
                                     <td class="text-success">Joined to <b><a class="text-success" asp-route-id="@clanEvent.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clanEvent.Name</a></b></td>
@@ -213,6 +216,7 @@
                                 {
                                     <td class="text-primary">Upgraded to TH<span>@clanEvent.Value</span></td>
                                 }
+                                <td>@clanEvent.TimeDesc</td>
                             </tr>
                         }
                     </tbody>

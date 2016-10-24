@@ -17,11 +17,13 @@ namespace LWFStatsWeb.Models.PlayerViewModels
 
         public DateTime EventDate { get; set; }
 
+        public string TimeDesc { get; set; }
+
         public string LinkID
         {
             get
             {
-                return Tag.Replace("#", "");
+                return Logic.Utils.TagToLinkId(Tag);
             }
         }
     }

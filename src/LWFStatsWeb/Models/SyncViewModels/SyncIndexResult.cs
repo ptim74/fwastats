@@ -17,9 +17,7 @@ namespace LWFStatsWeb.Models.SyncViewModels
         {
             get
             {
-                if (OpponentTag == null)
-                    return null;
-                return OpponentTag.Replace("#", "");
+                return Logic.Utils.TagToLinkId(OpponentTag);
             }
         }
     }

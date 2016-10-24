@@ -117,7 +117,7 @@ namespace LWFStatsWeb.Models
         {
             get
             {
-                return Tag.Replace("#", "");
+                return Logic.Utils.TagToLinkId(Tag);
             }
         }
     }

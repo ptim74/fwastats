@@ -28,7 +28,7 @@ namespace LWFStatsWeb.Models
         {
             get
             {
-                return ClanTag.Replace("#", "");
+                return Logic.Utils.TagToLinkId(ClanTag);
             }
         }
     }

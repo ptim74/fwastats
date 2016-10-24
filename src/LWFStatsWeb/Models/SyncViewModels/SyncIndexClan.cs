@@ -18,7 +18,7 @@ namespace LWFStatsWeb.Models.SyncViewModels
         {
             get
             {
-                return Tag.Replace("#", "");
+                return Logic.Utils.TagToLinkId(Tag);
             }
         }
 

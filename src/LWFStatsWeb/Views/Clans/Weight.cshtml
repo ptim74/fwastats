@@ -53,7 +53,6 @@
                 <tr class="@member_class">
                     <td>
                         <input type="hidden" name="Members[@member_id].Tag" value="@member.Tag" />
-                        @member.Name
                         @if (member.TownHallLevel == 11)
                         {
                             <span class="label label-primary">@member.TownHallLevel</span>
@@ -74,6 +73,7 @@
                         {
                             <span class="label label-danger">@member.TownHallLevel</span>
                         }
+                        @member.Name
                     </td>
                     <td>
                         <div class="input-group" style="max-width:300px;min-width:190px;">

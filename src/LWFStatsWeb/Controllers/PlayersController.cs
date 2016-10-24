@@ -36,7 +36,7 @@ namespace LWFStatsWeb.Controllers
 
         public async Task<IActionResult> Details(string id)
         {
-            var tag = LinkIdToTag(id);
+            var tag = Utils.LinkIdToTag(id);
 
             var model = await memoryCache.GetOrCreateAsync<IndexViewModel>("PlayerDetails." + tag, async entry => {
 
@@ -54,10 +54,10 @@ namespace LWFStatsWeb.Controllers
 
                 foreach (var clanEvent in events.Take(50))
                 {
-                    var e = new PlayerDetailsEvent { Tag = clanEvent.Event.ClanTag, Name = clanEvent.Name, EventDate = clanEvent.Event.EventDate, EventType = clanEvent.Event.EventType };
+                    var e = new PlayerDetailsEvent { Tag = clanEvent.Event.ClanTag, Name = clanEvent.Name, EventDate = clanEvent.Event.EventDate, EventType = clanEvent.Event.EventType, TimeDesc = clanEvent.Event.TimeDesc() };
                     if (e.EventType == PlayerEventType.Promote || e.EventType == PlayerEventType.Demote)
                     {
-                        e.Value = clanEvent.Event.Role;
+                        e.Value = clanEvent.Event.RoleName;
                     }
                     else
                     {
@@ -71,11 +71,5 @@ namespace LWFStatsWeb.Controllers
 
             return View(model);
         }
-
-        protected string LinkIdToTag(string id)
-        {
-            return string.Concat("#", id.Replace("#", ""));
-        }
-
     }
 }

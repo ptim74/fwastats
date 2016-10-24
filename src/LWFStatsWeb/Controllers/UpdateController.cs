@@ -466,7 +466,7 @@ namespace LWFStatsWeb.Controllers
 
         public async Task<IActionResult> UpdatePlayerTask(string id)
         {
-            var playerTag = LinkIdToTag(id);
+            var playerTag = Utils.LinkIdToTag(id);
 
             try
             {
@@ -516,7 +516,7 @@ namespace LWFStatsWeb.Controllers
 
         public IActionResult PlayerBatch()
         {
-            const int MAX_UPDATES = 2000;
+            const int MAX_UPDATES = 3000;
 
             var memberTags = db.Members.Where(m => !db.Players.Where(p => p.Tag == m.Tag).Any()).Select(m => m.Tag).Take(MAX_UPDATES).ToList();
 
@@ -564,11 +564,6 @@ namespace LWFStatsWeb.Controllers
             }
 
             return View(model);
-        }
-
-        protected string LinkIdToTag(string id)
-        {
-            return string.Concat("#", id.Replace("#", ""));
         }
     }
 }

@@ -47,7 +47,7 @@ namespace LWFStatsWeb.Models.HomeViewModels
         {
             get
             {
-                return Tag.Replace("#", "");
+                return Logic.Utils.TagToLinkId(Tag);
             }
         }
     }

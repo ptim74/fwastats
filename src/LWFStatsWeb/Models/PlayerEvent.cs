@@ -45,6 +45,25 @@ namespace LWFStatsWeb.Models
             }
         }
 
+        [NotMapped]
+        public string RoleName
+        {
+            get
+            {
+                switch (Value)
+                {
+                    case 3:
+                        return "Leader";
+                    case 2:
+                        return "Co-leader";
+                    case 1:
+                        return "Elder";
+                    default:
+                        return "Member";
+                }
+            }
+        }
+
         public static int RoleToValue(string role)
         {
             switch (role)
@@ -73,6 +92,11 @@ namespace LWFStatsWeb.Models
                 default:
                     return "member";
             }
+        }
+
+        public string TimeDesc()
+        {
+            return Logic.Utils.TimeSpanToString(DateTime.UtcNow.Subtract(EventDate));
         }
 
     }

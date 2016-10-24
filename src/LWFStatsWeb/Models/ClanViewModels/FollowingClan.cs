@@ -19,8 +19,7 @@ namespace LWFStatsWeb.Models.ClanViewModels
         {
             get
             {
-                if(Tag == null) return null;
-                return Tag.Replace("#", "");
+                return Logic.Utils.TagToLinkId(Tag);
             }
         }
 
@@ -28,8 +27,7 @@ namespace LWFStatsWeb.Models.ClanViewModels
         {
             get
             {
-                if (LatestTag == null) return null;
-                return LatestTag.Replace("#", "");
+                return Logic.Utils.TagToLinkId(LatestTag);
             }
         }
     }

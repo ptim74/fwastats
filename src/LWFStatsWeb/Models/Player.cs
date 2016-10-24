@@ -126,7 +126,7 @@ namespace LWFStatsWeb.Models
         {
             get
             {
-                return Tag.Replace("#", "");
+                return Logic.Utils.TagToLinkId(Tag);
             }
         }
 
@@ -134,9 +134,15 @@ namespace LWFStatsWeb.Models
         {
             get
             {
-                if (string.IsNullOrEmpty(ClanTag))
-                    return ClanTag;
-                return ClanTag.Replace("#", "");
+                return Logic.Utils.TagToLinkId(ClanTag);
+            }
+        }
+
+        public string RoleName
+        {
+            get
+            {
+                return Logic.Utils.FixRoleName(Role);
             }
         }
     }
