@@ -23,13 +23,11 @@ namespace LWFStatsWeb.Models.HomeViewModels
 
     public class SyncHistory
     {
-        public string Name { get; set; }
         public List <SyncStats> Syncs { get; set; }
     }
 
     public class CounterStats
     {
-        public string Name { get; set; }
         public int ClanCount { get; set; }
         public int MemberCount { get; set; }
         public double MatchPercentage { get; set; }

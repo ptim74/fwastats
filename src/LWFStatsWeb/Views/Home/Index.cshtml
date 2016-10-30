@@ -2,7 +2,7 @@
 
 @{
     ViewBag.Title = "";
-    ViewBag.MetaDescription = "Statistics of clans in Farm War Alliance (FWA / FWAL), Clash of Clans";
+    ViewBag.MetaDescription = "Statistics of clans in Farm War Alliance (FWA), Clash of Clans";
 }
 
 <ol class="breadcrumb">
@@ -12,32 +12,31 @@
 <div class="jumbotron header-jumbo">
     <h1>💎 FWA Stats</h1>
     <p>
-        Statistics about FWA / FWAL clans and wars.
+        Statistics about FWA clans and wars.
     </p>
 </div>
 
 <div class="row">
     @foreach (var stats in Model.LastSyncs)
     {
-        var viewAction = stats.Name + "Details";
         <div class="col-sm-6">
-            <h3>Latest @stats.Name war</h3>
-            <div id="piechart_@stats.Name" style="width:300px;height:200px"><p><span class="glyphicon glyphicon-hourglass"></span> Loading...</p></div>
-            <div style="margin-top:10px;"><a asp-area="" asp-controller="Syncs" asp-action="@viewAction" asp-route-id="@stats.LastSyncName" class="btn btn-default">More details</a></div>
+            <h3>Latest war</h3>
+            <div id="piechart" style="width:300px;height:200px"><p><span class="glyphicon glyphicon-hourglass"></span> Loading...</p></div>
+            <div style="margin-top:10px;"><a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@stats.LastSyncName" class="btn btn-default">More details</a></div>
         </div>
     }
     @foreach (var history in Model.SyncHistories)
     {
         <div class="col-sm-6">
-            <h3>Last @history.Syncs.Count @history.Name wars</h3>
-            <div id="areachart_@history.Name" style="width:300px;height:200px"><p><span class="glyphicon glyphicon-hourglass"></span> Loading...</p></div>
-            <div style="margin-top:10px;"><a asp-area="" asp-controller="Syncs" asp-action="@history.Name" class="btn btn-default">More details</a></div>
+            <h3>Last @history.Syncs.Count wars</h3>
+            <div id="areachart" style="width:300px;height:200px"><p><span class="glyphicon glyphicon-hourglass"></span> Loading...</p></div>
+            <div style="margin-top:10px;"><a asp-area="" asp-controller="Syncs" asp-action="Index" class="btn btn-default">More details</a></div>
         </div>
     }
     @foreach (var counters in Model.Counters)
     {
         <div class="col-sm-6">
-            <h3>@counters.Name key numbers</h3>
+            <h3>Key numbers</h3>
             <table>
                 <tr>
                     <td style="padding:5px;"><b>@counters.ClanCount</b></td>
@@ -56,7 +55,7 @@
                     <td style="padding:5px;">match ratio</td>
                 </tr>
             </table>
-            <p style="margin-top:20px;"><a asp-area="" asp-controller="Clans" asp-action="@counters.Name" class="btn btn-default">View all @counters.Name clans</a></p>
+            <p style="margin-top:20px;"><a asp-area="" asp-controller="Clans" asp-action="Index" class="btn btn-default">View all clans</a></p>
         </div>
     }
 </div>
@@ -71,9 +70,9 @@
 
             @foreach (var group in Model.LastSyncs)
             {
-                var data = "piedata_" + group.Name;
-                var options = "pieoptions_" + group.Name;
-                var chart = "piechart_" + group.Name;
+                var data = "piedata";
+                var options = "pieoptions";
+                var chart = "piechart";
                 <text>
                 var @data = google.visualization.arrayToDataTable([
                     ['Wars', 'Count'],
@@ -92,9 +91,9 @@
             }
             @foreach(var history in Model.SyncHistories)
             {
-                var data = "areadata_" + history.Name;
-                var options = "areaoptions_" + history.Name;
-                var chart = "areachart_" + history.Name;
+                var data = "areadata";
+                var options = "areaoptions";
+                var chart = "areachart";
                 <text>
                 var @data = google.visualization.arrayToDataTable([
                     ['Date', 'Matches', 'Mismatches', 'Didn\'t start']

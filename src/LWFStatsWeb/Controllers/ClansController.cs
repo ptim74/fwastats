@@ -30,9 +30,9 @@ namespace LWFStatsWeb.Controllers
             this.memoryCache = memoryCache;
         }
 
-        protected IndexViewModel GetClanList(string filter)
+        protected IndexViewModel GetClanList()
         {
-            var clans = new IndexViewModel { Group = filter };
+            var clans = new IndexViewModel();
 
             var wars = (from w in db.Wars.Select(w => new { w.ClanTag, w.Synced })
                         where w.Synced == true
@@ -54,14 +54,8 @@ namespace LWFStatsWeb.Controllers
                 Tag = c.Tag,
                 Name = c.Name,
                 Members = c.Members,
-                BadgeUrl = c.BadgeUrl,
-                Group = c.Group
+                BadgeUrl = c.BadgeUrl
             });
-
-            if (filter.Equals("FWA"))
-                clanQ = clanQ.Where(c => c.Group == filter);
-            if (filter.Equals("FWAL"))
-                clanQ = clanQ.Where(c => c.Group == filter || c.Group == "LWF");
 
             foreach (var clan in clanQ.OrderBy(c => c.Name.ToLower()))
             {
@@ -89,30 +83,10 @@ namespace LWFStatsWeb.Controllers
         {
             var model = memoryCache.GetOrCreate("Clans.All", entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
-                return GetClanList("");
+                return GetClanList();
             });
 
             return View(model);
-        }
-
-        public ActionResult FWA()
-        {
-            var model = memoryCache.GetOrCreate("Clans.FWA", entry => {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
-                return GetClanList("FWA");
-            });
-
-            return View("Index", model);
-        }
-
-        public ActionResult FWAL()
-        {
-            var model = memoryCache.GetOrCreate("Clans.FWAL", entry => {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
-                return GetClanList("FWAL");
-            });
-
-            return View("Index", model);
         }
 
         public ActionResult Departed()
@@ -152,7 +126,7 @@ namespace LWFStatsWeb.Controllers
         protected List<War> GetPrivateWars(string id)
         {
             var wars = new List<War>();
-            var opponentsWars = db.Wars.Where(o => o.OpponentTag == id).ToList();
+            var opponentsWars = db.Wars.Where(o => o.OpponentTag == id).OrderByDescending(w => w.EndTime).ToList();
             if (opponentsWars.Count > 0)
             {
                 foreach (var o in opponentsWars)
@@ -201,12 +175,15 @@ namespace LWFStatsWeb.Controllers
             clan.MemberList = new List<Member>();
             try
             {
-                var clans = db.Clans.Include(c => c.MemberList).Where(c => c.Tag == tag).ToList();
+                var clans = db.Clans.Where(c => c.Tag == tag).ToList();
                 if (clans.Count > 0)
                 {
                     clan = clans.First();
+
+                    clan.MemberList = db.Members.Where(m => m.ClanTag == clan.Tag).OrderBy(m => m.ClanRank).ToList();
+
                     if (clan.IsWarLogPublic)
-                        clan.Wars = db.Wars.Where(c => c.ClanTag == tag).ToList();
+                        clan.Wars = db.Wars.Where(c => c.ClanTag == tag).OrderByDescending(w => w.EndTime).ToList();
                     else
                         clan.Wars = this.GetPrivateWars(tag);
                 }
@@ -223,7 +200,6 @@ namespace LWFStatsWeb.Controllers
             catch (Exception e)
             {
                 clan.Description = e.Message;
-
             }
             return clan;
         }

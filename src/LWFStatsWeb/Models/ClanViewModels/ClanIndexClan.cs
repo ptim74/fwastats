@@ -11,7 +11,6 @@ namespace LWFStatsWeb.Models.ClanViewModels
         public string Name { get; set; }
         public int Members { get; set; }
         public string BadgeUrl { get; set; }
-        public string Group { get; set; }
         public int WarCount { get; set; }
         public double MatchPercentage { get; set; }
         public double WinPercentage { get; set; }

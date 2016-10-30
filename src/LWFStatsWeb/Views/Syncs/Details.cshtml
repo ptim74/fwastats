@@ -1,16 +1,12 @@
 ﻿@model LWFStatsWeb.Models.SyncViewModels.DetailsViewModel
 
 @{
-    ViewBag.Title = Model.Filter + " Sync " + Model.Sync.Name;
+    ViewBag.Title = "Sync " + Model.Sync.Name;
 }
 
 <ol class="breadcrumb">
     <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
     <li><a asp-area="" asp-controller="Syncs" asp-action="Index">Syncs</a></li>
-    @if(!string.IsNullOrEmpty(Model.Filter))
-    {
-        <li><a asp-area="" asp-controller="Syncs" asp-action="@Model.Filter">@Model.Filter</a></li>
-    }
     <li class="active">@Model.Sync.Name</li>
 </ol>
 

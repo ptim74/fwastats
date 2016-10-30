@@ -1,38 +1,15 @@
 ﻿@model LWFStatsWeb.Models.SyncViewModels.IndexViewModel
 
 @{
-    ViewBag.Title = Model.Group + " Syncs";
+    ViewBag.Title = "Syncs";
 }
 
 <ol class="breadcrumb">
     <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-    @if (Model.Group == "")
-    {
-        <li class="active">Syncs</li>
-    }
-    else
-    {
-        <li><a asp-area="" asp-controller="Syncs" asp-action="Index">Syncs</a></li>
-        <li class="active">@Model.Group</li>
-    }
+    <li class="active">Syncs</li>
 </ol>
 
-<h2>@Model.Group Syncs</h2>
-
-@{
-    var grp_all = Model.Group == "" ? "active" : "";
-    var grp_fwa = Model.Group == "FWA" ? "active" : "";
-    var grp_fwal = Model.Group == "FWAL" ? "active" : "";
-
-    var viewAction = Model.Group + "Details";
-
-}
-
-<ul class="pagination">
-    <li class="@grp_all"><a asp-area="" asp-controller="Syncs" asp-action="Index">All</a></li>
-    <li class="@grp_fwa"><a asp-area="" asp-controller="Syncs" asp-action="FWA">FWA</a></li>
-    <li class="@grp_fwal"><a asp-area="" asp-controller="Syncs" asp-action="FWAL">FWAL</a></li>
-</ul>
+<h2>Syncs</h2>
 
 <div class="input-group" style="margin-bottom:20px;">
     <span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-search"></span></span>
@@ -49,7 +26,7 @@
             @foreach (var warSync in Model.Syncs)
             {
                 <th>
-                    <a asp-area="" asp-controller="Syncs" asp-action="@viewAction" asp-route-id="@warSync.Name">@warSync.Name</a>
+                    <a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@warSync.Name">@warSync.Name</a>
                 </th>
             }
         </tr>

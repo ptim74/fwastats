@@ -7,6 +7,5 @@ namespace LWFStatsWeb.Models.ClanViewModels
 {
     public class IndexViewModel : List<ClanIndexClan>
     {
-        public string Group { get; set; }
     }
 }

@@ -48,22 +48,20 @@ namespace LWFStatsWeb.Controllers
 
                     var loadedValidities = db.ClanValidities.ToList();
 
-                    foreach (var group in new string[] { "FWA", "FWAL" })
-                    {
-                        var counters = new CounterStats() { Name = group };
+                        var counters = new CounterStats();
 
                         var totalWins = 0;
                         var totalMatches = 0;
                         var totalMismatches = 0;
                         var totalNotStarted = 0;
 
-                        foreach (var clan in validClans.Where(v => v.Group == group))
+                        foreach (var clan in validClans)
                         {
                             counters.ClanCount++;
                             counters.MemberCount += clan.Members;
                         }
 
-                        var syncHistory = new SyncHistory { Name = group, Syncs = new List<SyncStats>() };
+                        var syncHistory = new SyncHistory { Syncs = new List<SyncStats>() };
 
                         foreach (var latestSync in recentSyncs.OrderBy(w => w.Start))
                         {
@@ -76,8 +74,8 @@ namespace LWFStatsWeb.Controllers
                             var stats = new SyncStats();
                             stats.Name = latestSync.Name;
 
-                            var validClanTags = (from f in loadedValidities
-                                                 where f.ValidTo > syncDate && f.ValidFrom < syncDate && f.Group == @group
+                        var validClanTags = (from f in loadedValidities
+                                                 where f.ValidTo > syncDate && f.ValidFrom < syncDate
                                                  select f.Tag).ToList();
 
                             var validOpponentTags = (from f in loadedValidities
@@ -115,7 +113,6 @@ namespace LWFStatsWeb.Controllers
                             var lastSync = syncHistory.Syncs.Last();
                             model.LastSyncs.Add(new SyncStats
                             {
-                                Name = syncHistory.Name,
                                 LastSyncName = lastSync.Name,
                                 AllianceMatches = lastSync.AllianceMatches,
                                 WarMatches = lastSync.WarMatches,
@@ -131,7 +128,6 @@ namespace LWFStatsWeb.Controllers
                         }
 
                         model.Counters.Add(counters);
-                    }
 
                     memoryCache.Set<IndexViewModel>(CACHEKEY, model, 
                         new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(20)));

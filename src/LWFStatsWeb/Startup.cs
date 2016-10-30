@@ -101,6 +101,10 @@ namespace LWFStatsWeb
                 app.UseDatabaseErrorPage();
                 app.UseBrowserLink();
             }
+            else if(env.IsStaging())
+            {
+                app.UseDeveloperExceptionPage();
+            }
             else
             {
                 app.UseExceptionHandler("/Home/Error");
@@ -121,8 +125,6 @@ namespace LWFStatsWeb
                 routes.MapRoute("ClanWeight", "Clan/{id}/Weight", new { controller = "Clans", action = "Weight" });
 
                 routes.MapRoute("SyncDetails", "Sync/{id}", new { controller = "Syncs", action = "Details" });
-                routes.MapRoute("FWASyncDetails", "Sync/FWA/{id}", new { controller = "Syncs", action = "FWADetails" });
-                routes.MapRoute("FWALSyncDetails", "Sync/FWAL/{id}", new { controller = "Syncs", action = "FWALDetails" });
 
                 routes.MapRoute("PlayerDetails", "Player/{id}", new { controller = "Players", action = "Details" });
 
@@ -130,9 +132,6 @@ namespace LWFStatsWeb
                     name: "default",
                     template: "{controller=Home}/{action=Index}/{id?}");
             });
-
-            if (ServicePointManager.DefaultConnectionLimit < 8)
-                ServicePointManager.DefaultConnectionLimit = 8;
         }
     }
 }

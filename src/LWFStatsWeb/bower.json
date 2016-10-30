@@ -6,8 +6,7 @@
     "jquery": "2.2.3",
     "jquery-validation": "1.15.0",
     "jquery-validation-unobtrusive": "3.2.6",
-    "jquery.tablesorter": "*",
-    "vis": "4.16.1"
+    "jquery.tablesorter": "*"
   },
   "resolutions": {
     "jquery": ">= 1.7.2",

@@ -23,10 +23,6 @@
     {
         <li><a asp-area="" asp-controller="Clans" asp-action="Following">Following</a></li>
     }
-    else if (!string.IsNullOrEmpty(Model.Clan.Group))
-    {
-        <li><a asp-area="" asp-controller="Clans" asp-action="@Model.Clan.Group">@Model.Clan.Group</a></li>
-    }
     <li class="active">@Model.Clan.Name</li>
 </ol>
 
@@ -37,10 +33,6 @@
             <h3 style="margin-top:10px;margin-bottom:0px">@Model.Clan.Name</h3>
             <div class="text-muted">
                 @Model.Clan.Tag
-                @if (!string.IsNullOrEmpty(Model.Clan.Group))
-                {
-                    <span>#@Model.Clan.Group</span>
-                }
                 <a class="text-muted" href="http://kuilin.net/cc/clan.php?tag=@Model.Clan.LinkID"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">hocolate</span>C<span class="hidden-xs">lash</span></a>
                 <a class="text-muted" href="https://www.clashofstats.com/clans/@Model.Clan.LinkID"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">lash </span>o<span class="hidden-xs">f </span>S<span class="hidden-xs">tats</span></a>
             </div>
@@ -82,18 +74,10 @@
     }
 </div>
 
-
-
 @if (!Model.InAlliance && Model.Validity != null && !Model.Validity.IsValid())
 {
     <div class="alert alert-info">
         Clan left alliance <a asp-route-id="@Model.Clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Edit">@Model.Validity.ValidTo.ToString("yyyy-MM-dd")</a>.
-    </div>
-}
-else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars != null && Model.Clan.Wars.Any(w => w.Result == "lose"))
-{
-    <div class="alert alert-info">
-        <a asp-route-id="@Model.Clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Edit">Mark clan as former alliance member</a>
     </div>
 }
 
@@ -129,7 +113,7 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars != null 
                     </tr>
                 </thead>
                 <tbody>
-        @foreach (var member in Model.Clan.MemberList.OrderBy(m => m.ClanRank))
+        @foreach (var member in Model.Clan.MemberList)
         {
             var member_class = "";
             var member_role = "";
@@ -202,7 +186,7 @@ else if (!Model.InAlliance && Model.Validity == null && Model.Clan.Wars != null 
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var war in Model.Clan.Wars.OrderByDescending(w => w.EndTime))
+                    @foreach (var war in Model.Clan.Wars)
                     {
                         var war_class = "";
                         var opp_class = "";

@@ -24,7 +24,7 @@ namespace LWFStatsWeb.Controllers
             this.memoryCache = memoryCache;
         }
 
-        protected IndexViewModel GetData(string filter, int? count)
+        protected IndexViewModel GetData(int? count)
         {
             var clans = new Dictionary<string, SyncIndexClan>();
 
@@ -56,31 +56,26 @@ namespace LWFStatsWeb.Controllers
                 clanDetail.BadgeUrl = clan.BadgeUrl;
                 clanDetail.Results = new List<SyncIndexResult>();
                 clanDetail.HiddenLog = !clan.IsWarLogPublic;
-
-                if(string.IsNullOrEmpty(filter) || filter.Equals(clan.Group,StringComparison.InvariantCultureIgnoreCase))
-                    clans.Add(clan.Tag, clanDetail);
+                clans.Add(clan.Tag, clanDetail);
             }
 
             var formerClans = formerClanQ.ToDictionary(f => f.Tag);
 
             foreach(var formerClan in formerClans.Values)
             {
-                if (string.IsNullOrEmpty(filter) || filter.Equals(formerClan.Group, StringComparison.InvariantCultureIgnoreCase))
+                if (!clans.ContainsKey(formerClan.Tag))
                 {
-                    if (!clans.ContainsKey(formerClan.Tag))
-                    {
-                        var syncClan = new SyncIndexClan { Tag = formerClan.Tag, Name = formerClan.Name, Results = new List<SyncIndexResult>(), Departed = true };
+                    var syncClan = new SyncIndexClan { Tag = formerClan.Tag, Name = formerClan.Name, Results = new List<SyncIndexResult>(), Departed = true };
 
-                        var clanBadges = (from o in db.Wars
-                                          where o.OpponentTag == formerClan.Tag
-                                          orderby o.EndTime descending
-                                          select o.OpponentBadgeUrl).ToList();
+                    var clanBadges = (from o in db.Wars
+                                        where o.OpponentTag == formerClan.Tag
+                                        orderby o.EndTime descending
+                                        select o.OpponentBadgeUrl).ToList();
 
-                        if (clanBadges.Count > 0)
-                            syncClan.BadgeUrl = clanBadges.First();
+                    if (clanBadges.Count > 0)
+                        syncClan.BadgeUrl = clanBadges.First();
 
-                        clans.Add(formerClan.Tag, syncClan);
-                    }
+                    clans.Add(formerClan.Tag, syncClan);
                 }
             }
 
@@ -143,8 +138,6 @@ namespace LWFStatsWeb.Controllers
 
             var data = new IndexViewModel();
 
-            data.Group = filter;
-
             data.Syncs = recentSyncs;
 
             data.Clans = clans.Values.OrderBy(c => c.Name).ToList();
@@ -156,36 +149,15 @@ namespace LWFStatsWeb.Controllers
         {
             var model = memoryCache.GetOrCreate("Syncs.All"+count, entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
-                return GetData("", count);
+                return GetData(count);
             });
 
             return View(model);
         }
 
-        public ActionResult FWA(int? count)
-        {
-            var model = memoryCache.GetOrCreate("Syncs.FWA" + count, entry => {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
-                return GetData("FWA", count);
-            });
-
-            return View("Index", model);
-        }
-
-        public ActionResult FWAL(int? count)
-        {
-            var model = memoryCache.GetOrCreate("Syncs.FWAL" + count, entry => {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
-                return GetData("FWAL", count);
-            });
-
-            return View("Index", model);
-        }
-
-        protected DetailsViewModel GetWars(string filter, string id)
+        protected DetailsViewModel GetWars(string id)
         {
             var model = new DetailsViewModel();
-            model.Filter = filter;
 
             model.Sync = db.WarSyncs.Where(s => s.Name == id).FirstOrDefault();
 
@@ -195,8 +167,7 @@ namespace LWFStatsWeb.Controllers
 
             foreach(var validity in db.ClanValidities.Where(v => v.ValidTo > searchTime && v.ValidFrom < searchTime))
             {
-                if (string.IsNullOrEmpty(filter) || filter.Equals(validity.Group, StringComparison.InvariantCultureIgnoreCase))
-                    validClans.Add(validity.Tag);
+                validClans.Add(validity.Tag);
             }
 
             model.Wars = new List<War>();
@@ -224,30 +195,10 @@ namespace LWFStatsWeb.Controllers
         {
             var model = memoryCache.GetOrCreate("Sync.All" + id, entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
-                return GetWars("", id);
+                return GetWars(id);
             });
 
             return View(model);
-        }
-
-        public ActionResult FWADetails(string id)
-        {
-            var model = memoryCache.GetOrCreate("Sync.FWA" + id, entry => {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
-                return GetWars("FWA", id);
-            });
-
-            return View("Details", model);
-        }
-
-        public ActionResult FWALDetails(string id)
-        {
-            var model = memoryCache.GetOrCreate("Sync.FWAL" + id, entry => {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
-                return GetWars("FWAL", id);
-            });
-
-            return View("Details", model);
         }
     }
 }
