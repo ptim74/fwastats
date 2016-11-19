@@ -8,6 +8,7 @@ using LWFStatsWeb.Models.UpdateViewModels;
 using LWFStatsWeb.Data;
 using LWFStatsWeb.Logic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace LWFStatsWeb.Controllers
 {
@@ -19,19 +20,22 @@ namespace LWFStatsWeb.Controllers
         private readonly IClanUpdater updater;
         private readonly IClashApi api;
         private readonly IClanStatistics statistics;
+        ILogger<UpdateController> logger;
 
         public UpdateController(
             ApplicationDbContext context, 
             IClanLoader loader,
             IClanUpdater updater,
             IClashApi api,
-            IClanStatistics statistics)
+            IClanStatistics statistics,
+            ILogger<UpdateController> logger)
         {
             this.db = context;
             this.loader = loader;
             this.updater = updater;
             this.api = api;
             this.statistics = statistics;
+            this.logger = logger;
         }
 
         protected async Task<IndexViewModel> GetUpdates()
@@ -427,6 +431,8 @@ namespace LWFStatsWeb.Controllers
         // GET: Update
         public async Task<IActionResult> Index()
         {
+            logger.LogInformation("Index.Begin");
+
             IndexViewModel model = null;
             try
             {
@@ -444,28 +450,39 @@ namespace LWFStatsWeb.Controllers
                 model.Tasks = new List<UpdateTask>();
             }
 
+            logger.LogInformation("Index.End");
+
             return View(model);
         }
 
         public async Task<IActionResult> GetTasks()
         {
+            logger.LogInformation("GetTasks");
             return Json(await GetUpdates());
         }
 
         public async Task<IActionResult> UpdateTask(string id)
         {
+            logger.LogInformation("UpdateTask.Begin {0}", id);
             try
             {
                 return Json(await PerformTask(id));
             }
             catch(Exception e)
             {
+                logger.LogError("UpdateTask.Error {0}: {1}", id, e.Message);
                 return Json(new UpdateTaskResponse { ID = id, Message = e.Message, Status = false });
+            }
+            finally
+            {
+                logger.LogInformation("UpdateTask.End {0}", id);
             }
         }
 
         public async Task<IActionResult> UpdatePlayerTask(string id)
         {
+            logger.LogInformation("UpdatePlayerTask.Begin {0}", id);
+
             var playerTag = Utils.LinkIdToTag(id);
 
             try
@@ -474,7 +491,12 @@ namespace LWFStatsWeb.Controllers
             }
             catch (Exception e)
             {
+                logger.LogError("UpdatePlayerTask.Error {0}: {1}", id, e.Message);
                 return Json(new UpdateTaskResponse { ID = id, Message = e.Message, Status = false });
+            }
+            finally
+            {
+                logger.LogInformation("UpdatePlayerTask.End {0}", id);
             }
         }
 
@@ -491,14 +513,18 @@ namespace LWFStatsWeb.Controllers
 
         public IActionResult Finish()
         {
+            logger.LogInformation("Finish.Begin");
             var model = new IndexViewModel();
             model.Errors = new List<string>();
             model.Tasks = new List<UpdateTask>();
+            logger.LogInformation("Finish.End");
             return View("Index", model);
         }
 
         public IActionResult UpdateFinished()
         {
+            logger.LogInformation("UpdateFinished.Begin");
+
             var status = new UpdateTaskResponse { Message = "Done", Status = true };
 
             try
@@ -507,9 +533,13 @@ namespace LWFStatsWeb.Controllers
             }
             catch(Exception e)
             {
+                logger.LogError("UpdateFinished.Error: {0}", e.Message);
+
                 status.Message = e.Message;
                 status.Status = false;
             }
+
+            logger.LogInformation("UpdateFinished.End");
 
             return Json(status);
         }
@@ -517,6 +547,8 @@ namespace LWFStatsWeb.Controllers
         public IActionResult PlayerBatch()
         {
             const int MAX_UPDATES = 3000;
+
+            logger.LogInformation("PlayerBatch.Begin");
 
             var memberTags = db.Members.Where(m => !db.Players.Where(p => p.Tag == m.Tag).Any()).Select(m => m.Tag).Take(MAX_UPDATES).ToList();
 
@@ -527,11 +559,15 @@ namespace LWFStatsWeb.Controllers
                     memberTags.Add(playerTag);
             }
 
+            logger.LogInformation("PlayerBatch.End");
+
             return Json(memberTags);
         }
 
         public IActionResult Players()
         {
+            logger.LogInformation("Players.Begin");
+
             var model = new PlayersViewModel();
             model.Errors = new List<string>();
             model.Tasks = new List<PlayerUpdateTask>();
@@ -562,6 +598,8 @@ namespace LWFStatsWeb.Controllers
                 };
                 model.Tasks.Add(task);
             }
+
+            logger.LogInformation("Players.End");
 
             return View(model);
         }

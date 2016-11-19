@@ -46,7 +46,8 @@
       "type": "build"
     },
     "Microsoft.Extensions.Caching.Memory": "1.0.0",
-    "Microsoft.AspNetCore.Authentication.Google": "1.0.0"
+    "Microsoft.AspNetCore.Authentication.Google": "1.0.0",
+    "NLog.Extensions.Logging": "1.0.0-rtm-alpha4"
   },
 
   "tools": {
@@ -87,7 +88,7 @@
     "include": [
       "wwwroot",
       "Views",
-      "Areas/**/ Views", "appsettings.json", "web.config"
+      "Areas/**/ Views", "appsettings.json", "web.config", "nlog.config"
     ]
   },
 

@@ -7,6 +7,7 @@ using LWFStatsWeb.Data;
 using LWFStatsWeb.Models.HomeViewModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace LWFStatsWeb.Controllers
 {
@@ -14,19 +15,24 @@ namespace LWFStatsWeb.Controllers
     {
         private readonly ApplicationDbContext db;
         private IMemoryCache memoryCache;
+        ILogger<HomeController> logger;
 
         public HomeController(
             ApplicationDbContext db,
-            IMemoryCache memoryCache)
+            IMemoryCache memoryCache,
+            ILogger<HomeController> logger)
         {
             this.db = db;
             this.memoryCache = memoryCache;
+            this.logger = logger;
         }
 
         public IActionResult Index()
         {
             var CACHEKEY = "Home.Index";
             IndexViewModel model;
+
+            logger.LogInformation("Index.Begin");
 
             if (!memoryCache.TryGetValue<IndexViewModel>(CACHEKEY, out model))
             {
@@ -131,22 +137,36 @@ namespace LWFStatsWeb.Controllers
 
                     memoryCache.Set<IndexViewModel>(CACHEKEY, model, 
                         new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(20)));
+
+                    logger.LogInformation("Index.CacheMiss");
+
                 }
-                catch (Exception)
+                catch (Exception e)
                 {
+                    logger.LogError("Index.Error: {0}", e.Message);
                 }
             }
+
+            logger.LogInformation("Index.End");
 
             return View(model);
         }
 
         public IActionResult About()
         {
+            logger.LogInformation("About");
             return View();
         }
 
-        public IActionResult Error()
+        public IActionResult Error(int id)
         {
+            logger.LogError("Error.{0}", id);
+
+            ViewData["Message"] = "Sorry, an error occurred while processing your request.";
+
+            if(id == 404)
+                ViewData["Message"] = "Sorry, the page you are looking for could not be found.";
+
             return View();
         }
     }

@@ -11,6 +11,7 @@ using LWFStatsWeb.Models.ClanViewModels;
 using LWFStatsWeb.Logic;
 using System.IO;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace LWFStatsWeb.Controllers
 {
@@ -19,15 +20,18 @@ namespace LWFStatsWeb.Controllers
         private readonly ApplicationDbContext db;
         private readonly IClashApi api;
         private IMemoryCache memoryCache;
+        ILogger<ClansController> logger;
 
         public ClansController(
             ApplicationDbContext db,
             IClashApi api,
-            IMemoryCache memoryCache)
+            IMemoryCache memoryCache,
+            ILogger<ClansController> logger)
         {
             this.db = db;
             this.api = api;
             this.memoryCache = memoryCache;
+            this.logger = logger;
         }
 
         protected IndexViewModel GetClanList()
@@ -81,16 +85,22 @@ namespace LWFStatsWeb.Controllers
         // GET: Clans
         public ActionResult Index()
         {
+            logger.LogInformation("Index.Begin");
+
             var model = memoryCache.GetOrCreate("Clans.All", entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
                 return GetClanList();
             });
+
+            logger.LogInformation("Index.End");
 
             return View(model);
         }
 
         public ActionResult Departed()
         {
+            logger.LogInformation("Departed.Begin");
+
             var model = memoryCache.GetOrCreate("Clans.Departed", entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
 
@@ -119,6 +129,8 @@ namespace LWFStatsWeb.Controllers
 
                 return clans;
             });
+
+            logger.LogInformation("Departed.End");
 
             return View(model);
         }
@@ -206,6 +218,8 @@ namespace LWFStatsWeb.Controllers
 
         public async Task<ActionResult> Details(string id)
         {
+            logger.LogInformation("Details.Begin {0}", id);
+
             var tag = Utils.LinkIdToTag(id);
 
             var model = await memoryCache.GetOrCreateAsync("ClanDetails." + tag, async entry => {
@@ -239,12 +253,16 @@ namespace LWFStatsWeb.Controllers
 
                 return details;
             });
-            
+
+            logger.LogInformation("Details.End {0}", id);
+
             return View(model);
         }
 
         public ActionResult Following()
         {
+            logger.LogInformation("Following.Begin");
+
             var model = memoryCache.GetOrCreate("Clans.Following", entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
 
@@ -272,12 +290,16 @@ namespace LWFStatsWeb.Controllers
                 return clans.Values.Where(c => c.Wars > 1).OrderByDescending(c => c.LatestDate).ToList();
             });
 
+            logger.LogInformation("Following.End");
+
             return View(model);
         }
 
         // GET: Clans/Edit/5
         public async Task<IActionResult> Edit(string id)
         {
+            logger.LogInformation("Edit.Begin {0}", id);
+
             var tag = Utils.LinkIdToTag(id);
             if (tag == null)
             {
@@ -310,6 +332,8 @@ namespace LWFStatsWeb.Controllers
 
             }
 
+            logger.LogInformation("Edit.End {0}", id);
+
             return View(clanValidity);
         }
 
@@ -320,6 +344,8 @@ namespace LWFStatsWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string id, [Bind("Tag,Name,LinkID,Group,ValidFrom,ValidTo")] ClanValidity clanValidity)
         {
+            logger.LogInformation("Edit.Post.Begin {0}", id);
+
             var tag = Utils.LinkIdToTag(id);
 
             if (tag != clanValidity.Tag)
@@ -441,6 +467,9 @@ namespace LWFStatsWeb.Controllers
                 }
                 return RedirectToAction("Details", new { id = id });
             }
+
+            logger.LogInformation("Edit.Post.End {0}", id);
+
             return View(clanValidity);
         }
 
@@ -451,6 +480,8 @@ namespace LWFStatsWeb.Controllers
 
         public IActionResult Weight(string id)
         {
+            logger.LogInformation("Weight.Begin {0}", id);
+
             var tag = Utils.LinkIdToTag(id);
 
             var clan = db.Clans.Where(c => c.Tag == tag).SingleOrDefault();
@@ -484,12 +515,16 @@ namespace LWFStatsWeb.Controllers
 
             model.Members = memberWeights.OrderByDescending(w => w.Weight + w.TownHallLevel).ToList();
 
+            logger.LogInformation("Weight.End {0}", id);
+
             return View(model);
         }
 
         [HttpPost]
         public IActionResult Weight(string id, WeightViewModel model)
         {
+            logger.LogInformation("Weight.Post.Begin {0}", id);
+
             var tag = Utils.LinkIdToTag(id);
 
             foreach(var member in model.Members)
@@ -513,6 +548,8 @@ namespace LWFStatsWeb.Controllers
             }
 
             db.SaveChanges();
+
+            logger.LogInformation("Weight.Post.End {0}", id);
 
             return Weight(id);
         }

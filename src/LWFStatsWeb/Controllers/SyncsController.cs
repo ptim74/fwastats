@@ -8,6 +8,7 @@ using LWFStatsWeb.Data;
 using Microsoft.EntityFrameworkCore;
 using LWFStatsWeb.Models;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Logging;
 
 namespace LWFStatsWeb.Controllers
 {
@@ -15,13 +16,16 @@ namespace LWFStatsWeb.Controllers
     {
         private readonly ApplicationDbContext db;
         private IMemoryCache memoryCache;
+        ILogger<SyncsController> logger;
 
         public SyncsController(
             ApplicationDbContext db,
-            IMemoryCache memoryCache)
+            IMemoryCache memoryCache,
+            ILogger<SyncsController> logger)
         {
             this.db = db;
             this.memoryCache = memoryCache;
+            this.logger = logger;
         }
 
         protected IndexViewModel GetData(int? count)
@@ -147,10 +151,14 @@ namespace LWFStatsWeb.Controllers
 
         public ActionResult Index(int? count)
         {
+            logger.LogInformation("Index.Begin {0}", count);
+
             var model = memoryCache.GetOrCreate("Syncs.All"+count, entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
                 return GetData(count);
             });
+
+            logger.LogInformation("Index.End {0}", count);
 
             return View(model);
         }
@@ -193,10 +201,14 @@ namespace LWFStatsWeb.Controllers
 
         public ActionResult Details(string id)
         {
+            logger.LogInformation("Details.Begin {0}", id);
+
             var model = memoryCache.GetOrCreate("Sync.All" + id, entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
                 return GetWars(id);
             });
+
+            logger.LogInformation("Details.End {0}", id);
 
             return View(model);
         }

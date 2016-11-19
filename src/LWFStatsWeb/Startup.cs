@@ -15,6 +15,7 @@ using LWFStatsWeb.Services;
 using LWFStatsWeb.Logic;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using NLog.Extensions.Logging;
 
 namespace LWFStatsWeb
 {
@@ -82,6 +83,8 @@ namespace LWFStatsWeb
             // Caching
             services.AddMemoryCache();
 
+            //services.AddLogging();
+
             //services.AddAuthorization(options =>
             //{
             //    options.AddPolicy("AdministratorOnly", policy => policy.RequireRole("Administrator"));
@@ -92,8 +95,12 @@ namespace LWFStatsWeb
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            loggerFactory.AddNLog();
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            loggerFactory.AddDebug();
+            if (env.IsDevelopment())
+                loggerFactory.AddDebug();
+
+            //loggerFactory.AddAzureWebAppDiagnostics(); // for default setting.
 
             if (env.IsDevelopment())
             {
@@ -104,10 +111,12 @@ namespace LWFStatsWeb
             else if(env.IsStaging())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseStatusCodePagesWithReExecute("/Home/Error/{0}");
             }
             else
             {
                 app.UseExceptionHandler("/Home/Error");
+                app.UseStatusCodePagesWithReExecute("/Home/Error/{0}");
             }
 
             app.UseStaticFiles();

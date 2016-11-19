@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using LWFStatsWeb.Models;
 using Microsoft.Extensions.Caching.Memory;
 using LWFStatsWeb.Logic;
+using Microsoft.Extensions.Logging;
 
 namespace LWFStatsWeb.Controllers
 {
@@ -17,25 +18,32 @@ namespace LWFStatsWeb.Controllers
         private readonly ApplicationDbContext db;
         private readonly IClashApi api;
         private IMemoryCache memoryCache;
+        ILogger<PlayersController> logger;
 
         public PlayersController(
             ApplicationDbContext db,
             IClashApi api,
-            IMemoryCache memoryCache)
+            IMemoryCache memoryCache,
+            ILogger<PlayersController> logger)
         {
             this.db = db;
             this.api = api;
             this.memoryCache = memoryCache;
+            this.logger = logger;
         }
 
         public IActionResult Index(string q)
         {
+            logger.LogInformation("Index");
+
             var model = new IndexViewModel();
             return View(model);
         }
 
         public async Task<IActionResult> Details(string id)
         {
+            logger.LogInformation("Details.Begin {0}", id);
+
             var tag = Utils.LinkIdToTag(id);
 
             var model = await memoryCache.GetOrCreateAsync<IndexViewModel>("PlayerDetails." + tag, async entry => {
@@ -68,6 +76,8 @@ namespace LWFStatsWeb.Controllers
 
                 return ret;
             });
+
+            logger.LogInformation("Details.End {0}", id);
 
             return View(model);
         }
