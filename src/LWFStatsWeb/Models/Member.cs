@@ -56,6 +56,9 @@ namespace LWFStatsWeb.Models
         [StringLength(150)]
         public string BadgeUrl { get; set; }
 
+        [NotMapped]
+        public int TownHallLevel { get; set; }
+
         public void FixData(string clanTag)
         {
             ClanTag = clanTag;

@@ -231,6 +231,15 @@ namespace LWFStatsWeb.Controllers
                 details.Validity = this.db.ClanValidities.SingleOrDefault(c => c.Tag == tag);
                 details.Events = new List<ClanDetailsEvent>();
 
+                var thlevels = (from p in db.Players join m in db.Members on p.Tag equals m.Tag where m.ClanTag == tag select new { p.Tag, p.TownHallLevel });
+                foreach(var thlevel in thlevels.ToList())
+                {
+                    var member = details.Clan.MemberList.SingleOrDefault(m => m.Tag == thlevel.Tag);
+                    if(member != null)
+                        member.TownHallLevel = thlevel.TownHallLevel;
+                }
+
+
                 var clanEvents = from e in db.PlayerEvents
                                 join p in db.Players on e.PlayerTag equals p.Tag
                                 where e.ClanTag == tag

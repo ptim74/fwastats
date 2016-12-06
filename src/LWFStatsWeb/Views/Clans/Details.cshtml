@@ -98,6 +98,12 @@
                         <th>
                             L<span class="hidden-xs">evel</span>
                         </th>
+                        @if (Model.InAlliance)
+                        {
+                            <th>
+                                TH
+                            </th>
+                        }
                         <th>
                             Name
                         </th>
@@ -143,6 +149,12 @@
                 <td>
                     @member.ExpLevel
                 </td>
+                @if (Model.InAlliance)
+                {
+                    <td>
+                        @member.TownHallLevel
+                    </td>
+                }
                 <td>
                     <a asp-route-id="@member.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@member.Name</a>
                     @if (member_role != "")
