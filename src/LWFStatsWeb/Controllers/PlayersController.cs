@@ -34,9 +34,63 @@ namespace LWFStatsWeb.Controllers
 
         public IActionResult Index(string q)
         {
-            logger.LogInformation("Index");
+            logger.LogInformation("Index.Begin {0}", q);
 
-            var model = new IndexViewModel();
+            var model = new SearchViewModel();
+
+            if(!string.IsNullOrEmpty(q))
+            {
+                model.Query = q;
+                model.Results = new List<SearchResultModel>();
+
+                var playerTag = Utils.LinkIdToTag(q);
+                var player1 = db.Players.Select(p => new SearchResultModel {
+                    Tag = p.Tag,
+                    Name = p.Name,
+                    LastSeen = p.LastUpdated
+                }).SingleOrDefault(p => p.Tag == playerTag);
+
+                if(player1 != null)
+                {
+                    var member = db.Members.Where(m => m.Tag == player1.Tag).SingleOrDefault();
+                    if(member != null)
+                    {
+                        player1.ClanTag = member.ClanTag;
+                        var clan = db.Clans.Where(c => c.Tag == member.ClanTag).SingleOrDefault();
+                        if(clan != null)
+                        {
+                            player1.ClanName = clan.Name;
+                        }
+                    }
+                    model.Results.Add(player1);
+                }
+                else
+                {
+                    var clanNames = db.Clans.ToDictionary(c => c.Tag, c => c.Name);
+
+                    var players = from p in db.Players
+                                  where p.Name.Contains(q)
+                                  join im in db.Members on p.Tag equals im.Tag into InnerMembers
+                                  from m in InnerMembers.DefaultIfEmpty()
+                                  select new SearchResultModel
+                                  {
+                                      Tag = p.Tag,
+                                      Name = p.Name,
+                                      LastSeen = p.LastUpdated,
+                                      ClanTag = m != null ? m.ClanTag : null
+                                  };
+
+                    foreach(var player in players.OrderBy(p => p.Name.ToUpperInvariant()).Take(100))
+                    {
+                        if (!string.IsNullOrEmpty(player.ClanTag) && clanNames.ContainsKey(player.ClanTag))
+                            player.ClanName = clanNames[player.ClanTag];
+                        model.Results.Add(player);
+                    }
+                }
+            }
+
+            logger.LogInformation("Index.End {0}", q);
+
             return View(model);
         }
 
@@ -46,11 +100,11 @@ namespace LWFStatsWeb.Controllers
 
             var tag = Utils.LinkIdToTag(id);
 
-            var model = await memoryCache.GetOrCreateAsync<IndexViewModel>("PlayerDetails." + tag, async entry => {
+            var model = await memoryCache.GetOrCreateAsync<DetailsViewModel>("PlayerDetails." + tag, async entry => {
 
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
 
-                var ret = new IndexViewModel();
+                var ret = new DetailsViewModel();
                 ret.Events = new List<PlayerDetailsEvent>();
                 ret.Player = await api.GetPlayer(tag);
 
@@ -60,7 +114,7 @@ namespace LWFStatsWeb.Controllers
                                  orderby e.EventDate descending
                                  select new { Event = e, Name = v.Name };
 
-                foreach (var clanEvent in events.Take(50))
+                foreach (var clanEvent in events.Take(100))
                 {
                     var e = new PlayerDetailsEvent { Tag = clanEvent.Event.ClanTag, Name = clanEvent.Name, EventDate = clanEvent.Event.EventDate, EventType = clanEvent.Event.EventType, TimeDesc = clanEvent.Event.TimeDesc() };
                     if (e.EventType == PlayerEventType.Promote || e.EventType == PlayerEventType.Demote)

@@ -217,13 +217,14 @@
                             war_class = "text-muted";
                             opp_class = "text-muted";
                         }
+                        var valid_alliance_clan = false;
+                        if (Model.Validity != null && Model.Validity.ValidFrom <= war.SearchTime && Model.Validity.ValidTo >= war.SearchTime)
+                        {
+                            valid_alliance_clan = true;
+                        }
                         <tr class="@war_class">
                             <td class="text-right text-nowrap">
-                                @if (Model.Validity != null && (Model.Validity.ValidFrom > war.SearchTime || Model.Validity.ValidTo < war.SearchTime))
-                                {
-                                    <span class="label label-danger">W<span class="hidden-xs">ar clan</span></span>
-                                }
-                                @if (Model.Validity == null)
+                                @if (!valid_alliance_clan)
                                 {
                                     <span class="label label-danger">W<span class="hidden-xs">ar clan</span></span>
                                 }
@@ -246,7 +247,7 @@
                             </td>
                             <td class="text-nowrap">
                                 <a class="@opp_class" asp-route-id="@war.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.OpponentName</a>
-                                @if (!war.Matched && Model.InAlliance)
+                                @if (!war.Matched && valid_alliance_clan)
                                 {
                                     <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
                                 }
@@ -258,9 +259,17 @@
                                 <span class="hidden-xs">@war.EndTime.ToString("yyyy-MM-dd")</span>
                                 <span class="visible-xs">@DateTime.UtcNow.Subtract(@war.EndTime).Days<span>d ago</span></span>
                                 <br />
-                                @if (!war.Synced)
+                                @if (valid_alliance_clan && !war.Synced)
                                 {
                                     <small class="label label-warning">Out of sync</small>
+                                }
+                                @if (!valid_alliance_clan && war.Synced && !war.Matched)
+                                {
+                                    <small class="label label-warning">Synced</small>
+                                }
+                                @if (!valid_alliance_clan && war.Synced && war.Matched)
+                                {
+                                    <small class="label label-danger">Synced</small>
                                 }
                             </td>
                         </tr>

@@ -204,9 +204,42 @@ namespace LWFStatsWeb.Controllers
                     var wars = this.GetPrivateWars(tag);
                     if (wars.Count > 0)
                     {
-                        clan = await api.GetClan(tag, false);
-                        clan.Wars = wars;
+                        clan = await api.GetClan(tag, true);
+                        if (clan.Wars != null && clan.Wars.Count > 0)
+                        {
+                            var syncTimes = db.WarSyncs.Select(s => new { s.Start, s.Finish }).ToArray();
+                            var validities = db.ClanValidities.ToList();
+                            var warLookup = wars.ToDictionary(w => string.Format("{0}{1}", w.OpponentTag, w.EndTime.Date));
+                            foreach (var war in clan.Wars)
+                            {
+                                var warKey = string.Format("{0}{1}", war.OpponentTag, war.EndTime.Date);
+                                War clanWar = null;
+                                if(!warLookup.TryGetValue(warKey, out clanWar))
+                                {
+                                    var synced = syncTimes.Where(s => s.Start <= war.EndTime && s.Finish >= war.EndTime).FirstOrDefault();
+                                    if (synced != null && war.TeamSize == 40)
+                                        war.Synced = true;
+
+                                    wars.Add(war);
+                                    clanWar = war;
+                                }
+
+                                var matched = validities.Where(v => v.Tag == war.OpponentTag && v.ValidFrom <= war.SearchTime && v.ValidTo >= war.EndTime).FirstOrDefault();
+                                if (matched != null)
+                                    clanWar.Matched = true;
+                            }
+                            clan.Wars = wars.OrderByDescending(w => w.EndTime).ToList();
+                        }
+                        else
+                        {
+                            clan.Wars = wars;
+                        }
                     }
+                    else
+                    {
+                        clan = await api.GetClan(tag, true);
+                    }
+                    
                 }
             }
             catch (Exception e)
@@ -239,14 +272,14 @@ namespace LWFStatsWeb.Controllers
                         member.TownHallLevel = thlevel.TownHallLevel;
                 }
 
-
                 var clanEvents = from e in db.PlayerEvents
                                 join p in db.Players on e.PlayerTag equals p.Tag
                                 where e.ClanTag == tag
+                                && e.EventType != PlayerEventType.Stars
                                 orderby e.EventDate descending
                                 select new { Event = e, Name = p.Name };
 
-                foreach(var clanEvent in clanEvents.Take(50))
+                foreach(var clanEvent in clanEvents.Take(100))
                 {
                     var e = new ClanDetailsEvent { Tag = clanEvent.Event.PlayerTag, Name = clanEvent.Name, EventDate = clanEvent.Event.EventDate, EventType = clanEvent.Event.EventType, TimeDesc = clanEvent.Event.TimeDesc() };
                     if(e.EventType == PlayerEventType.Promote || e.EventType == PlayerEventType.Demote)

@@ -34,6 +34,7 @@ namespace LWFStatsWeb.Data
             builder.Entity<ClanValidity>().HasIndex(v => v.ValidTo);
             builder.Entity<PlayerEvent>().HasIndex(e => new { e.ClanTag, e.EventDate });
             builder.Entity<PlayerEvent>().HasIndex(e => new { e.PlayerTag, e.EventDate });
+            builder.Entity<PlayerEvent>().HasIndex(e => new { e.EventType, e.EventDate });
         }
 
         public virtual DbSet<Clan> Clans { get; set; }

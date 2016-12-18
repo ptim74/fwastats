@@ -550,6 +550,19 @@ namespace LWFStatsWeb.Controllers
 
             logger.LogInformation("PlayerBatch.Begin");
 
+            try
+            {
+                var starEventCleanupDate = DateTime.UtcNow.AddDays(-14);
+                var starEvents = db.PlayerEvents.Where(e => e.EventType == PlayerEventType.Stars && e.EventDate < starEventCleanupDate).Take(MAX_UPDATES);
+                db.PlayerEvents.RemoveRange(starEvents);
+                db.SaveChanges();
+                logger.LogInformation("PlayerBatch.StarEventsDeleted");
+            }
+            catch( Exception e)
+            {
+                logger.LogWarning("PlayerBatch.StarEventDeleteFailed: {0}", e.Message);
+            }
+
             var memberTags = db.Members.Where(m => !db.Players.Where(p => p.Tag == m.Tag).Any()).Select(m => m.Tag).Take(MAX_UPDATES).ToList();
 
             if (memberTags.Count < MAX_UPDATES)

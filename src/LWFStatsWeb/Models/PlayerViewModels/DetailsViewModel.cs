@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace LWFStatsWeb.Models.PlayerViewModels
 {
-    public class IndexViewModel
+    public class DetailsViewModel
     {
         public Player Player { get; set; }
         public List<PlayerDetailsEvent> Events { get; set; } 

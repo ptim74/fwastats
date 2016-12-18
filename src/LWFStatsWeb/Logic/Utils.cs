@@ -11,7 +11,7 @@ namespace LWFStatsWeb.Logic
         {
             if (string.IsNullOrEmpty(id))
                 return String.Empty;
-            return string.Concat("#", id.Replace("#", ""));
+            return string.Concat("#", id.Replace("#", "").ToUpperInvariant().Replace("O","0"));
         }
 
         public static string TagToLinkId(string tag)
@@ -23,9 +23,11 @@ namespace LWFStatsWeb.Logic
 
         public static string TimeSpanToString(TimeSpan timeSpan)
         {
-            if (timeSpan > TimeSpan.FromDays(10))
+            if (timeSpan > TimeSpan.FromDays(3650))
+                return "never";
+            else if (timeSpan > TimeSpan.FromDays(10))
                 return string.Format("{0}d ago", timeSpan.Days);
-            if (timeSpan > TimeSpan.FromDays(1))
+            else if (timeSpan > TimeSpan.FromDays(1))
                 return string.Format("{0}d {1}h ago", timeSpan.Days, timeSpan.Hours);
             else if (timeSpan > TimeSpan.FromHours(1))
                 return string.Format("{0}h {1}m ago", timeSpan.Hours, timeSpan.Minutes);
