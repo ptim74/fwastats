@@ -82,6 +82,7 @@ namespace LWFStatsWeb.Controllers
                 var oldPlayer = db.Players.SingleOrDefault(e => e.Tag == playerTag);
                 if (oldPlayer == null)
                 {
+                    newPlayer.LastUpdated = DateTime.UtcNow;
                     db.Entry(newPlayer).State = EntityState.Added;
                 }
                 else
