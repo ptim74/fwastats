@@ -75,16 +75,8 @@
     "Microsoft.AspNetCore.Diagnostics": "1.1.0",
     "Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore": "1.1.0",
     "Microsoft.AspNetCore.Identity.EntityFrameworkCore": "1.1.0",
-    "Microsoft.AspNetCore.Razor.Tools": {
-      "version": "1.1.0-preview4-final",
-      "type": "build"
-    },
     "Microsoft.AspNetCore.Server.IISIntegration": "1.1.0",
     "Microsoft.AspNetCore.StaticFiles": "1.1.0",
-    "Microsoft.EntityFrameworkCore.Tools": {
-      "version": "1.1.0-preview4-final",
-      "type": "build"
-    },
     "Microsoft.Extensions.Configuration.EnvironmentVariables": "1.1.0",
     "Microsoft.Extensions.Configuration.Json": "1.1.0",
     "Microsoft.Extensions.Configuration.UserSecrets": "1.1.0",
@@ -102,10 +94,6 @@
       "version": "1.1.0",
       "type": "build"
     },
-    "Microsoft.VisualStudio.Web.CodeGeneration.Tools": {
-      "version": "1.1.0-preview4-final",
-      "type": "build"
-    },
     "Microsoft.VisualStudio.Web.CodeGenerators.Mvc": {
       "version": "1.1.0-preview4-final",
       "type": "build"
@@ -113,21 +101,11 @@
     "Microsoft.Extensions.Caching.Memory": "1.1.0",
     "Microsoft.AspNetCore.Authentication.Google": "1.1.0",
     "NLog.Extensions.Logging": "1.0.0-rtm-alpha5",
-    "NuGet.CommandLine": "3.4.3"
-  },
-  "tools": {
-    "BundlerMinifier.Core": "2.2.281",
-    "Microsoft.AspNetCore.Razor.Tools": "1.0.0-preview2-final",
-    "Microsoft.AspNetCore.Server.IISIntegration.Tools": "1.0.0-preview2-final",
-    "Microsoft.EntityFrameworkCore.Tools": "1.0.0-preview2-final",
-    "Microsoft.Extensions.SecretManager.Tools": "1.0.0-preview2-final",
-    "Microsoft.VisualStudio.Web.CodeGeneration.Tools": {
-      "version": "1.0.0-preview2-final",
-      "imports": [
-        "portable-net45+win8"
-      ]
-    }
-  },
+    "Microsoft.VisualStudio.Web.CodeGeneration.Tools": "1.1.0-preview4-final",
+    "NuGet.CommandLine": "3.4.4-rtm-final",
+    "BundlerMinifier.Core": "2.2.306",
+    "Microsoft.AspNetCore.Mvc.Formatters.Xml": "1.0.1" },
+  "tools": {  },
   "frameworks": {
     "netcoreapp1.1": {
       "imports": [

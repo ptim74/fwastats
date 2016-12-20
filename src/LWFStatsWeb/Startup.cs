@@ -16,6 +16,8 @@ using LWFStatsWeb.Logic;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using NLog.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
+using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace LWFStatsWeb
 {
@@ -63,7 +65,13 @@ namespace LWFStatsWeb
 
             //services.Configure<GoogleOptions>(Configuration.GetSection("GoogleAuth"));
 
-            services.AddMvc();
+            //services.AddMvc();
+
+            services.AddMvc(options =>
+            {
+                options.OutputFormatters.Add(new XmlSerializerOutputFormatter());
+                options.FormatterMappings.SetMediaTypeMappingForFormat("xml", new MediaTypeHeaderValue("application/xml"));
+            });
 
             //services.AddMvc(options =>
             //{
