@@ -25,6 +25,11 @@
             <td>@Url.Action("ClanMembers", new { id = "CLANTAG", format = "FORMAT" })</td>
         </tr>
         <tr>
+            <th>Sample CSV</th>
+            @{ sample_url = Url.Action("ClanMembers", new { id = sample_clan, format = "csv" }); }
+            <td><a href="@sample_url">@sample_url</a></td>
+        </tr>
+        <tr>
             <th>Sample JSON</th>
             @{ sample_url = Url.Action("ClanMembers", new { id = sample_clan, format = "json" }); }
             <td><a href="@sample_url">@sample_url</a></td>

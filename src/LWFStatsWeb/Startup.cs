@@ -18,6 +18,7 @@ using System.Net;
 using NLog.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using LWFStatsWeb.Formatters;
 
 namespace LWFStatsWeb
 {
@@ -65,11 +66,15 @@ namespace LWFStatsWeb
 
             //services.Configure<GoogleOptions>(Configuration.GetSection("GoogleAuth"));
 
-            //services.AddMvc();
+            var csvFormatterOptions = new CsvFormatterOptions();
 
             services.AddMvc(options =>
             {
                 options.OutputFormatters.Add(new XmlSerializerOutputFormatter());
+                options.InputFormatters.Add(new CsvInputFormatter(csvFormatterOptions));
+                options.OutputFormatters.Add(new CsvOutputFormatter(csvFormatterOptions));
+
+                options.FormatterMappings.SetMediaTypeMappingForFormat("csv", MediaTypeHeaderValue.Parse("text/csv"));
                 options.FormatterMappings.SetMediaTypeMappingForFormat("xml", new MediaTypeHeaderValue("application/xml"));
             });
 

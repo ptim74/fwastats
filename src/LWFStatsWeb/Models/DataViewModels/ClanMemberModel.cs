@@ -16,12 +16,12 @@ namespace LWFStatsWeb.Models.DataViewModels
     {
         public string Tag { get; set; }
         public string Name { get; set; }
-        public int Level { get; set; }
-        public int Trophies { get; set; }
         public string Role { get; set; }
-        public int Rank { get; set; }
+        public int Level { get; set; }
         public int Donated { get; set; }
         public int Received { get; set; }
+        public int Rank { get; set; }
+        public int Trophies { get; set; }
         public string League { get; set; }
         public int TownHall { get; set; }
         public int Weight { get; set; }
