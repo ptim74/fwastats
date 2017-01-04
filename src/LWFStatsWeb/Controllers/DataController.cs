@@ -16,12 +16,12 @@ namespace LWFStatsWeb.Controllers
     {
         private readonly ApplicationDbContext db;
         private IMemoryCache memoryCache;
-        ILogger<HomeController> logger;
+        ILogger<DataController> logger;
 
         public DataController(
             ApplicationDbContext db,
             IMemoryCache memoryCache,
-            ILogger<HomeController> logger)
+            ILogger<DataController> logger)
         {
             this.db = db;
             this.memoryCache = memoryCache;
@@ -37,6 +37,8 @@ namespace LWFStatsWeb.Controllers
         [Route("Clan/{id}/Members.{format}")]
         public IActionResult ClanMembers(string id)
         {
+            logger.LogInformation("Members {0}", id);
+
             var tag = Utils.LinkIdToTag(id);
 
             var model = memoryCache.GetOrCreate("ClanMembers." + tag, entry =>

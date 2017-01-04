@@ -34,7 +34,7 @@ namespace LWFStatsWeb.Controllers
 
         public IActionResult Index(string q)
         {
-            logger.LogInformation("Index.Begin {0}", q);
+            logger.LogInformation("Index {0}", q);
 
             var model = new SearchViewModel();
 
@@ -89,14 +89,12 @@ namespace LWFStatsWeb.Controllers
                 }
             }
 
-            logger.LogInformation("Index.End {0}", q);
-
             return View(model);
         }
 
         public async Task<IActionResult> Details(string id)
         {
-            logger.LogInformation("Details.Begin {0}", id);
+            logger.LogInformation("Details {0}", id);
 
             var tag = Utils.LinkIdToTag(id);
 
@@ -130,8 +128,6 @@ namespace LWFStatsWeb.Controllers
 
                 return ret;
             });
-
-            logger.LogInformation("Details.End {0}", id);
 
             return View(model);
         }

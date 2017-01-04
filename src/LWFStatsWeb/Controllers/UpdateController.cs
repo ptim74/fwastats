@@ -432,7 +432,7 @@ namespace LWFStatsWeb.Controllers
         // GET: Update
         public async Task<IActionResult> Index()
         {
-            logger.LogInformation("Index.Begin");
+            logger.LogInformation("Index");
 
             IndexViewModel model = null;
             try
@@ -451,8 +451,6 @@ namespace LWFStatsWeb.Controllers
                 model.Tasks = new List<UpdateTask>();
             }
 
-            logger.LogInformation("Index.End");
-
             return View(model);
         }
 
@@ -464,7 +462,7 @@ namespace LWFStatsWeb.Controllers
 
         public async Task<IActionResult> UpdateTask(string id)
         {
-            logger.LogInformation("UpdateTask.Begin {0}", id);
+            logger.LogInformation("UpdateTask {0}", id);
             try
             {
                 return Json(await PerformTask(id));
@@ -474,15 +472,11 @@ namespace LWFStatsWeb.Controllers
                 logger.LogError("UpdateTask.Error {0}: {1}", id, e.Message);
                 return Json(new UpdateTaskResponse { ID = id, Message = e.Message, Status = false });
             }
-            finally
-            {
-                logger.LogInformation("UpdateTask.End {0}", id);
-            }
         }
 
         public async Task<IActionResult> UpdatePlayerTask(string id)
         {
-            logger.LogInformation("UpdatePlayerTask.Begin {0}", id);
+            logger.LogInformation("UpdatePlayerTask {0}", id);
 
             var playerTag = Utils.LinkIdToTag(id);
 
@@ -494,10 +488,6 @@ namespace LWFStatsWeb.Controllers
             {
                 logger.LogError("UpdatePlayerTask.Error {0}: {1}", id, e.Message);
                 return Json(new UpdateTaskResponse { ID = id, Message = e.Message, Status = false });
-            }
-            finally
-            {
-                logger.LogInformation("UpdatePlayerTask.End {0}", id);
             }
         }
 
@@ -514,11 +504,10 @@ namespace LWFStatsWeb.Controllers
 
         public IActionResult Finish()
         {
-            logger.LogInformation("Finish.Begin");
+            logger.LogInformation("Finish");
             var model = new IndexViewModel();
             model.Errors = new List<string>();
             model.Tasks = new List<UpdateTask>();
-            logger.LogInformation("Finish.End");
             return View("Index", model);
         }
 
@@ -580,7 +569,7 @@ namespace LWFStatsWeb.Controllers
 
         public IActionResult Players()
         {
-            logger.LogInformation("Players.Begin");
+            logger.LogInformation("Players");
 
             var model = new PlayersViewModel();
             model.Errors = new List<string>();
@@ -612,8 +601,6 @@ namespace LWFStatsWeb.Controllers
                 };
                 model.Tasks.Add(task);
             }
-
-            logger.LogInformation("Players.End");
 
             return View(model);
         }

@@ -85,21 +85,19 @@ namespace LWFStatsWeb.Controllers
         // GET: Clans
         public ActionResult Index()
         {
-            logger.LogInformation("Index.Begin");
+            logger.LogInformation("Index");
 
             var model = memoryCache.GetOrCreate("Clans.All", entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
                 return GetClanList();
             });
 
-            logger.LogInformation("Index.End");
-
             return View(model);
         }
 
         public ActionResult Departed()
         {
-            logger.LogInformation("Departed.Begin");
+            logger.LogInformation("Departed");
 
             var model = memoryCache.GetOrCreate("Clans.Departed", entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
@@ -129,8 +127,6 @@ namespace LWFStatsWeb.Controllers
 
                 return clans;
             });
-
-            logger.LogInformation("Departed.End");
 
             return View(model);
         }
@@ -251,7 +247,7 @@ namespace LWFStatsWeb.Controllers
 
         public async Task<ActionResult> Details(string id)
         {
-            logger.LogInformation("Details.Begin {0}", id);
+            logger.LogInformation("Details {0}", id);
 
             var tag = Utils.LinkIdToTag(id);
 
@@ -296,14 +292,12 @@ namespace LWFStatsWeb.Controllers
                 return details;
             });
 
-            logger.LogInformation("Details.End {0}", id);
-
             return View(model);
         }
 
         public ActionResult Following()
         {
-            logger.LogInformation("Following.Begin");
+            logger.LogInformation("Following");
 
             var model = memoryCache.GetOrCreate("Clans.Following", entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
@@ -332,15 +326,13 @@ namespace LWFStatsWeb.Controllers
                 return clans.Values.Where(c => c.Wars > 1).OrderByDescending(c => c.LatestDate).ToList();
             });
 
-            logger.LogInformation("Following.End");
-
             return View(model);
         }
 
         // GET: Clans/Edit/5
         public async Task<IActionResult> Edit(string id)
         {
-            logger.LogInformation("Edit.Begin {0}", id);
+            logger.LogInformation("Edit {0}", id);
 
             var tag = Utils.LinkIdToTag(id);
             if (tag == null)
@@ -374,8 +366,6 @@ namespace LWFStatsWeb.Controllers
 
             }
 
-            logger.LogInformation("Edit.End {0}", id);
-
             return View(clanValidity);
         }
 
@@ -386,7 +376,7 @@ namespace LWFStatsWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string id, [Bind("Tag,Name,LinkID,Group,ValidFrom,ValidTo")] ClanValidity clanValidity)
         {
-            logger.LogInformation("Edit.Post.Begin {0}", id);
+            logger.LogInformation("Edit.Post {0}", id);
 
             var tag = Utils.LinkIdToTag(id);
 
@@ -488,6 +478,7 @@ namespace LWFStatsWeb.Controllers
                     }
 
                     memoryCache.Remove("ClanDetails." + tag);
+                    memoryCache.Remove("ClanMembers." + tag);
                     memoryCache.Remove("Clans.All");
                     memoryCache.Remove("Clans.FWA");
                     memoryCache.Remove("Clans.FWAL");
@@ -510,8 +501,6 @@ namespace LWFStatsWeb.Controllers
                 return RedirectToAction("Details", new { id = id });
             }
 
-            logger.LogInformation("Edit.Post.End {0}", id);
-
             return View(clanValidity);
         }
 
@@ -522,7 +511,7 @@ namespace LWFStatsWeb.Controllers
 
         public IActionResult Weight(string id)
         {
-            logger.LogInformation("Weight.Begin {0}", id);
+            logger.LogInformation("Weight {0}", id);
 
             var tag = Utils.LinkIdToTag(id);
 
@@ -557,15 +546,13 @@ namespace LWFStatsWeb.Controllers
 
             model.Members = memberWeights.OrderByDescending(w => w.Weight + w.TownHallLevel).ToList();
 
-            logger.LogInformation("Weight.End {0}", id);
-
             return View(model);
         }
 
         [HttpPost]
         public IActionResult Weight(string id, WeightViewModel model)
         {
-            logger.LogInformation("Weight.Post.Begin {0}", id);
+            logger.LogInformation("Weight.Post {0}", id);
 
             var tag = Utils.LinkIdToTag(id);
 
@@ -591,7 +578,7 @@ namespace LWFStatsWeb.Controllers
 
             db.SaveChanges();
 
-            logger.LogInformation("Weight.Post.End {0}", id);
+            memoryCache.Remove("ClanMembers." + tag);
 
             return Weight(id);
         }

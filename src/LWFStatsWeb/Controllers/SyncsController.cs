@@ -151,14 +151,12 @@ namespace LWFStatsWeb.Controllers
 
         public ActionResult Index(int? count)
         {
-            logger.LogInformation("Index.Begin {0}", count);
+            logger.LogInformation("Index {0}", count);
 
             var model = memoryCache.GetOrCreate("Syncs.All"+count, entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
                 return GetData(count);
             });
-
-            logger.LogInformation("Index.End {0}", count);
 
             return View(model);
         }
@@ -201,14 +199,12 @@ namespace LWFStatsWeb.Controllers
 
         public ActionResult Details(string id)
         {
-            logger.LogInformation("Details.Begin {0}", id);
+            logger.LogInformation("Details {0}", id);
 
             var model = memoryCache.GetOrCreate("Sync.All" + id, entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
                 return GetWars(id);
             });
-
-            logger.LogInformation("Details.End {0}", id);
 
             return View(model);
         }

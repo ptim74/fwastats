@@ -32,7 +32,7 @@ namespace LWFStatsWeb.Controllers
             var CACHEKEY = "Home.Index";
             IndexViewModel model;
 
-            logger.LogInformation("Index.Begin");
+            logger.LogInformation("Index");
 
             if (!memoryCache.TryGetValue<IndexViewModel>(CACHEKEY, out model))
             {
@@ -138,16 +138,12 @@ namespace LWFStatsWeb.Controllers
                     memoryCache.Set<IndexViewModel>(CACHEKEY, model, 
                         new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(20)));
 
-                    logger.LogInformation("Index.CacheMiss");
-
                 }
                 catch (Exception e)
                 {
                     logger.LogError("Index.Error: {0}", e.Message);
                 }
             }
-
-            logger.LogInformation("Index.End");
 
             return View(model);
         }
@@ -156,6 +152,11 @@ namespace LWFStatsWeb.Controllers
         {
             logger.LogInformation("About");
             return View();
+        }
+
+        public IActionResult Ping()
+        {
+            return Ok();
         }
 
         public IActionResult Error(int id)
