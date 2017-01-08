@@ -115,7 +115,13 @@ namespace LWFStatsWeb.Models
                     BadgeUrl = League.IconUrls.Small;
                 }
             }
-            if(Clan != null)
+            else
+            {
+                //TODO: Get image from league API and cache value
+                //Hardcoded small image of Unranked league
+                BadgeUrl = "https://api-assets.clashofclans.com/leagues/72/e--YMyIexEQQhE4imLoJcwhYn6Uy8KqlgyY3_kFV6t4.png";
+            }
+            if (Clan != null)
             {
                 ClanTag = Clan.Tag;
                 ClanName = Clan.Name;
