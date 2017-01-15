@@ -4,16 +4,28 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    @if (ViewData.ContainsKey("MetaDescription"))
-    {
-        <meta name="description" content="@ViewData["MetaDescription"]" />
-    }
     @if (ViewData.ContainsKey("MetaRobots"))
     {
         <meta name="robots" content="@ViewData["MetaRobots"]" />
     }
 
     <title>@ViewData["Title"] 💎 FWA Stats</title>
+    <meta property="og:title" content="@ViewData["Title"] 💎 FWA Stats" />
+
+    @if (ViewData.ContainsKey("MetaDescription"))
+    {
+        <meta name="description" content="@ViewData["MetaDescription"]" />
+        <meta property="og:description" content="@ViewData["MetaDescription"]" />
+    }
+
+    @if (ViewData.ContainsKey("MetaImage"))
+    {
+        <meta property="og:image" content="@ViewData["MetaImage"]" />
+    }
+    else
+    {
+        <meta property="og:image" content="https://api-assets.clashofclans.com/badges/200/g2kUDDf9nUBArxhITjaF42XGn2ThsLhdm6X7Fd7N-ss.png" />
+    }
 
     <environment names="Development">
         <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />

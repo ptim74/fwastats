@@ -2,7 +2,16 @@
 @using LWFStatsWeb.Logic
 
     @{
-        ViewBag.Title = @Model.Player.Name;
+        ViewBag.Title = Model.Player.Name;
+        ViewBag.MetaImage = Model.Player.BadgeUrl;
+        if (string.IsNullOrEmpty(Model.Player.ClanTag))
+        {
+            ViewBag.MetaDescription = "Not in clan";
+        }
+        else
+        {
+            ViewBag.MetaDescription = Model.Player.ClanName + ", " + Model.Player.RoleName;
+        }
         ViewBag.MetaRobots = "noindex, nofollow";
     }
 

@@ -41,3 +41,66 @@
         </tr>
     </tbody>
 </table>
+
+<h2>HOW TO</h2>
+<div class="panel-group">
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <a data-toggle="collapse" href="#collapse1">Import data to Google Sheets</a>
+            </h4>
+        </div>
+        <div id="collapse1" class="panel-collapse collapse">
+            <div class="panel-body">
+                <p>
+                    Import all fields from CSV with <a href="https://support.google.com/docs/answer/3093335">IMPORTDATA</a> function
+                </p>
+                <p>
+                    <code>=IMPORTDATA("http://fwastats.azurewebsites.net/clan/lgqjylpy/members.csv")</code>
+                </p>
+
+                <p>
+                    Import one field from XML with <a href="https://support.google.com/docs/answer/3093342">IMPORTXML</a> function
+                </p>
+                <p>
+                    <code>=IMPORTXML("http://fwastats.azurewebsites.net/clan/lgqjylpy/members.xml";"//Name")</code>
+                </p>
+
+                <p>
+                    Import any HTML table with <a href="https://support.google.com/docs/answer/3093339">IMPORTHTML</a> function
+                </p>
+                <p>
+                    <code>=IMPORTHTML("http://fwastats.azurewebsites.net/Clans";"table";1)</code>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4 class="panel-title">
+                <a data-toggle="collapse" href="#collapse2">Import data to Excel</a>
+            </h4>
+        </div>
+        <div id="collapse2" class="panel-collapse collapse">
+            <div class="panel-body">
+
+                <p>Click <b>DATA > From Web</b></p>
+
+                <p>Set address: <mark>http://fwastats.azurewebsites.net/clan/lgqjylpy/members.xml</mark></p>
+
+                <p>Click <b>Go</b></p>
+
+                <p>Click <b>Import</b></p>
+
+                <p>Excel complains about missing schema, click <b>OK</b></p>
+
+                <p>Import data to <mark>$A$1</mark>, click <b>Go</b></p>
+
+                <p>You can refresh the data or configure automatic refresh on DESIGN tab</p>
+            </div>
+        </div>
+    </div>
+
+</div>

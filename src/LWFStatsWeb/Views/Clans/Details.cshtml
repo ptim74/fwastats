@@ -2,6 +2,7 @@
 
 @{
     ViewBag.Title = @Model.Clan.Name;
+    ViewBag.MetaImage = Model.Clan.BadgeUrl;
     if (Model.InAlliance)
     {
         ViewBag.MetaDescription = @Model.Clan.Name + ", Farm War Alliance (FWA), Clash of Clans";
