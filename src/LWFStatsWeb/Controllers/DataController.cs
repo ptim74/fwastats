@@ -41,8 +41,8 @@ namespace LWFStatsWeb.Controllers
 
             var tag = Utils.LinkIdToTag(id);
 
-            var model = memoryCache.GetOrCreate("ClanMembers." + tag, entry =>
-             {
+            var model = memoryCache.GetOrCreate("Data.ClanMembers." + tag, entry =>
+            {
                  entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
 
                  var members = from m in db.Members
@@ -76,6 +76,98 @@ namespace LWFStatsWeb.Controllers
 
                  return data;
              });
+
+            return Ok(model);
+        }
+
+        [FormatFilter]
+        [Route("Clan/{id}/Wars.{format}")]
+        public IActionResult ClanWars(string id)
+        {
+            logger.LogInformation("Wars {0}", id);
+
+            var tag = Utils.LinkIdToTag(id);
+
+            var model = memoryCache.GetOrCreate("Data.ClanWars." + tag, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+
+                var data = new ClanWars();
+
+                var wars = from w in db.Wars
+                           where w.ClanTag == tag
+                           orderby w.EndTime descending
+                           select w;
+
+                foreach(var row in wars)
+                {
+                    data.Add(new ClanWarModel
+                    {
+                        EndTime = new DateTime(row.EndTime.Ticks, DateTimeKind.Utc).Date,
+                        Result = row.Result,
+                        TeamSize = row.TeamSize,
+                        ClanTag = row.ClanTag,
+                        ClanName = row.ClanName,
+                        ClanLevel = row.ClanLevel,
+                        ClanStars = row.ClanStars,
+                        ClanDestructionPercentage = row.ClanDestructionPercentage,
+                        ClanAttacks = row.ClanAttacks,
+                        ClanExpEarned = row.ClanExpEarned,
+                        OpponentTag = row.OpponentTag,
+                        OpponentName = row.OpponentName,
+                        OpponentLevel = row.OpponentLevel,
+                        OpponentStars = row.OpponentStars,
+                        OpponentDestructionPercentage = row.OpponentDestructionPercentage,
+                        Synced = row.Synced,
+                        Matched = row.Matched
+                    });
+                }
+
+                return data;
+            });
+
+            return Ok(model);
+        }
+
+        [FormatFilter]
+        [Route("Clans.{format}")]
+        public IActionResult Clans()
+        {
+            logger.LogInformation("Clans");
+
+            var model = memoryCache.GetOrCreate("Data.Clans", entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+
+                var data = new Clans();
+
+                var badges = from c in db.Clans
+                             select new ClanModel
+                             {
+                                 Description = c.Description,
+                                 Image = c.BadgeUrl,
+                                 IsWarLogPublic = c.IsWarLogPublic,
+                                 Level = c.ClanLevel,
+                                 Location = c.LocationName,
+                                 Losses = c.WarLosses,
+                                 Name = c.Name,
+                                 Points = c.ClanPoints,
+                                 RequiredTrophies = c.RequiredTrophies,
+                                 Tag = c.Tag,
+                                 Ties = c.WarTies,
+                                 Type = c.Type,
+                                 WarFrequency = c.WarFrequency,
+                                 Wins = c.WarWins,
+                                 WinStreak = c.WarWinStreak
+                             };
+
+                foreach (var row in badges)
+                {
+                    data.Add(row);
+                }
+
+                return data;
+            });
 
             return Ok(model);
         }

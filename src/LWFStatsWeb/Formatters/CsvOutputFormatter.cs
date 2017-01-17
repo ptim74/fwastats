@@ -106,8 +106,15 @@ namespace LWFStatsWeb.Formatters
 
                     if (val.Value != null)
                     {
+                        string _val = String.Empty;
 
-                        var _val = val.Value.ToString();
+                        if (val.Value is double)
+                            _val = ((double)val.Value).ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        else if (val.Value is DateTime)
+                            _val = ((DateTime)val.Value).ToString("yyyy-MM-dd");
+
+                        else
+                            _val = val.Value.ToString();
 
                         //Check if the value contans a comma and place it in quotes if so
                         if (_val.Contains(","))

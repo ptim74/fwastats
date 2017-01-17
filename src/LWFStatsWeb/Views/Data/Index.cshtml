@@ -17,8 +17,8 @@
 <table class="table table-bordered">
     <tbody>
         <tr>
-            <th>Description</th>
-            <td>Get list of clan members, including TH level and weight (if manually filled)</td>
+            <th class="col-xs-4">Description</th>
+            <td class="col-xs-8">Get list of clan members, including TH level and weight (if manually filled)</td>
         </tr>
         <tr>
             <th>URL</th>
@@ -37,6 +37,66 @@
         <tr>
             <th>Sample XML</th>
             @{ sample_url = Url.Action("ClanMembers", new { id = sample_clan, format = "xml" }); }
+            <td><a href="@sample_url">@sample_url</a></td>
+        </tr>
+    </tbody>
+</table>
+
+<h3 id="get-service-list">Clan Wars</h3>
+
+<table class="table table-bordered">
+    <tbody>
+        <tr>
+            <th class="col-xs-4">Description</th>
+            <td class="col-xs-8">Get list of clan wars</td>
+        </tr>
+        <tr>
+            <th>URL</th>
+            <td>@Url.Action("ClanWars", new { id = "CLANTAG", format = "FORMAT" })</td>
+        </tr>
+        <tr>
+            <th>Sample CSV</th>
+            @{ sample_url = Url.Action("ClanWars", new { id = sample_clan, format = "csv" }); }
+            <td><a href="@sample_url">@sample_url</a></td>
+        </tr>
+        <tr>
+            <th>Sample JSON</th>
+            @{ sample_url = Url.Action("ClanWars", new { id = sample_clan, format = "json" }); }
+            <td><a href="@sample_url">@sample_url</a></td>
+        </tr>
+        <tr>
+            <th>Sample XML</th>
+            @{ sample_url = Url.Action("ClanWars", new { id = sample_clan, format = "xml" }); }
+            <td><a href="@sample_url">@sample_url</a></td>
+        </tr>
+    </tbody>
+</table>
+
+<h3 id="get-service-list">Clan List</h3>
+
+<table class="table table-bordered">
+    <tbody>
+        <tr>
+            <th class="col-xs-4">Description</th>
+            <td class="col-xs-8">Get list of clans</td>
+        </tr>
+        <tr>
+            <th>URL</th>
+            <td>@Url.Action("Clans", new { format = "FORMAT" })</td>
+        </tr>
+        <tr>
+            <th>Sample CSV</th>
+            @{ sample_url = Url.Action("Clans", new { format = "csv" }); }
+            <td><a href="@sample_url">@sample_url</a></td>
+        </tr>
+        <tr>
+            <th>Sample JSON</th>
+            @{ sample_url = Url.Action("Clans", new { format = "json" }); }
+            <td><a href="@sample_url">@sample_url</a></td>
+        </tr>
+        <tr>
+            <th>Sample XML</th>
+            @{ sample_url = Url.Action("Clans", new { format = "xml" }); }
             <td><a href="@sample_url">@sample_url</a></td>
         </tr>
     </tbody>
