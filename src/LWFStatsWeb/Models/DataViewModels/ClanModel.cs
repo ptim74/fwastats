@@ -29,5 +29,13 @@ namespace LWFStatsWeb.Models.DataViewModels
         public bool IsWarLogPublic { get; set; }
         public string Image { get; set; }
         public string Description { get; set; }
+
+        public int Th11Count { get; set; }
+        public int Th10Count { get; set; }
+        public int Th9Count { get; set; }
+        public int Th8Count { get; set; }
+        public int ThLowCount { get; set; }
+
+        public int EstimatedWeight { get; set; }
     }
 }

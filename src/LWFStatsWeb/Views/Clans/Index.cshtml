@@ -34,6 +34,24 @@
                 <span class="glyphicon glyphicon-user"></span>
             </th>
             <th>
+                <span>TH11</span>
+            </th>
+            <th>
+                <span>TH10</span>
+            </th>
+            <th>
+                <span>TH9</span>
+            </th>
+            <th>
+                <span>TH8</span>
+            </th>
+            <th>
+                <span>TH7-</span>
+            </th>
+            <th>
+                <span>Est.W<span class="hidden-xs">eight</span></span>
+            </th>
+            <th>
                 <span>Wars</span>
             </th>
             <th>
@@ -56,6 +74,24 @@
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => clan.Members)
+                </td>
+                <td>
+                    @clan.Th11Count
+                </td>
+                <td>
+                    @clan.Th10Count
+                </td>
+                <td>
+                    @clan.Th9Count
+                </td>
+                <td>
+                    @clan.Th8Count
+                </td>
+                <td>
+                    @clan.ThLowCount
+                </td>
+                <td>
+                    @clan.EstimatedWeight
                 </td>
                 <td>
                     @clan.WarCount

@@ -53,6 +53,8 @@ namespace LWFStatsWeb.Controllers
                            group w by w.ClanTag into g
                            select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
 
+            var weights = new WeightCalculator(db).Calculate().ToDictionary(w => w.Tag);
+
             var clanQ = db.Clans.Select(c => new ClanIndexClan
             {
                 Tag = c.Tag,
@@ -74,6 +76,17 @@ namespace LWFStatsWeb.Controllers
                         clan.WinPercentage = winCount * 100 / clan.WarCount;
                     if (matches.TryGetValue(clan.Tag, out matchCount))
                         clan.MatchPercentage = matchCount * 100 / clan.WarCount;
+                }
+
+                WeightCalculator.Results weight = null;
+                if(weights.TryGetValue(clan.Tag,out weight))
+                {
+                    clan.Th11Count = weight.Th11Count;
+                    clan.Th10Count = weight.Th10Count;
+                    clan.Th9Count = weight.Th9Count;
+                    clan.Th8Count = weight.Th8Count;
+                    clan.ThLowCount = weight.ThLowCount;
+                    clan.EstimatedWeight = weight.EstimatedWeight;
                 }
 
                 clans.Add(clan);

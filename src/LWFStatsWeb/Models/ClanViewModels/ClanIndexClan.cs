@@ -15,6 +15,14 @@ namespace LWFStatsWeb.Models.ClanViewModels
         public double MatchPercentage { get; set; }
         public double WinPercentage { get; set; }
 
+        public int Th11Count { get; set; }
+        public int Th10Count { get; set; }
+        public int Th9Count { get; set; }
+        public int Th8Count { get; set; }
+        public int ThLowCount { get; set; }
+
+        public int EstimatedWeight { get; set; }
+
         public string LinkID
         {
             get

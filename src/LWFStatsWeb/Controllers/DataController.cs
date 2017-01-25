@@ -161,8 +161,21 @@ namespace LWFStatsWeb.Controllers
                                  WinStreak = c.WarWinStreak
                              };
 
+                var weights = new WeightCalculator(db).Calculate().ToDictionary(w => w.Tag);
+
                 foreach (var row in badges)
                 {
+                    WeightCalculator.Results weight = null;
+                    if (weights.TryGetValue(row.Tag, out weight))
+                    {
+                        row.Th11Count = weight.Th11Count;
+                        row.Th10Count = weight.Th10Count;
+                        row.Th9Count = weight.Th9Count;
+                        row.Th8Count = weight.Th8Count;
+                        row.ThLowCount = weight.ThLowCount;
+                        row.EstimatedWeight = weight.EstimatedWeight;
+                    }
+
                     data.Add(row);
                 }
 
