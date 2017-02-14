@@ -118,11 +118,10 @@ namespace LWFStatsWeb.Formatters
                             _val = val.Value.ToString();
 
                         //Check if quotes needed
-                        if (_val.Contains(",") || _val.Contains("\r") || _val.Contains("\n"))
+                        if (_val.Contains(",") || _val.Contains("\r") || _val.Contains("\n") || _val.Contains("\""))
                         {
                             //Double quote quotes
-                            if (_val.Contains("\""))
-                                _val = _val.Replace("\"", "\"\"");
+                            _val = _val.Replace("\"", "\"\"");
 
                             //Put value inside quotes
                             _val = string.Concat("\"", _val, "\"");
