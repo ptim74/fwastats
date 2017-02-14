@@ -90,6 +90,8 @@ namespace LWFStatsWeb.Formatters
                 );
             }
 
+            var trimChars = _options.CsvDelimiter.ToCharArray();
+
             foreach (var obj in (IEnumerable<object>)context.Object)
             {
 
@@ -112,31 +114,29 @@ namespace LWFStatsWeb.Formatters
                             _val = ((double)val.Value).ToString(System.Globalization.CultureInfo.InvariantCulture);
                         else if (val.Value is DateTime)
                             _val = ((DateTime)val.Value).ToString("yyyy-MM-dd");
-
                         else
                             _val = val.Value.ToString();
 
-                        //Check if the value contans a comma and place it in quotes if so
-                        if (_val.Contains(","))
-                            _val = string.Concat("\"", _val, "\"");
+                        //Check if quotes needed
+                        if (_val.Contains(",") || _val.Contains("\r") || _val.Contains("\n"))
+                        {
+                            //Double quote quotes
+                            if (_val.Contains("\""))
+                                _val = _val.Replace("\"", "\"\"");
 
-                        //Replace any \r or \n special characters from a new line with a space
-                        if (_val.Contains("\r"))
-                            _val = _val.Replace("\r", " ");
-                        if (_val.Contains("\n"))
-                            _val = _val.Replace("\n", " ");
+                            //Put value inside quotes
+                            _val = string.Concat("\"", _val, "\"");
+                        }
 
                         _valueLine = string.Concat(_valueLine, _val, _options.CsvDelimiter);
-
                     }
                     else
                     {
-
                         _valueLine = string.Concat(_valueLine, string.Empty, _options.CsvDelimiter);
                     }
                 }
 
-                _stringWriter.WriteLine(_valueLine.TrimEnd(_options.CsvDelimiter.ToCharArray()));
+                _stringWriter.WriteLine(_valueLine.TrimEnd(trimChars));
             }
 
             var streamWriter = new StreamWriter(response.Body);
