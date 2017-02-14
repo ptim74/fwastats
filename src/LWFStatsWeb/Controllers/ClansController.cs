@@ -38,17 +38,19 @@ namespace LWFStatsWeb.Controllers
         {
             var clans = new IndexViewModel();
 
-            var wars = (from w in db.Wars.Select(w => new { w.ClanTag, w.Synced })
+            var temp = (from w in db.Wars.Select(w => new { w.ClanTag, w.Synced, w.Matched, w.Result }) select w).ToList();
+
+            var wars = (from w in temp
                         where w.Synced == true
                         group w by w.ClanTag into g
                         select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
 
-            var wins = (from w in db.Wars.Select(w => new { w.ClanTag, w.Synced, w.Result })
+            var wins = (from w in temp
                         where w.Synced == true && w.Result == "win"
                         group w by w.ClanTag into g
                         select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
 
-            var matches = (from w in db.Wars.Select(w => new { w.ClanTag, w.Synced, w.Matched })
+            var matches = (from w in temp
                            where w.Synced == true && w.Matched == true
                            group w by w.ClanTag into g
                            select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
@@ -258,6 +260,7 @@ namespace LWFStatsWeb.Controllers
             return clan;
         }
 
+        [Route("Clan/{id}")]
         public async Task<ActionResult> Details(string id)
         {
             logger.LogInformation("Details {0}", id);
@@ -342,7 +345,7 @@ namespace LWFStatsWeb.Controllers
             return View(model);
         }
 
-        // GET: Clans/Edit/5
+        [Route("Clan/{id}/Edit")]
         public async Task<IActionResult> Edit(string id)
         {
             logger.LogInformation("Edit {0}", id);
@@ -386,6 +389,7 @@ namespace LWFStatsWeb.Controllers
         // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
+        [Route("Clan/{id}/Edit")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(string id, [Bind("Tag,Name,LinkID,Group,ValidFrom,ValidTo")] ClanValidity clanValidity)
         {
@@ -522,6 +526,7 @@ namespace LWFStatsWeb.Controllers
             return db.ClanValidities.Any(e => e.Tag == id);
         }
 
+        [Route("Clan/{id}/Weight")]
         public IActionResult Weight(string id)
         {
             logger.LogInformation("Weight {0}", id);
@@ -563,6 +568,7 @@ namespace LWFStatsWeb.Controllers
         }
 
         [HttpPost]
+        [Route("Clan/{id}/Weight")]
         public IActionResult Weight(string id, WeightViewModel model)
         {
             logger.LogInformation("Weight.Post {0}", id);

@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using LWFStatsWeb.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using LWFStatsWeb.Logic;
 
 namespace LWFStatsWeb.Controllers
 {
@@ -197,6 +198,7 @@ namespace LWFStatsWeb.Controllers
             return model;
         }
 
+        [Route("Sync/{id}")]
         public ActionResult Details(string id)
         {
             logger.LogInformation("Details {0}", id);

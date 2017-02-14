@@ -92,6 +92,7 @@ namespace LWFStatsWeb.Controllers
             return View(model);
         }
 
+        [Route("Player/{id}")]
         public async Task<IActionResult> Details(string id)
         {
             logger.LogInformation("Details {0}", id);
