@@ -172,7 +172,6 @@ namespace LWFStatsWeb.Controllers
                     var clan = await api.GetClan(task.ClanTag, true);
                     lock (lockObject)
                     {
-
                         clan.Group = task.ClanGroup;
 
                         var existingClanQ = from c in db.Clans
@@ -192,7 +191,16 @@ namespace LWFStatsWeb.Controllers
                                                 WarLosses = c.WarLosses,
                                                 WarTies = c.WarTies,
                                                 WarWins = c.WarWins,
-                                                WarWinStreak = c.WarWinStreak
+                                                WarWinStreak = c.WarWinStreak,
+                                                Th11Count = c.Th11Count,
+                                                Th10Count = c.Th10Count,
+                                                Th9Count = c.Th9Count,
+                                                Th8Count = c.Th8Count,
+                                                ThLowCount = c.ThLowCount,
+                                                WarCount = c.WarCount,
+                                                MatchPercentage = c.MatchPercentage,
+                                                WinPercentage = c.WinPercentage,
+                                                EstimatedWeight = c.EstimatedWeight
                                             };
 
                         var existingClan = existingClanQ.ToList().First();
@@ -229,7 +237,19 @@ namespace LWFStatsWeb.Controllers
                             clanModified = true;
 
                         if (clanModified)
+                        {
+                            clan.Th11Count = existingClan.Th11Count;
+                            clan.Th10Count = existingClan.Th10Count;
+                            clan.Th9Count = existingClan.Th9Count;
+                            clan.Th8Count = existingClan.Th8Count;
+                            clan.ThLowCount = existingClan.ThLowCount;
+                            clan.WarCount = existingClan.WarCount;
+                            clan.MatchPercentage = existingClan.MatchPercentage;
+                            clan.WinPercentage = existingClan.WinPercentage;
+                            clan.EstimatedWeight = existingClan.EstimatedWeight;
+
                             db.Entry(clan).State = EntityState.Modified;
+                        }
 
                         var oldMembers = (from m in db.Members
                                           where m.ClanTag == clan.Tag
@@ -499,6 +519,7 @@ namespace LWFStatsWeb.Controllers
                 statistics.UpdateValidities();
                 statistics.CalculateSyncs();
                 statistics.UpdateSyncMatch();
+                statistics.UpdateClanStats();
             }
         }
 

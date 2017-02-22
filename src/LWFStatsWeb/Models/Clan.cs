@@ -84,6 +84,16 @@ namespace LWFStatsWeb.Models
         [StringLength(150)]
         public string BadgeUrl { get; set; }
 
+        public int WarCount { get; set; }
+        public double MatchPercentage { get; set; }
+        public double WinPercentage { get; set; }
+        public int Th11Count { get; set; }
+        public int Th10Count { get; set; }
+        public int Th9Count { get; set; }
+        public int Th8Count { get; set; }
+        public int ThLowCount { get; set; }
+        public int EstimatedWeight { get; set; }
+
         public void FixData()
         {
             if(BadgeUrls != null)

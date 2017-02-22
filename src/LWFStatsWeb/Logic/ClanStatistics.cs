@@ -1,5 +1,6 @@
 ﻿using LWFStatsWeb.Data;
 using LWFStatsWeb.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,7 @@ namespace LWFStatsWeb.Logic
         void CalculateSyncs();
         void UpdateValidities();
         void UpdateSyncMatch();
+        void UpdateClanStats();
     }
 
     public class ClanStatistics : IClanStatistics
@@ -268,6 +270,59 @@ namespace LWFStatsWeb.Logic
 
             db.SaveChanges();
 
+        }
+
+        public void UpdateClanStats()
+        {
+            var temp = (from w in db.Wars.Select(w => new { w.ClanTag, w.Synced, w.Matched, w.Result }) select w).ToList();
+
+            var wars = (from w in temp
+                        where w.Synced == true
+                        group w by w.ClanTag into g
+                        select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
+
+            var wins = (from w in temp
+                        where w.Synced == true && w.Result == "win"
+                        group w by w.ClanTag into g
+                        select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
+
+            var matches = (from w in temp
+                           where w.Synced == true && w.Matched == true
+                           group w by w.ClanTag into g
+                           select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
+
+            var weights = new WeightCalculator(db).Calculate().ToDictionary(w => w.Tag);
+
+            foreach( var clan in db.Clans )
+            {
+                int warCount, winCount, matchCount;
+
+                if (wars.TryGetValue(clan.Tag, out warCount))
+                    clan.WarCount = warCount;
+
+                if (clan.WarCount > 0)
+                {
+                    if (wins.TryGetValue(clan.Tag, out winCount))
+                        clan.WinPercentage = winCount * 100 / clan.WarCount;
+                    if (matches.TryGetValue(clan.Tag, out matchCount))
+                        clan.MatchPercentage = matchCount * 100 / clan.WarCount;
+                }
+
+                WeightCalculator.Results weight = null;
+                if (weights.TryGetValue(clan.Tag, out weight))
+                {
+                    clan.Th11Count = weight.Th11Count;
+                    clan.Th10Count = weight.Th10Count;
+                    clan.Th9Count = weight.Th9Count;
+                    clan.Th8Count = weight.Th8Count;
+                    clan.ThLowCount = weight.ThLowCount;
+                    clan.EstimatedWeight = weight.EstimatedWeight;
+                }
+
+                db.Update(clan);
+            }
+
+            db.SaveChanges();
         }
     }
 }

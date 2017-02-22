@@ -38,59 +38,25 @@ namespace LWFStatsWeb.Controllers
         {
             var clans = new IndexViewModel();
 
-            var temp = (from w in db.Wars.Select(w => new { w.ClanTag, w.Synced, w.Matched, w.Result }) select w).ToList();
-
-            var wars = (from w in temp
-                        where w.Synced == true
-                        group w by w.ClanTag into g
-                        select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
-
-            var wins = (from w in temp
-                        where w.Synced == true && w.Result == "win"
-                        group w by w.ClanTag into g
-                        select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
-
-            var matches = (from w in temp
-                           where w.Synced == true && w.Matched == true
-                           group w by w.ClanTag into g
-                           select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
-
-            var weights = new WeightCalculator(db).Calculate().ToDictionary(w => w.Tag);
-
             var clanQ = db.Clans.Select(c => new ClanIndexClan
             {
                 Tag = c.Tag,
                 Name = c.Name,
                 Members = c.Members,
-                BadgeUrl = c.BadgeUrl
+                BadgeUrl = c.BadgeUrl,
+                Th11Count = c.Th11Count,
+                Th10Count = c.Th10Count,
+                Th9Count = c.Th9Count,
+                Th8Count = c.Th8Count,
+                ThLowCount = c.ThLowCount,
+                WarCount = c.WarCount,
+                MatchPercentage = c.MatchPercentage,
+                WinPercentage = c.WinPercentage,
+                EstimatedWeight = c.EstimatedWeight
             });
 
             foreach (var clan in clanQ.OrderBy(c => c.Name.ToLower()))
             {
-                int warCount, winCount, matchCount;
-
-                if (wars.TryGetValue(clan.Tag, out warCount))
-                    clan.WarCount = warCount;
-
-                if(clan.WarCount > 0)
-                {
-                    if (wins.TryGetValue(clan.Tag, out winCount))
-                        clan.WinPercentage = winCount * 100 / clan.WarCount;
-                    if (matches.TryGetValue(clan.Tag, out matchCount))
-                        clan.MatchPercentage = matchCount * 100 / clan.WarCount;
-                }
-
-                WeightCalculator.Results weight = null;
-                if(weights.TryGetValue(clan.Tag,out weight))
-                {
-                    clan.Th11Count = weight.Th11Count;
-                    clan.Th10Count = weight.Th10Count;
-                    clan.Th9Count = weight.Th9Count;
-                    clan.Th8Count = weight.Th8Count;
-                    clan.ThLowCount = weight.ThLowCount;
-                    clan.EstimatedWeight = weight.EstimatedWeight;
-                }
-
                 clans.Add(clan);
             }
 

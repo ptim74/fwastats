@@ -69,7 +69,7 @@ namespace LWFStatsWeb.Controllers
                     var clanNames = db.Clans.ToDictionary(c => c.Tag, c => c.Name);
 
                     var players = from p in db.Players
-                                  where p.Name.Contains(q)
+                                  where p.Name.ToUpperInvariant().Contains(q.ToUpperInvariant())
                                   join im in db.Members on p.Tag equals im.Tag into InnerMembers
                                   from m in InnerMembers.DefaultIfEmpty()
                                   select new SearchResultModel
