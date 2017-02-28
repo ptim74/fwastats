@@ -63,6 +63,7 @@ namespace LWFStatsWeb
             services.AddOptions();
             services.Configure<ClanListOptions>(Configuration.GetSection("ClanLists"));
             services.Configure<ClashApiOptions>(Configuration.GetSection("ClashApi"));
+            services.Configure<StatisicsHistory>(Configuration.GetSection("History"));
 
             //services.Configure<GoogleOptions>(Configuration.GetSection("GoogleAuth"));
 

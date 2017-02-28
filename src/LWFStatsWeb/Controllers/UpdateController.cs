@@ -96,6 +96,7 @@ namespace LWFStatsWeb.Controllers
                             Value = newPlayer.TownHallLevel
                         });
 
+                    /*
                     if (oldPlayer.WarStars != newPlayer.WarStars)
                         db.Add(new PlayerEvent {
                             ClanTag = newPlayer.ClanTag,
@@ -104,6 +105,7 @@ namespace LWFStatsWeb.Controllers
                             EventType = PlayerEventType.Stars,
                             Value = newPlayer.WarStars - oldPlayer.WarStars
                         });
+                    */
 
                     oldPlayer.AttackWins = newPlayer.AttackWins;
                     oldPlayer.BestTrophies = newPlayer.BestTrophies;
@@ -430,13 +432,6 @@ namespace LWFStatsWeb.Controllers
                     }
                 }
 
-                /*
-                if(task.Mode != UpdateTaskMode.Delete)
-                {
-                    await RefreshPlayers(task.ClanTag);
-                }
-                */
-
                 status.Message = clanName;
                 status.Status = true;
             }
@@ -457,7 +452,6 @@ namespace LWFStatsWeb.Controllers
             IndexViewModel model = null;
             try
             {
-                //db.Database.EnsureCreated();
                 db.Database.Migrate();
                 model = await GetUpdates();
             }
@@ -515,11 +509,25 @@ namespace LWFStatsWeb.Controllers
         {
             lock (lockObject)
             {
+                logger.LogInformation("PerformFinished.DeleteTasks");
                 this.DeleteTasks();
+
+                logger.LogInformation("PerformFinished.DeleteHistory");
+                statistics.DeleteHistory();
+
+                logger.LogInformation("PerformFinished.UpdateValidities");
                 statistics.UpdateValidities();
+
+                logger.LogInformation("PerformFinished.CalculateSyncs");
                 statistics.CalculateSyncs();
+
+                logger.LogInformation("PerformFinished.UpdateSyncMatch");
                 statistics.UpdateSyncMatch();
+
+                logger.LogInformation("PerformFinished.UpdateClanStats");
                 statistics.UpdateClanStats();
+
+                logger.LogInformation("PerformFinished.Done");
             }
         }
 
@@ -557,10 +565,11 @@ namespace LWFStatsWeb.Controllers
 
         public IActionResult PlayerBatch()
         {
-            const int MAX_UPDATES = 3000;
+            const int MAX_UPDATES = 1000;
 
             logger.LogInformation("PlayerBatch.Begin");
 
+            /*
             try
             {
                 var starEventCleanupDate = DateTime.UtcNow.AddDays(-14);
@@ -572,9 +581,11 @@ namespace LWFStatsWeb.Controllers
             catch( Exception e)
             {
                 logger.LogWarning("PlayerBatch.StarEventDeleteFailed: {0}", e.Message);
-            }
+            }*/
 
             var memberTags = db.Members.Where(m => !db.Players.Where(p => p.Tag == m.Tag).Any()).Select(m => m.Tag).Take(MAX_UPDATES).ToList();
+
+            logger.LogInformation("PlayerBatch.NewMembers = {0}", memberTags.Count);
 
             if (memberTags.Count < MAX_UPDATES)
             {
@@ -596,6 +607,7 @@ namespace LWFStatsWeb.Controllers
             model.Errors = new List<string>();
             model.Tasks = new List<PlayerUpdateTask>();
 
+            /*
             var playerEvent = db.PlayerEvents.FirstOrDefault();
             if(playerEvent == null)
             {
@@ -611,7 +623,7 @@ namespace LWFStatsWeb.Controllers
                     });
                 }
                 db.SaveChanges();
-            }
+            }*/
 
             foreach(var member in db.Members.Select(m => new { Tag = m.Tag, Name = m.Name }))
             {

@@ -1,6 +1,7 @@
 ﻿using LWFStatsWeb.Data;
 using LWFStatsWeb.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,10 +9,17 @@ using System.Threading.Tasks;
 
 namespace LWFStatsWeb.Logic
 {
+    public class StatisicsHistory
+    {
+        public int Wars { get; set; }
+        public int Members { get; set; }
+    }
+
     public interface IClanStatistics
     {
-        void CalculateSyncs();
+        void DeleteHistory();
         void UpdateValidities();
+        void CalculateSyncs();
         void UpdateSyncMatch();
         void UpdateClanStats();
     }
@@ -19,10 +27,15 @@ namespace LWFStatsWeb.Logic
     public class ClanStatistics : IClanStatistics
     {
         private readonly ApplicationDbContext db;
+        private readonly IOptions<StatisicsHistory> history;
 
-        public ClanStatistics(ApplicationDbContext db)
+        public ClanStatistics(
+            ApplicationDbContext db,
+            IOptions<StatisicsHistory> history
+            )
         {
             this.db = db;
+            this.history = history;
         }
 
         public void CalculateSyncs()
@@ -323,6 +336,47 @@ namespace LWFStatsWeb.Logic
             }
 
             db.SaveChanges();
+        }
+
+        public void DeleteHistory()
+        {
+            var MAX_UPDATES = 1000;
+
+            if(history.Value.Members > 0)
+            {
+                var keepMembersSince = DateTime.UtcNow.AddDays(-1.0 * history.Value.Members);
+
+                var historyEvents = db.PlayerEvents.Where(e => e.EventDate < keepMembersSince).OrderBy(e => e.EventDate).Take(MAX_UPDATES);
+                db.PlayerEvents.RemoveRange(historyEvents);
+                db.SaveChanges();
+
+                var historyPlayers = db.Players.Where(p => p.LastUpdated < keepMembersSince).OrderBy(p => p.LastUpdated).Take(MAX_UPDATES);
+                db.Players.RemoveRange(historyPlayers);
+                db.SaveChanges();
+            }
+
+            if(history.Value.Wars > 0)
+            {
+                var keepWarsSince = DateTime.UtcNow.AddDays(-1.0 * history.Value.Wars);
+
+                //Don't remove half sync
+                var isInMiddleSync = db.WarSyncs.Where(s => s.Start >= keepWarsSince && s.Finish <= keepWarsSince).FirstOrDefault();
+                if (isInMiddleSync != null)
+                    keepWarsSince = isInMiddleSync.Start.AddHours(-1);
+
+                var historySyncs = db.WarSyncs.Where(s => s.Finish < keepWarsSince);
+                db.RemoveRange(historySyncs);
+
+                var historyWars = db.Wars.Where(w => w.EndTime < keepWarsSince).OrderBy(w => w.EndTime).Take(MAX_UPDATES);
+                db.Wars.RemoveRange(historyWars);
+
+                var historyValidities = db.ClanValidities.Where(v => v.ValidTo < keepWarsSince);
+                db.ClanValidities.RemoveRange(historyValidities);
+
+                db.SaveChanges();
+            }
+
+            
         }
     }
 }
