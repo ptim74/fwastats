@@ -365,18 +365,17 @@ namespace LWFStatsWeb.Logic
                     keepWarsSince = isInMiddleSync.Start.AddHours(-1);
 
                 var historySyncs = db.WarSyncs.Where(s => s.Finish < keepWarsSince);
-                db.RemoveRange(historySyncs);
+                db.WarSyncs.RemoveRange(historySyncs);
+                db.SaveChanges();
 
                 var historyWars = db.Wars.Where(w => w.EndTime < keepWarsSince).OrderBy(w => w.EndTime).Take(MAX_UPDATES);
                 db.Wars.RemoveRange(historyWars);
+                db.SaveChanges();
 
                 var historyValidities = db.ClanValidities.Where(v => v.ValidTo < keepWarsSince);
                 db.ClanValidities.RemoveRange(historyValidities);
-
                 db.SaveChanges();
             }
-
-            
         }
     }
 }
