@@ -573,7 +573,7 @@ namespace LWFStatsWeb.Controllers
         {
             var tag = Utils.LinkIdToTag(id);
 
-            if(counter == 0)
+            if (counter == 0)
             {
                 logger.LogInformation("Tracking {0} Started", id);
             }
@@ -584,32 +584,25 @@ namespace LWFStatsWeb.Controllers
                 return NoContent();
             }
 
-            var model = await memoryCache.GetOrCreate(String.Format("ClanDonations.", tag), async entry =>
+            var data = new List<DonationTrackModel>();
+
+            var clan = await api.GetClan(tag, false);
+
+            if (clan.MemberList != null)
             {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(50);
-
-                var data = new List<DonationTrackModel>();
-
-                var clan = await api.GetClan(tag, false);
-
-                if(clan.MemberList != null)
+                foreach (var member in clan.MemberList)
                 {
-                    foreach(var member in clan.MemberList)
+                    data.Add(new DonationTrackModel
                     {
-                        data.Add(new DonationTrackModel
-                        {
-                            Tag = member.Tag,
-                            Name = member.Name,
-                            Donated = member.Donations,
-                            Received = member.DonationsReceived
-                        });
-                    }
+                        Tag = member.Tag,
+                        Name = member.Name,
+                        Donated = member.Donations,
+                        Received = member.DonationsReceived
+                    });
                 }
+            }
 
-                return data;
-            });
-
-            return Json(model);
+            return Json(data);
         }
 
         [Route("Clan/{id}/Track")]
@@ -620,6 +613,8 @@ namespace LWFStatsWeb.Controllers
             var tag = Utils.LinkIdToTag(id);
 
             var clan = db.Clans.SingleOrDefault(c => c.Tag == tag);
+            if (clan == null)
+                return NotFound();
 
             return View(clan);
         }

@@ -46,145 +46,149 @@
 @section Scripts {
     <script type="text/javascript">
 
-        var track_progress = 0;
-        var track_enabled = false;
-        var track_counter = 0;
-        var prev_data = null;
+        (function () {
 
-        function findMember(members, tag) {
-            for (var i in members) {
-                if (members[i].tag == tag) {
-                    return members[i];
-                }
-            }
-            return null;
-        }
+            var track_progress = 0;
+            var track_enabled = false;
+            var track_counter = 0;
+            var prev_data = null;
 
-        function getTime() {
-            var d = new Date();
-            var h = d.getHours();
-            var m = d.getMinutes();
-            var hh = (h > 9 ? '' : '0') + h;
-            var mm = (m > 9 ? '' : '0') + m;
-            return hh + ':' + mm;
-        }
-
-        function createMessage(style, msg) {
-            var p = $("<p/>");
-            p.addClass(style);
-            p.text(getTime() + ' ' + msg);
-            p.appendTo($(".messages"));
-        }
-
-        function dataCallback(data, responseText, jqXHR) {
-
-            if (jqXHR.status != 200 || !track_enabled) {
-                trackingStopped();
-                return;
-            }
-
-            for (var i in prev_data) {
-                var old_mbr = prev_data[i];
-                var new_mbr = findMember(data, old_mbr.tag);
-                if (new_mbr == null) {
-                    createMessage('text-danger', old_mbr.name + ' left clan');
-                }
-            }
-
-            for (var i in data) {
-                var new_mbr = data[i];
-                var old_mbr = findMember(prev_data, new_mbr.tag);
-                if (old_mbr == null) {
-                    createMessage('text-success', new_mbr.name + ' joined clan');
-                    if (new_mbr.donated > 0) {
-                        createMessage('text-warning', new_mbr.name + ' donated ' + new_mbr.donated);
+            function findMember(members, tag) {
+                for (var i in members) {
+                    if (members[i].tag == tag) {
+                        return members[i];
                     }
+                }
+                return null;
+            }
+
+            function getTime() {
+                var d = new Date();
+                var h = d.getHours();
+                var m = d.getMinutes();
+                var hh = (h > 9 ? '' : '0') + h;
+                var mm = (m > 9 ? '' : '0') + m;
+                return hh + ':' + mm;
+            }
+
+            function createMessage(style, msg) {
+                var p = $("<p/>");
+                p.addClass(style);
+                p.text(getTime() + ' ' + msg);
+                p.appendTo($(".messages"));
+            }
+
+            function dataCallback(data, responseText, jqXHR) {
+
+                if (jqXHR.status != 200 || !track_enabled) {
+                    trackingStopped();
+                    return;
+                }
+
+                for (var i in prev_data) {
+                    var old_mbr = prev_data[i];
+                    var new_mbr = findMember(data, old_mbr.tag);
+                    if (new_mbr == null) {
+                        createMessage('text-danger', old_mbr.name + ' left clan');
+                    }
+                }
+
+                for (var i in data) {
+                    var new_mbr = data[i];
+                    var old_mbr = findMember(prev_data, new_mbr.tag);
+                    if (old_mbr == null) {
+                        createMessage('text-success', new_mbr.name + ' joined clan');
+                        if (new_mbr.donated > 0) {
+                            createMessage('text-warning', new_mbr.name + ' donated ' + new_mbr.donated);
+                        }
+                    } else {
+                        if (new_mbr.donated > old_mbr.donated) {
+                            createMessage('text-warning', new_mbr.name + ' donated ' + (new_mbr.donated - old_mbr.donated));
+                        }
+                    }
+                }
+
+                for (var i in data) {
+                    var new_mbr = data[i];
+                    var old_mbr = findMember(prev_data, new_mbr.tag);
+                    if (old_mbr == null) {
+                        if (new_mbr.received > 0) {
+                            createMessage('text-primary', new_mbr.name + ' received ' + new_mbr.received);
+                        }
+                    }
+                    else {
+                        if (new_mbr.received > old_mbr.received) {
+                            createMessage('text-primary', new_mbr.name + ' received ' + (new_mbr.received - old_mbr.received));
+                        }
+                    }
+                }
+
+                scheduleNext(data);
+            }
+
+            function failCallback(data, responseText, jqXHR) {
+                createMessage("bg-danger", "Tracking failure");
+                trackingStopped();
+            }
+
+            function timerCallback() {
+
+                if (!track_enabled) {
+                    trackingStopped();
+                    return;
+                }
+
+                if (track_progress >= 20) {
+                    track_progress = 0;
+                    $.getJSON('/Clan/@Model.LinkID/Donations?counter=' + (++track_counter), dataCallback).fail(failCallback);
                 } else {
-                    if (new_mbr.donated > old_mbr.donated) {
-                        createMessage('text-warning', new_mbr.name + ' donated ' + (new_mbr.donated - old_mbr.donated));
-                    }
+                    setTimeout(timerCallback, 3000);
                 }
+
+                updateProgress();
             }
 
-            for (var i in data) {
-                var new_mbr = data[i];
-                var old_mbr = findMember(prev_data, new_mbr.tag);
-                if (old_mbr == null) {
-                    if (new_mbr.received > 0) {
-                        createMessage('text-primary', new_mbr.name + ' received ' + new_mbr.received);
-                    }
-                }
-                else {
-                    if (new_mbr.received > old_mbr.received) {
-                        createMessage('text-primary', new_mbr.name + ' received ' + (new_mbr.received - old_mbr.received));
-                    }
-                }
-            }
-
-            scheduleNext(data);
-        }
-
-        function failCallback(data, responseText, jqXHR) {
-            createMessage("bg-danger", "Tracking failure");
-            trackingStopped();
-        }
-
-        function timerCallback() {
-
-            if (!track_enabled) {
-                trackingStopped();
-                return;
-            }
-
-            if (track_progress >= 20) {
-                track_progress = 0;
-                $.getJSON('/Clan/@Model.LinkID/Donations?counter=' + (++track_counter), dataCallback).fail(failCallback);
-            } else {
+            function scheduleNext(data) {
+                prev_data = data;
                 setTimeout(timerCallback, 3000);
+                updateProgress();
             }
 
-            updateProgress();
-        }
-
-        function scheduleNext(data) {
-            prev_data = data;
-            setTimeout(timerCallback, 3000);
-            updateProgress();
-        }
-
-        function updateProgress() {
-            track_progress++;
-            var progress_text = '';
-            for (var i = 0; i < track_progress; i++) {
-                progress_text += '*';
+            function updateProgress() {
+                track_progress++;
+                var progress_text = '';
+                for (var i = 0; i < track_progress; i++) {
+                    progress_text += '*';
+                }
+                $('.status').text(progress_text);
             }
-            $('.status').text(progress_text);
-        }
 
-        function trackingStopped() {
-            createMessage('bg-warning', 'Tracking stopped');
-            $('.btn-stop').hide();
-            $('.btn-start').show();
-            $('.status').text('');
-        }
-
-        $(function () {
-            $('.btn-start').click(function () {
-                $(this).hide();
-                $('.btn-stop').show();
-                createMessage('bg-success', 'Tracking started');
-                track_enabled = true;
-                track_counter = 0;
-                track_progress = 0;
-                $.getJSON('/Clan/@Model.LinkID/Donations?counter=' + track_counter, scheduleNext).fail(failCallback);
-            });
-            $('.btn-stop').click(function () {
-                track_enabled = false;
-                $(this).hide();
-                createMessage('bg-info', 'Tracking stopping...');
+            function trackingStopped() {
+                createMessage('bg-warning', 'Tracking stopped');
+                $('.btn-stop').hide();
+                $('.btn-start').show();
                 $('.status').text('');
+            }
+
+            $(function () {
+                $('.btn-start').click(function () {
+                    $(this).hide();
+                    $('.btn-stop').show();
+                    createMessage('bg-success', 'Tracking started');
+                    track_enabled = true;
+                    track_counter = 0;
+                    track_progress = 0;
+                    $.getJSON('/Clan/@Model.LinkID/Donations?counter=' + track_counter, scheduleNext).fail(failCallback);
+                });
+                $('.btn-stop').click(function () {
+                    track_enabled = false;
+                    $(this).hide();
+                    createMessage('bg-info', 'Tracking stopping...');
+                    $('.status').text('');
+                });
             });
-        });
+
+        })();
 
     </script>
 }
