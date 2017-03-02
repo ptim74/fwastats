@@ -7,10 +7,8 @@
     {
         ViewBag.MetaDescription = @Model.Clan.Name + ", Farm War Alliance (FWA), Clash of Clans";
     }
-    else
-    {
-        ViewBag.MetaRobots = "noindex, nofollow";
-    }
+
+    ViewBag.MetaRobots = "noindex, nofollow";
 }
 
 <ol class="breadcrumb">
@@ -64,21 +62,21 @@
             </div>
         </div>
     </div>
-    @if (Model.InAlliance)
-    {
-        <div class="row">
-            <div class="col">
-                <br />
-                <a class="btn btn-default" asp-route-id="@Model.Clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Weight">Edit War Weights</a>
-            </div>
-        </div>
-    }
+
 </div>
 
 @if (!Model.InAlliance && Model.Validity != null && !Model.Validity.IsValid())
 {
     <div class="alert alert-info">
         Clan left alliance <a asp-route-id="@Model.Clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Edit">@Model.Validity.ValidTo.ToString("yyyy-MM-dd")</a>.
+    </div>
+}
+
+@if (Model.InAlliance)
+{
+    <div style="margin-bottom:20px;">
+        <a class="btn btn-default" asp-route-id="@Model.Clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Weight">Edit War Weights</a>
+        <a class="btn btn-default" asp-route-id="@Model.Clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Track">Track Donations</a>
     </div>
 }
 

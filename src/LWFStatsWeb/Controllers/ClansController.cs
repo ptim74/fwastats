@@ -568,5 +568,61 @@ namespace LWFStatsWeb.Controllers
             return Weight(id);
         }
 
+        [Route("Clan/{id}/Donations")]
+        public async Task<IActionResult> DonationData(string id, int counter)
+        {
+            var tag = Utils.LinkIdToTag(id);
+
+            if(counter == 0)
+            {
+                logger.LogInformation("Tracking {0} Started", id);
+            }
+
+            if (counter > 240)
+            {
+                logger.LogInformation("Tracking {0} Stopped", id);
+                return NoContent();
+            }
+
+            var model = await memoryCache.GetOrCreate(String.Format("ClanDonations.", tag), async entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(50);
+
+                var data = new List<DonationTrackModel>();
+
+                var clan = await api.GetClan(tag, false);
+
+                if(clan.MemberList != null)
+                {
+                    foreach(var member in clan.MemberList)
+                    {
+                        data.Add(new DonationTrackModel
+                        {
+                            Tag = member.Tag,
+                            Name = member.Name,
+                            Donated = member.Donations,
+                            Received = member.DonationsReceived
+                        });
+                    }
+                }
+
+                return data;
+            });
+
+            return Json(model);
+        }
+
+        [Route("Clan/{id}/Track")]
+        public IActionResult Track(string id)
+        {
+            logger.LogInformation("Track {0}", id);
+
+            var tag = Utils.LinkIdToTag(id);
+
+            var clan = db.Clans.SingleOrDefault(c => c.Tag == tag);
+
+            return View(clan);
+        }
+
     }
 }
