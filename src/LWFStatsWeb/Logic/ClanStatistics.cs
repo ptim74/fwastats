@@ -354,7 +354,7 @@ namespace LWFStatsWeb.Logic
                 db.Players.RemoveRange(historyPlayers);
                 db.SaveChanges();
 
-                var clanEvents = = db.ClanEvents.Where(e => e.EventDate < keepMembersSince).OrderBy(e => e.EventDate).Take(MAX_UPDATES);
+                var clanEvents = db.ClanEvents.Where(e => e.EventDate < keepMembersSince).OrderBy(e => e.EventDate).Take(MAX_UPDATES);
                 db.ClanEvents.RemoveRange(clanEvents);
                 db.SaveChanges();
             }
