@@ -171,6 +171,11 @@ namespace LWFStatsWeb.Controllers
 
                 if (task.Mode == UpdateTaskMode.Update)
                 {
+                    var clanEvent = new ClanEvent();
+                    clanEvent.EventDate = DateTime.UtcNow;
+                    clanEvent.ClanTag = task.ClanTag;
+                    var utc = DateTime.UtcNow;
+                    clanEvent.EventDate = new DateTime(utc.Year, utc.Month, utc.Day, utc.Hour, 0, 0, DateTimeKind.Utc);
                     var clan = await api.GetClan(task.ClanTag, true);
                     lock (lockObject)
                     {
@@ -273,6 +278,7 @@ namespace LWFStatsWeb.Controllers
                         {
                             foreach (var clanMember in clan.MemberList.ToList())
                             {
+                                var memberActive = false;
                                 var oldMember1 = from c in oldMembers where c.Tag == clanMember.Tag select c;
                                 if (oldMember1.Count() > 0)
                                 {
@@ -285,9 +291,17 @@ namespace LWFStatsWeb.Controllers
                                     if (clanMember.ClanTag != oldMember.ClanTag)
                                         modified = true;
                                     if (clanMember.Donations != oldMember.Donations)
+                                    {
+                                        memberActive = true;
+                                        if (clanMember.Donations > oldMember.Donations)
+                                            clanEvent.Donations += (clanMember.Donations - oldMember.Donations);
                                         modified = true;
+                                    }
                                     if (clanMember.DonationsReceived != oldMember.DonationsReceived)
+                                    {
                                         modified = true;
+                                        memberActive = true;
+                                    }
                                     if (clanMember.ExpLevel != oldMember.ExpLevel)
                                         modified = true;
                                     if (clanMember.Name != oldMember.Name)
@@ -309,7 +323,10 @@ namespace LWFStatsWeb.Controllers
                                         modified = true;
                                     }
                                     if (clanMember.Trophies != oldMember.Trophies)
+                                    {
+                                        memberActive = true;
                                         modified = true;
+                                    }
                                     if (modified)
                                     {
                                         db.Entry(clanMember).State = EntityState.Modified;
@@ -332,6 +349,8 @@ namespace LWFStatsWeb.Controllers
                                     }
                                     else
                                     {
+                                        memberActive = true;
+                                        clanEvent.Donations += clanMember.Donations;
                                         db.Entry(clanMember).State = EntityState.Added;
                                     }
 
@@ -355,6 +374,9 @@ namespace LWFStatsWeb.Controllers
                                         });
                                     }
                                 }
+
+                                if (memberActive)
+                                    clanEvent.Activity++;
                             }
 
                             foreach (var clanMember in oldMembers)
@@ -376,6 +398,7 @@ namespace LWFStatsWeb.Controllers
                                 }
                             }
 
+                            db.Add(clanEvent);
                         }
 
                         if (clan.Wars != null)

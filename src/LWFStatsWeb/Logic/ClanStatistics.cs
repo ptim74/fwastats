@@ -353,6 +353,10 @@ namespace LWFStatsWeb.Logic
                 var historyPlayers = db.Players.Where(p => p.LastUpdated < keepMembersSince).OrderBy(p => p.LastUpdated).Take(MAX_UPDATES);
                 db.Players.RemoveRange(historyPlayers);
                 db.SaveChanges();
+
+                var clanEvents = = db.ClanEvents.Where(e => e.EventDate < keepMembersSince).OrderBy(e => e.EventDate).Take(MAX_UPDATES);
+                db.ClanEvents.RemoveRange(clanEvents);
+                db.SaveChanges();
             }
 
             if(history.Value.Wars > 0)

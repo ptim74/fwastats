@@ -35,6 +35,8 @@ namespace LWFStatsWeb.Data
             builder.Entity<PlayerEvent>().HasIndex(e => new { e.ClanTag, e.EventDate });
             builder.Entity<PlayerEvent>().HasIndex(e => new { e.PlayerTag, e.EventDate });
             builder.Entity<PlayerEvent>().HasIndex(e => new { e.EventType, e.EventDate });
+            builder.Entity<ClanEvent>().HasIndex(e => new { e.ClanTag, e.EventDate });
+            builder.Entity<ClanEvent>().HasIndex(e => new { e.EventDate });
         }
 
         public virtual DbSet<Clan> Clans { get; set; }
@@ -46,6 +48,7 @@ namespace LWFStatsWeb.Data
         public virtual DbSet<WarSync> WarSyncs { get; set; }
         public virtual DbSet<ClanValidity> ClanValidities { get; set; }
         public virtual DbSet<Weight> Weights { get; set; }
+        public virtual DbSet<ClanEvent> ClanEvents { get; set; }
 
 
         // Add Migration:
