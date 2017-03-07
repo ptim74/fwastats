@@ -342,7 +342,13 @@ namespace LWFStatsWeb.Logic
         {
             var MAX_UPDATES = 1000;
 
-            if(history.Value.Members > 0)
+            var keepEventsSince = DateTime.UtcNow.AddDays(-1.0);
+
+            var clanEvents = db.ClanEvents.Where(e => e.EventDate < keepEventsSince).OrderBy(e => e.EventDate).Take(MAX_UPDATES);
+            db.ClanEvents.RemoveRange(clanEvents);
+            db.SaveChanges();
+
+            if (history.Value.Members > 0)
             {
                 var keepMembersSince = DateTime.UtcNow.AddDays(-1.0 * history.Value.Members);
 
@@ -352,10 +358,6 @@ namespace LWFStatsWeb.Logic
 
                 var historyPlayers = db.Players.Where(p => p.LastUpdated < keepMembersSince).OrderBy(p => p.LastUpdated).Take(MAX_UPDATES);
                 db.Players.RemoveRange(historyPlayers);
-                db.SaveChanges();
-
-                var clanEvents = db.ClanEvents.Where(e => e.EventDate < keepMembersSince).OrderBy(e => e.EventDate).Take(MAX_UPDATES);
-                db.ClanEvents.RemoveRange(clanEvents);
                 db.SaveChanges();
             }
 
