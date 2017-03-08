@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
+﻿<Project Sdk="Microsoft.NET.Sdk.Web" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp1.1</TargetFramework>
@@ -12,11 +12,6 @@
     <ApplicationInsightsResourceId>/subscriptions/014690c2-7f02-4b0c-a726-0efc1f4fc9ec/resourcegroups/ApplicationInsightsResources/providers/microsoft.insights/components/LWFStatsWeb</ApplicationInsightsResourceId>
     <ApplicationInsightsAnnotationResourceId>/subscriptions/014690c2-7f02-4b0c-a726-0efc1f4fc9ec/resourcegroups/ApplicationInsightsResources/providers/microsoft.insights/components/LWFStatsWeb</ApplicationInsightsAnnotationResourceId>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="Properties\PublishProfiles\fwastats - Web Deploy.pubxml" />
-    <None Remove="Properties\PublishProfiles\fwastatsdemo - Web Deploy.pubxml" />
-  </ItemGroup>
 
   <ItemGroup>
     <None Update="wwwroot\**\*;Views\**\*;Areas\**\ Views;nlog.config">
