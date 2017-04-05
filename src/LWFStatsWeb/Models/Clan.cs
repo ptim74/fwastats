@@ -116,9 +116,11 @@ namespace LWFStatsWeb.Models
 
             if (Wars != null)
             {
-                foreach (var war in Wars)
+                var previousEndDate = DateTime.UtcNow.AddYears(-2);
+                foreach (var war in Wars.OrderBy(w => w.EndTime))
                 {
-                    war.FixData();
+                    war.FixData(previousEndDate);
+                    previousEndDate = war.EndTime;
                 }
             }
         }

@@ -61,8 +61,9 @@ namespace LWFStatsWeb.Models
 
         public bool Synced { get; set; }
         public bool Matched { get; set; }
+        public bool Friendly { get; set; }
 
-        public void FixData()
+        public void FixData(DateTime previousEndTime)
         {
             if (Clan != null)
             {
@@ -94,6 +95,16 @@ namespace LWFStatsWeb.Models
                     OpponentBadgeUrl = Opponent.BadgeUrls.Small;
                 }
             }
+
+            if(ClanExpEarned == 0 && ClanStars > 0)
+            {
+                Friendly = true;
+            }
+            else if(EndTime.Subtract(previousEndTime).TotalHours <= 47.0)
+            {
+                Friendly = true;
+            }
+            
         }
 
         public string ClanLinkID

@@ -460,7 +460,8 @@ namespace LWFStatsWeb.Controllers
             }
             catch (Exception e)
             {
-                status.Message = string.Format("{0} {1} {2} Failed: {3}}", clanTag, clanName, updateMode, e.Message);
+                logger.LogError("PerformTask.Error: {0}", e.ToString());
+                status.Message = string.Format("{0} {1} {2} Failed: {3}", clanTag, clanName, updateMode, e.Message);
                 status.Status = false;
             }
 
@@ -506,7 +507,7 @@ namespace LWFStatsWeb.Controllers
             }
             catch(Exception e)
             {
-                logger.LogError("UpdateTask.Error {0}: {1}", id, e.Message);
+                logger.LogError("UpdateTask.Error {0}: {1}", id, e.ToString());
                 return Json(new UpdateTaskResponse { ID = id, Message = e.Message, Status = false });
             }
         }
@@ -552,6 +553,46 @@ namespace LWFStatsWeb.Controllers
 
                 logger.LogInformation("PerformFinished.Done");
             }
+        }
+
+        public IActionResult Friendly()
+        {
+            logger.LogInformation("Friendly");
+            var model = new IndexViewModel();
+            model.Errors = new List<string>();
+            var updates = 0;
+
+
+
+            var prevEndTimes = new Dictionary<string, DateTime>();
+
+            foreach (var war in db.Wars.OrderBy(w => w.EndTime).ToList())
+            {
+                if (prevEndTimes.TryGetValue(war.ClanTag, out DateTime prevEndTime))
+                {
+                    var hoursSinceLastWar = war.EndTime.Subtract(prevEndTime).TotalHours;
+                    if (hoursSinceLastWar < 47.0 || (war.ClanExpEarned == 0 && war.ClanStars > 0))
+                    {
+                        if (!war.Friendly)
+                        {
+                            war.Friendly = true;
+                            model.Errors.Add(string.Format("{0} vs {1} on {2} marked as friendly war", war.ClanName, war.OpponentName, war.EndTime));
+                            updates++;
+                            if(updates > 10)
+                            {
+                                db.SaveChanges();
+                                updates = 0;
+                            }
+                        }
+                    }
+                }
+                prevEndTimes[war.ClanTag] = war.EndTime;
+            }
+
+            db.SaveChanges();
+
+            model.Tasks = new List<UpdateTask>();
+            return View("Index", model);
         }
 
         public IActionResult Finish()

@@ -14,7 +14,7 @@ namespace LWFStatsWeb.Data.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
             modelBuilder
-                .HasAnnotation("ProductVersion", "1.1.0-rtm-22752");
+                .HasAnnotation("ProductVersion", "1.1.1");
 
             modelBuilder.Entity("LWFStatsWeb.Models.ApplicationUser", b =>
                 {
@@ -322,6 +322,8 @@ namespace LWFStatsWeb.Data.Migrations
                         .HasMaxLength(10);
 
                     b.Property<DateTime>("EndTime");
+
+                    b.Property<bool>("Friendly");
 
                     b.Property<bool>("Matched");
 

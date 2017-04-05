@@ -57,7 +57,7 @@ namespace LWFStatsWeb.Logic
 
             var sync = new WarSync();
 
-            var q = from w in db.Wars orderby w.EndTime select w.EndTime;
+            var q = from w in db.Wars where w.Friendly == false orderby w.EndTime select w.EndTime;
             foreach (var endTime in q)
             {
                 var fewWarsBeforeStartedAt = dateQ.Dequeue();
@@ -100,7 +100,7 @@ namespace LWFStatsWeb.Logic
                 var latestWarStarted = s.Start;
 
                 var warQ = from w in db.Wars
-                           where w.EndTime >= s.Start && w.EndTime <= s.Finish
+                           where w.EndTime >= s.Start && w.EndTime <= s.Finish && w.Friendly == false
                            select new { EndTime = w.EndTime, ClanTag = w.ClanTag, OpponentTag = w.OpponentTag };
 
                 s.MissedStarts = 0;
@@ -156,7 +156,7 @@ namespace LWFStatsWeb.Logic
             var currentClans = db.Clans.ToDictionary(c => c.Tag);
             var validClans = db.ClanValidities.ToDictionary(l => l.Tag);
 
-            var firstMatches = (from w in db.Wars
+            var firstMatches = (from w in db.Wars where w.Friendly == false
                                 group w by new { w.OpponentTag } into g
                                 select new { Tag = g.Key.OpponentTag, MinEndTime = g.Min(w => w.EndTime) }).ToDictionary(d => d.Tag, d => d.MinEndTime);
 
@@ -185,7 +185,7 @@ namespace LWFStatsWeb.Logic
                     if (validClan.ValidTo < DateTime.UtcNow)
                     {
                         validClan.ValidTo = DateTime.MaxValue;
-                        db.Entry(validClan).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                        db.Entry(validClan).State = EntityState.Modified;
                     }
                     if (firstMatches.TryGetValue(clan.Key, out firstMatch))
                     {
@@ -193,13 +193,13 @@ namespace LWFStatsWeb.Logic
                         if (validClan.ValidFrom > firstSearch)
                         {
                             validClan.ValidFrom = firstSearch;
-                            db.Entry(validClan).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                            db.Entry(validClan).State = EntityState.Modified;
                         }
                     }
                     if (validClan.Group != currentClan.Group)
                     {
                         validClan.Group = currentClan.Group;
-                        db.Entry(validClan).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+                        db.Entry(validClan).State = EntityState.Modified;
                     }
                 }
                 else
@@ -287,7 +287,7 @@ namespace LWFStatsWeb.Logic
 
         public void UpdateClanStats()
         {
-            var temp = (from w in db.Wars.Select(w => new { w.ClanTag, w.Synced, w.Matched, w.Result }) select w).ToList();
+            var temp = (from w in db.Wars.Where(w => w.Friendly == false).Select(w => new { w.ClanTag, w.Synced, w.Matched, w.Result }) select w).ToList();
 
             var wars = (from w in temp
                         where w.Synced == true
@@ -308,21 +308,18 @@ namespace LWFStatsWeb.Logic
 
             foreach( var clan in db.Clans )
             {
-                int warCount, winCount, matchCount;
-
-                if (wars.TryGetValue(clan.Tag, out warCount))
+                if (wars.TryGetValue(clan.Tag, out int warCount))
                     clan.WarCount = warCount;
 
                 if (clan.WarCount > 0)
                 {
-                    if (wins.TryGetValue(clan.Tag, out winCount))
+                    if (wins.TryGetValue(clan.Tag, out int winCount))
                         clan.WinPercentage = winCount * 100 / clan.WarCount;
-                    if (matches.TryGetValue(clan.Tag, out matchCount))
+                    if (matches.TryGetValue(clan.Tag, out int matchCount))
                         clan.MatchPercentage = matchCount * 100 / clan.WarCount;
                 }
 
-                WeightCalculator.Results weight = null;
-                if (weights.TryGetValue(clan.Tag, out weight))
+                if (weights.TryGetValue(clan.Tag, out WeightCalculator.Results weight))
                 {
                     clan.Th11Count = weight.Th11Count;
                     clan.Th10Count = weight.Th10Count;
