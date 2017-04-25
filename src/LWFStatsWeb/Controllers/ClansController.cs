@@ -577,11 +577,14 @@ namespace LWFStatsWeb.Controllers
             {
                 logger.LogInformation("Tracking {0} Started", id);
             }
-
-            if (counter > 240)
+            else if (counter > 1440)
             {
                 logger.LogInformation("Tracking {0} Stopped", id);
                 return NoContent();
+            }
+            else if(counter < 30 || counter % 10 == 0)
+            {
+                logger.LogInformation("Tracking {0} #{1}", id, counter);
             }
 
             var data = new List<DonationTrackModel>();
