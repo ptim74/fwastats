@@ -176,7 +176,7 @@ namespace LWFStatsWeb.Controllers
                     clanEvent.ClanTag = task.ClanTag;
                     var utc = DateTime.UtcNow;
                     clanEvent.EventDate = new DateTime(utc.Year, utc.Month, utc.Day, utc.Hour, 0, 0, DateTimeKind.Utc);
-                    var clan = await api.GetClan(task.ClanTag, true);
+                    var clan = await api.GetClan(task.ClanTag, true, true);
                     lock (lockObject)
                     {
                         clan.Group = task.ClanGroup;
@@ -403,13 +403,48 @@ namespace LWFStatsWeb.Controllers
 
                         if (clan.Wars != null)
                         {
-                            var clanWars = (from w in db.Wars where w.ClanTag == clan.Tag select w.ID).ToList();
+                            var clanWars = (from w in db.Wars where w.ClanTag == clan.Tag select new { w.ID, w.Result }).ToDictionary(w => w.ID, w => w.Result);
 
                             foreach (var war in clan.Wars.ToList())
                             {
-                                if (!clanWars.Contains(war.ID))
+                                if(clanWars.TryGetValue(war.ID, out string result))
+                                {
+                                    if (!war.Result.Equals(result) || war.Result.Equals("inWar"))
+                                        db.Entry(war).State = EntityState.Modified;
+                                }
+                                else
                                 {
                                     db.Entry(war).State = EntityState.Added;
+                                }
+
+                                if(war.Members != null && war.Members.Count > 0)
+                                {
+                                    var warMembers = (from m in db.WarMembers where m.WarID == war.ID select new { m.MapPosition, m.OpponentAttacks, m.ID }).ToDictionary(m => m.MapPosition, m => new { m.ID, m.OpponentAttacks });
+                                    foreach(var member in war.Members)
+                                    {
+                                        if(warMembers.TryGetValue(member.MapPosition, out var memberDetails))
+                                        {
+                                            if (memberDetails.OpponentAttacks != member.OpponentAttacks)
+                                            {
+                                                member.ID = memberDetails.ID;
+                                                db.Entry(member).State = EntityState.Modified;
+                                            }
+                                        }
+                                        else
+                                        {
+                                            db.Entry(member).State = EntityState.Added;
+                                        }
+                                    }
+                                }
+
+                                if (war.Attacks != null && war.Attacks.Count > 0)
+                                {
+                                    var warAttacks = (from a in db.WarAttacks where a.WarID == war.ID select a.Order).ToDictionary(m => m);
+                                    foreach (var attack in war.Attacks)
+                                    {
+                                        if (!warAttacks.ContainsKey(attack.Order))
+                                            db.Entry(attack).State = EntityState.Added;
+                                    }
                                 }
                             }
                         }
@@ -420,7 +455,7 @@ namespace LWFStatsWeb.Controllers
 
                 if (task.Mode == UpdateTaskMode.Insert)
                 {
-                    var clan = await api.GetClan(task.ClanTag,true);
+                    var clan = await api.GetClan(task.ClanTag, true, true);
                     if (clan == null)
                         throw new Exception(string.Format("Clan {0} not found", task.ClanTag));
 
@@ -429,22 +464,22 @@ namespace LWFStatsWeb.Controllers
 
                         clan.Group = task.ClanGroup;
 
-                        var existingMembers = (from m in db.Members where m.ClanTag != task.ClanTag select m.Tag).ToList();
+                        var existingMembers = (from m in db.Members where m.ClanTag != task.ClanTag select m.Tag).ToDictionary(m => m);
 
                         foreach (var clanMember in clan.MemberList)
                         {
                             //Member hopped from other clan
-                            if (existingMembers.Contains(clanMember.Tag))
+                            if (existingMembers.ContainsKey(clanMember.Tag))
                                 db.Entry(clanMember).State = EntityState.Modified;
                         }
 
                         if (clan.Wars != null)
                         {
-                            var existingWars = (from w in db.Wars where w.ClanTag == task.ClanTag select w.ID).ToList();
+                            var existingWars = (from w in db.Wars where w.ClanTag == task.ClanTag select w.ID).ToDictionary(w => w);
 
                             foreach (var clanWar in clan.Wars)
                             {
-                                if (!existingWars.Contains(clanWar.ID))
+                                if (!existingWars.ContainsKey(clanWar.ID))
                                     db.Wars.Add(clanWar);
                             }
                         }

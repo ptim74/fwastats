@@ -32,5 +32,8 @@ namespace LWFStatsWeb.Models
 
         [DataMember]
         public virtual BadgeUrls BadgeUrls { get; set; }
+
+        [DataMember]
+        public virtual ICollection<WarMember> Members { get; set; }
     }
 }

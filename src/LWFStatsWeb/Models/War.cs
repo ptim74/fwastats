@@ -63,6 +63,14 @@ namespace LWFStatsWeb.Models
         public bool Matched { get; set; }
         public bool Friendly { get; set; }
 
+        [NotMapped]
+        [DataMember]
+        public string State { get; set; }
+
+        public virtual ICollection<WarAttack> Attacks { get; set; }
+
+        public virtual ICollection<WarMember> Members { get; set; }
+
         public void FixData(DateTime previousEndTime)
         {
             if (Clan != null)
@@ -80,6 +88,40 @@ namespace LWFStatsWeb.Models
                 {
                     ClanBadgeUrl = Clan.BadgeUrls.Small;
                 }
+
+                ICollection<WarMember> opponentMembers = null;
+
+                if (Opponent != null && Opponent.Members != null)
+                    opponentMembers = Opponent.Members;
+                else
+                    opponentMembers = new List<WarMember>();
+
+                if (Clan.Members != null)
+                {
+                    Members = Clan.Members;
+                    foreach(var member in Clan.Members)
+                    {
+                        if(member.Attacks != null)
+                        {
+                            foreach(var attack in member.Attacks)
+                            {
+                                attack.WarID = this.ID;
+
+                                var defender = opponentMembers.SingleOrDefault(m => m.Tag == attack.DefenderTag);
+                                if(defender != null)
+                                {
+                                    attack.DefenderMapPosition = defender.MapPosition;
+                                    attack.DefenderTownHallLevel = defender.TownHallLevel;
+                                }
+
+                                if (Attacks == null)
+                                    Attacks = new List<WarAttack>();
+
+                                Attacks.Add(attack);
+                            }
+                        }
+                    }
+                }
             }
 
             if (Opponent != null)
@@ -96,7 +138,10 @@ namespace LWFStatsWeb.Models
                 }
             }
 
-            if(ClanExpEarned == 0 && ClanStars > 0)
+            if (string.IsNullOrEmpty(Result) && !string.IsNullOrEmpty(State))
+                Result = State;
+
+            if(ClanExpEarned == 0 && ClanStars > 0 && string.IsNullOrEmpty(State))
             {
                 Friendly = true;
             }

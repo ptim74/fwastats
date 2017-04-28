@@ -37,6 +37,11 @@ namespace LWFStatsWeb.Data
             builder.Entity<PlayerEvent>().HasIndex(e => new { e.EventType, e.EventDate });
             builder.Entity<ClanEvent>().HasIndex(e => new { e.ClanTag, e.EventDate });
             builder.Entity<ClanEvent>().HasIndex(e => new { e.EventDate });
+            builder.Entity<WarMember>().HasIndex(e => new { e.WarID, e.MapPosition });
+            builder.Entity<WarMember>().HasIndex(e => new { e.Tag });
+            builder.Entity<WarAttack>().HasIndex(e => new { e.WarID, e.Order });
+            builder.Entity<WarAttack>().HasIndex(e => new { e.AttackerTag });
+            builder.Entity<WarAttack>().HasIndex(e => new { e.DefenderTag });
         }
 
         public virtual DbSet<Clan> Clans { get; set; }
@@ -49,10 +54,12 @@ namespace LWFStatsWeb.Data
         public virtual DbSet<ClanValidity> ClanValidities { get; set; }
         public virtual DbSet<Weight> Weights { get; set; }
         public virtual DbSet<ClanEvent> ClanEvents { get; set; }
+        public virtual DbSet<WarMember> WarMembers { get; set; }
+        public virtual DbSet<WarAttack> WarAttacks { get; set; }
 
 
         // Add Migration:
-        // CMD> dotnet ef migrations add {MigrationName}
+        // CMD> dotnet ef migrations {MigrationName}
         // PM> Add-Migration [-Name] <String>
     }
 }

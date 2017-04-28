@@ -181,7 +181,7 @@ namespace LWFStatsWeb.Controllers
                     var wars = this.GetPrivateWars(tag);
                     if (wars.Count > 0)
                     {
-                        clan = await api.GetClan(tag, true);
+                        clan = await api.GetClan(tag, true, true);
                         if (clan.Wars != null && clan.Wars.Count > 0)
                         {
                             var syncTimes = db.WarSyncs.Select(s => new { s.Start, s.Finish }).ToArray();
@@ -214,7 +214,7 @@ namespace LWFStatsWeb.Controllers
                     }
                     else
                     {
-                        clan = await api.GetClan(tag, true);
+                        clan = await api.GetClan(tag, true, true);
                     }
                     
                 }
@@ -392,7 +392,7 @@ namespace LWFStatsWeb.Controllers
                         }
                     }
 
-                    var clan = await api.GetClan(tag, true);
+                    var clan = await api.GetClan(tag, true, true);
 
                     if (!clan.IsWarLogPublic)
                         clan.Wars = this.GetPrivateWars(tag);
@@ -589,7 +589,7 @@ namespace LWFStatsWeb.Controllers
 
             var data = new List<DonationTrackModel>();
 
-            var clan = await api.GetClan(tag, false);
+            var clan = await api.GetClan(tag, false, false);
 
             if (clan.MemberList != null)
             {

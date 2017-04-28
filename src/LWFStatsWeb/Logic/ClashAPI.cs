@@ -26,7 +26,8 @@ namespace LWFStatsWeb.Logic
     public interface IClashApi
     {
         Task<List<War>> GetClanWarlog(string clanTag);
-        Task<Clan> GetClan(string clanTag, bool withWarDetails);
+        Task<War> GetClanCurrentWar(string clanTag);
+        Task<Clan> GetClan(string clanTag, bool withWarDetails, bool withCurrentWar);
         Task<Player> GetPlayer(string playerTag);
     }
 
@@ -90,13 +91,46 @@ namespace LWFStatsWeb.Logic
             return data.Wars;
         }
 
-        public async Task<Clan> GetClan(string clanTag, bool withWarDetails)
+        public async Task<War> GetClanCurrentWar(string clanTag)
+        {
+            var url = string.Format("clans/{0}/currentwar", Uri.EscapeDataString(clanTag));
+            var data = await Request<War>(url);
+            return data;
+        }
+
+        public async Task<Clan> GetClan(string clanTag, bool withWarDetails, bool withCurrentWar)
         {
             var url = string.Format("clans/{0}", Uri.EscapeDataString(clanTag));
             var data = await Request<Clan>(url);
 
             if (data.IsWarLogPublic && withWarDetails)
                 data.Wars = await GetClanWarlog(clanTag);
+
+            if(data.IsWarLogPublic && withCurrentWar)
+            {
+                var currentWar = await GetClanCurrentWar(clanTag);
+
+                if (currentWar != null)
+                {
+                    if (data.Wars == null)
+                        data.Wars = new List<War>();
+
+                    if (!string.IsNullOrEmpty(currentWar.State) && currentWar.State.Equals("warEnded"))
+                    {
+                        var prevWar = data.Wars.SingleOrDefault(w => w.EndTime == currentWar.EndTime);
+                        if (prevWar != null)
+                        {
+                            currentWar.FixData(DateTime.MinValue);
+                            prevWar.Members = currentWar.Members;
+                            prevWar.Attacks = currentWar.Attacks;
+                        }
+                    }
+                    else if (!string.IsNullOrEmpty(currentWar.State) && !currentWar.State.Equals("notInWar"))
+                    {
+                        data.Wars.Add(currentWar);
+                    }
+                }
+            }
 
             data.FixData();
 
