@@ -18,7 +18,7 @@ namespace LWFStatsWeb.Models
         {
             get
             {
-                return Start.ToString("yyyy-MM-dd");
+                return SearchTime.ToString("yyyy-MM-dd");
             }
         }
 

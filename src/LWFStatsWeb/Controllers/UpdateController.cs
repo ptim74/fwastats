@@ -403,13 +403,25 @@ namespace LWFStatsWeb.Controllers
 
                         if (clan.Wars != null)
                         {
-                            var clanWars = (from w in db.Wars where w.ClanTag == clan.Tag select new { w.ID, w.Result }).ToDictionary(w => w.ID, w => w.Result);
+                            var clanWars = (from w in db.Wars where w.ClanTag == clan.Tag select new { w.ID, w.Result, w.EndTime, w.OpponentTag, w.TeamSize, w.Friendly}).ToDictionary(w => w.ID);
 
                             foreach (var war in clan.Wars.ToList())
                             {
-                                if(clanWars.TryGetValue(war.ID, out string result))
+                                var earliestEndTime = war.EndTime.AddHours(-8); //Prepare for maintenance break
+                                var latestEndTime = war.EndTime;
+                                var duplicate = (from w in clanWars.Values
+                                                 where w.ID != war.ID && 
+                                                    w.EndTime > earliestEndTime && 
+                                                    w.EndTime < latestEndTime &&
+                                                    w.OpponentTag == war.OpponentTag &&
+                                                    w.TeamSize == war.TeamSize &&
+                                                    w.Friendly == false &&
+                                                    war.Friendly == false
+                                                 select w).FirstOrDefault();
+
+                                if (clanWars.TryGetValue(war.ID, out var existingWar))
                                 {
-                                    if (!war.Result.Equals(result) || war.Result.Equals("inWar"))
+                                    if (!war.Result.Equals(existingWar.Result) || war.Result.Equals("inWar"))
                                         db.Entry(war).State = EntityState.Modified;
                                 }
                                 else
@@ -417,11 +429,14 @@ namespace LWFStatsWeb.Controllers
                                     db.Entry(war).State = EntityState.Added;
                                 }
 
+                                var addedMembers = new HashSet<int>();
+
                                 if(war.Members != null && war.Members.Count > 0)
                                 {
                                     var warMembers = (from m in db.WarMembers where m.WarID == war.ID select new { m.MapPosition, m.OpponentAttacks, m.ID }).ToDictionary(m => m.MapPosition, m => new { m.ID, m.OpponentAttacks });
                                     foreach(var member in war.Members)
                                     {
+                                        addedMembers.Add(member.MapPosition);
                                         if(warMembers.TryGetValue(member.MapPosition, out var memberDetails))
                                         {
                                             if (memberDetails.OpponentAttacks != member.OpponentAttacks)
@@ -437,14 +452,63 @@ namespace LWFStatsWeb.Controllers
                                     }
                                 }
 
+                                var addedAttacks = new HashSet<int>();
+
                                 if (war.Attacks != null && war.Attacks.Count > 0)
                                 {
                                     var warAttacks = (from a in db.WarAttacks where a.WarID == war.ID select a.Order).ToDictionary(m => m);
                                     foreach (var attack in war.Attacks)
                                     {
+                                        addedAttacks.Add(attack.Order);
                                         if (!warAttacks.ContainsKey(attack.Order))
                                             db.Entry(attack).State = EntityState.Added;
                                     }
+                                }
+
+                                if (duplicate != null)
+                                {
+                                    var existingMembers = db.WarMembers.Where(w => w.WarID == war.ID);
+                                    foreach(var existingMember in existingMembers.ToList())
+                                    {
+                                        if (!addedMembers.Contains(existingMember.MapPosition))
+                                            addedMembers.Add(existingMember.MapPosition);
+                                    }
+                                    var duplicateMembers = db.WarMembers.Where(w => w.WarID == duplicate.ID);
+                                    foreach(var member in duplicateMembers.ToList())
+                                    {
+                                        if (addedMembers.Contains(member.MapPosition))
+                                        {
+                                            db.Entry(member).State = EntityState.Deleted;
+                                        }
+                                        else
+                                        {
+                                            member.WarID = war.ID;
+                                        }
+
+                                    }
+
+                                    var existingAttacks = db.WarAttacks.Where(w => w.WarID == war.ID);
+                                    foreach (var existingAttack in existingAttacks.ToList())
+                                    {
+                                        if (!addedAttacks.Contains(existingAttack.Order))
+                                            addedMembers.Add(existingAttack.Order);
+                                    }
+                                    var duplicateAttacks = db.WarAttacks.Where(w => w.WarID == duplicate.ID);
+                                    foreach (var attack in duplicateAttacks.ToList())
+                                    {
+                                        if (addedAttacks.Contains(attack.Order))
+                                        {
+                                            db.Entry(attack).State = EntityState.Deleted;
+                                        }
+                                        else
+                                        {
+                                            attack.WarID = war.ID;
+                                        }
+
+                                    }
+
+                                    var duplicateWar = new War { ID = duplicate.ID };
+                                    db.Entry(duplicateWar).State = EntityState.Deleted;
                                 }
                             }
                         }

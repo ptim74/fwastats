@@ -15,7 +15,8 @@ namespace LWFStatsWeb.Models.HomeViewModels
     public class SyncStats
     {
         public string Name { get; set; }
-        public string LastSyncName { get; set; }
+        //public string LastSyncName { get; set; }
+        public string Status { get; set; }
         public int AllianceMatches { get; set; }
         public int WarMatches { get; set; }
         public int NotStarted { get; set; }

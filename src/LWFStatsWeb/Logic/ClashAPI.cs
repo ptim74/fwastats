@@ -117,7 +117,12 @@ namespace LWFStatsWeb.Logic
 
                     if (!string.IsNullOrEmpty(currentWar.State) && currentWar.State.Equals("warEnded"))
                     {
-                        var prevWar = data.Wars.SingleOrDefault(w => w.EndTime == currentWar.EndTime);
+                        var prevWar = data.Wars.SingleOrDefault( w => 
+                            w.EndTime >= currentWar.EndTime.AddMinutes(-1) && 
+                            w.EndTime <= currentWar.EndTime &&
+                            w.OpponentTag == currentWar.OpponentTag &&
+                            w.TeamSize == currentWar.TeamSize
+                            );
                         if (prevWar != null)
                         {
                             currentWar.FixData(DateTime.MinValue);

@@ -255,8 +255,8 @@
                                 <small class="text-muted">@war.OpponentDestructionPercentage.ToString("0.#") %</small>
                             </td>
                             <td class="text-nowrap">
-                                <span class="hidden-xs">@war.EndTime.ToString("yyyy-MM-dd")</span>
-                                <span class="visible-xs">@DateTime.UtcNow.Subtract(@war.EndTime).Days<span>d ago</span></span>
+                                <span class="hidden-xs">@war.SearchTime.ToString("yyyy-MM-dd")</span>
+                                <span class="visible-xs">@DateTime.UtcNow.Subtract(@war.SearchTime).Days<span>d ago</span></span>
                                 <br />
                                 @if (valid_alliance_clan && !war.Synced)
                                 {

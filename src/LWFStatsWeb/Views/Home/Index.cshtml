@@ -20,9 +20,9 @@
     @foreach (var stats in Model.LastSyncs)
     {
         <div class="col-sm-6">
-            <h3>Latest war</h3>
+            <h3>Current war <small>@stats.Status</small></h3>
             <div id="piechart" style="width:300px;height:200px"><p><span class="glyphicon glyphicon-hourglass"></span> Loading...</p></div>
-            <div style="margin-top:10px;"><a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@stats.LastSyncName" class="btn btn-default">More details</a></div>
+            <div style="margin-top:10px;"><a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@stats.Name" class="btn btn-default">More details</a></div>
         </div>
     }
     @foreach (var history in Model.SyncHistories)

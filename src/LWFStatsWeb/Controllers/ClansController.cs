@@ -302,7 +302,7 @@ namespace LWFStatsWeb.Controllers
                     followingClan.Wars++;
                     followingClan.LatestTag = mismatch.ClanTag;
                     followingClan.LatestClan = mismatch.ClanName;
-                    followingClan.LatestDate = mismatch.EndTime;
+                    followingClan.LatestDate = mismatch.SearchTime;
                 }
 
                 return clans.Values.Where(c => c.Wars > 1).OrderByDescending(c => c.LatestDate).ToList();
