@@ -258,6 +258,10 @@
                                 <span class="hidden-xs">@war.SearchTime.ToString("yyyy-MM-dd")</span>
                                 <span class="visible-xs">@DateTime.UtcNow.Subtract(@war.SearchTime).Days<span>d ago</span></span>
                                 <br />
+                                @if (Model.WarsWithDetails.Contains(war.ID))
+                                {
+                                    <a class="label label-default" asp-route-id="@war.ClanLinkID" asp-route-warid="@war.WarLinkID" asp-area="" asp-controller="Clans" asp-action="WarDetails">Details</a>
+                                }
                                 @if (valid_alliance_clan && !war.Synced)
                                 {
                                     <small class="label label-warning">Out of sync</small>

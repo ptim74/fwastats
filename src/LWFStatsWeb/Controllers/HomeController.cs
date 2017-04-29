@@ -45,9 +45,7 @@ namespace LWFStatsWeb.Controllers
                 {
                     var validClans = db.Clans.Select(c => new { c.Tag, c.Group, c.Members }).ToList();
 
-                    var latestStartDate = DateTime.UtcNow.AddHours(45);
-
-                    var recentSyncs = db.WarSyncs.Where(w => w.Start < latestStartDate).OrderByDescending(w => w.Start).Take(10).ToList();
+                    var recentSyncs = db.WarSyncs.Where(w => w.Start < Constants.MaxVisibleEndTime).OrderByDescending(w => w.Start).Take(10).ToList();
 
                     var fromDate = recentSyncs.Last().Start;
                     var loadedWars = (from w in db.Wars
@@ -121,9 +119,12 @@ namespace LWFStatsWeb.Controllers
                             }
                         }
 
-                        totalMatches += stats.AllianceMatches;
-                        totalNotStarted += stats.NotStarted;
-                        totalMismatches += stats.WarMatches;
+                        if(stats.Status == "ended")
+                        {
+                            totalMatches += stats.AllianceMatches;
+                            totalNotStarted += stats.NotStarted;
+                            totalMismatches += stats.WarMatches;
+                        }
 
                         syncHistory.Syncs.Add(stats);
                     }
@@ -145,7 +146,7 @@ namespace LWFStatsWeb.Controllers
                     model.Counters.Add(counters);
 
                     memoryCache.Set<IndexViewModel>(CACHEKEY, model, 
-                        new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(20)));
+                        new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(Constants.CACHE_TIME)));
 
                 }
                 catch (Exception e)

@@ -36,5 +36,7 @@ namespace LWFStatsWeb.Models
 
         [DataMember]
         public int Order { get; set; }
+
+        public bool IsOpponent { get; set; }
     }
 }

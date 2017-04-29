@@ -11,5 +11,6 @@ namespace LWFStatsWeb.Models.ClanViewModels
         public ClanValidity Validity { get; set; }
         public Clan Clan { get; set; }
         public List<ClanDetailsEvent> Events { get; set; }
+        public HashSet<string> WarsWithDetails { get; set; }
     }
 }

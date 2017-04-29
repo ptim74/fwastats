@@ -69,7 +69,7 @@ namespace LWFStatsWeb.Controllers
             logger.LogInformation("Index");
 
             var model = memoryCache.GetOrCreate("Clans.All", entry => {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
                 return GetClanList();
             });
 
@@ -81,7 +81,7 @@ namespace LWFStatsWeb.Controllers
             logger.LogInformation("Departed");
 
             var model = memoryCache.GetOrCreate("Clans.Departed", entry => {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
 
                 var clans = new List<FormerClan>();
 
@@ -115,7 +115,7 @@ namespace LWFStatsWeb.Controllers
         protected List<War> GetPrivateWars(string id)
         {
             var wars = new List<War>();
-            var opponentsWars = db.Wars.Where(o => o.OpponentTag == id).OrderByDescending(w => w.EndTime).ToList();
+            var opponentsWars = db.Wars.Where(o => o.OpponentTag == id && o.EndTime < Constants.MaxVisibleEndTime).OrderByDescending(w => w.EndTime).ToList();
             if (opponentsWars.Count > 0)
             {
                 foreach (var o in opponentsWars)
@@ -172,7 +172,7 @@ namespace LWFStatsWeb.Controllers
                     clan.MemberList = db.Members.Where(m => m.ClanTag == clan.Tag).OrderBy(m => m.ClanRank).ToList();
 
                     if (clan.IsWarLogPublic)
-                        clan.Wars = db.Wars.Where(c => c.ClanTag == tag).OrderByDescending(w => w.EndTime).ToList();
+                        clan.Wars = db.Wars.Where(w => w.ClanTag == tag && w.EndTime < Constants.MaxVisibleEndTime).OrderByDescending(w => w.EndTime).ToList();
                     else
                         clan.Wars = this.GetPrivateWars(tag);
                 }
@@ -234,7 +234,7 @@ namespace LWFStatsWeb.Controllers
             var tag = Utils.LinkIdToTag(id);
 
             var model = await memoryCache.GetOrCreateAsync("ClanDetails." + tag, async entry => {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
 
                 var details = new DetailsViewModel();
                 details.InAlliance = db.Clans.Any(c => c.Tag == tag);
@@ -271,6 +271,11 @@ namespace LWFStatsWeb.Controllers
                     details.Events.Add(e);
                 }
 
+                details.WarsWithDetails = new HashSet<string>();
+                var warsWithMembers = (from w in db.Wars where w.ClanTag == tag join m in db.WarMembers on w.ID equals m.WarID select w.ID).Distinct().ToList();
+                foreach (var warId in warsWithMembers)
+                    details.WarsWithDetails.Add(warId);
+
                 return details;
             });
 
@@ -282,11 +287,11 @@ namespace LWFStatsWeb.Controllers
             logger.LogInformation("Following");
 
             var model = memoryCache.GetOrCreate("Clans.Following", entry => {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
 
                 var clans = new Dictionary<string, FollowingClan>();
 
-                var mismatches = from w in db.Wars where w.Synced == true && w.Matched == false orderby w.ID select w;
+                var mismatches = from w in db.Wars where w.Synced == true && w.Matched == false && w.EndTime < Constants.MaxVisibleEndTime orderby w.ID select w;
 
                 foreach (var mismatch in mismatches)
                 {
@@ -309,6 +314,38 @@ namespace LWFStatsWeb.Controllers
             });
 
             return View(model);
+        }
+
+        [Route("Clan/{id}/War/{warId}")]
+        public async Task<IActionResult> WarDetails(string id, long warId)
+        {
+            logger.LogInformation("War {0} {1}", id, warId);
+
+            var tag = Utils.LinkIdToTag(id);
+
+            var endTime = Utils.WarIdToTime(warId);
+
+            var war = await db.Wars.Where(w => w.ClanTag == tag && w.EndTime == endTime).SingleOrDefaultAsync();
+
+            if(war != null)
+            {
+                war.Members = await db.WarMembers.Where(m => m.WarID == war.ID).OrderBy(m => m.Tag).ToListAsync();
+                var attacks = await db.WarAttacks.Where(a => a.WarID == war.ID).OrderBy(a => a.Order).ToListAsync();
+
+                var memberDict = war.Members.ToDictionary(m => m.Tag);
+
+                foreach(var attack in attacks)
+                {
+                    if(memberDict.TryGetValue(attack.AttackerTag,out var member))
+                    {
+                        if (member.Attacks == null)
+                            member.Attacks = new List<WarAttack>();
+                        member.Attacks.Add(attack);
+                    }
+                }
+            }
+
+            return View(war);
         }
 
         [Route("Clan/{id}/Edit")]
@@ -392,7 +429,7 @@ namespace LWFStatsWeb.Controllers
                         }
                     }
 
-                    var clan = await api.GetClan(tag, true, true);
+                    var clan = await api.GetClan(tag, true, false);
 
                     if (!clan.IsWarLogPublic)
                         clan.Wars = this.GetPrivateWars(tag);

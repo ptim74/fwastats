@@ -57,5 +57,16 @@ namespace LWFStatsWeb.Logic
             }
         }
 
+        private const long B = 634609721660209920L;
+
+        public static long WarTimeToId(DateTime warDate)
+        {
+            return warDate.Ticks - B;
+        }
+
+        public static DateTime WarIdToTime(long id)
+        {
+            return new DateTime(id + B);
+        }
     }
 }

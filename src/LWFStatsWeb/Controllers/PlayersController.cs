@@ -101,7 +101,7 @@ namespace LWFStatsWeb.Controllers
 
             var model = await memoryCache.GetOrCreateAsync<DetailsViewModel>("PlayerDetails." + tag, async entry => {
 
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
 
                 var ret = new DetailsViewModel();
                 ret.Events = new List<PlayerDetailsEvent>();

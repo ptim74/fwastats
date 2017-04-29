@@ -429,15 +429,15 @@ namespace LWFStatsWeb.Controllers
                                     db.Entry(war).State = EntityState.Added;
                                 }
 
-                                var addedMembers = new HashSet<int>();
+                                var addedMembers = new HashSet<string>();
 
                                 if(war.Members != null && war.Members.Count > 0)
                                 {
-                                    var warMembers = (from m in db.WarMembers where m.WarID == war.ID select new { m.MapPosition, m.OpponentAttacks, m.ID }).ToDictionary(m => m.MapPosition, m => new { m.ID, m.OpponentAttacks });
+                                    var warMembers = (from m in db.WarMembers where m.WarID == war.ID select new { m.Tag, m.OpponentAttacks, m.ID }).ToDictionary(m => m.Tag, m => new { m.ID, m.OpponentAttacks });
                                     foreach(var member in war.Members)
                                     {
-                                        addedMembers.Add(member.MapPosition);
-                                        if(warMembers.TryGetValue(member.MapPosition, out var memberDetails))
+                                        addedMembers.Add(member.Tag);
+                                        if(warMembers.TryGetValue(member.Tag, out var memberDetails))
                                         {
                                             if (memberDetails.OpponentAttacks != member.OpponentAttacks)
                                             {
@@ -470,13 +470,13 @@ namespace LWFStatsWeb.Controllers
                                     var existingMembers = db.WarMembers.Where(w => w.WarID == war.ID);
                                     foreach(var existingMember in existingMembers.ToList())
                                     {
-                                        if (!addedMembers.Contains(existingMember.MapPosition))
-                                            addedMembers.Add(existingMember.MapPosition);
+                                        if (!addedMembers.Contains(existingMember.Tag))
+                                            addedMembers.Add(existingMember.Tag);
                                     }
                                     var duplicateMembers = db.WarMembers.Where(w => w.WarID == duplicate.ID);
                                     foreach(var member in duplicateMembers.ToList())
                                     {
-                                        if (addedMembers.Contains(member.MapPosition))
+                                        if (addedMembers.Contains(member.Tag))
                                         {
                                             db.Entry(member).State = EntityState.Deleted;
                                         }
@@ -491,7 +491,7 @@ namespace LWFStatsWeb.Controllers
                                     foreach (var existingAttack in existingAttacks.ToList())
                                     {
                                         if (!addedAttacks.Contains(existingAttack.Order))
-                                            addedMembers.Add(existingAttack.Order);
+                                            addedAttacks.Add(existingAttack.Order);
                                     }
                                     var duplicateAttacks = db.WarAttacks.Where(w => w.WarID == duplicate.ID);
                                     foreach (var attack in duplicateAttacks.ToList())
@@ -728,8 +728,6 @@ namespace LWFStatsWeb.Controllers
 
         public IActionResult PlayerBatch()
         {
-            const int MAX_UPDATES = 1000;
-
             logger.LogInformation("PlayerBatch.Begin");
 
             /*
@@ -746,13 +744,13 @@ namespace LWFStatsWeb.Controllers
                 logger.LogWarning("PlayerBatch.StarEventDeleteFailed: {0}", e.Message);
             }*/
 
-            var memberTags = db.Members.Where(m => !db.Players.Where(p => p.Tag == m.Tag).Any()).Select(m => m.Tag).Take(MAX_UPDATES).ToList();
+            var memberTags = db.Members.Where(m => !db.Players.Where(p => p.Tag == m.Tag).Any()).Select(m => m.Tag).Take(Constants.PLAYER_BATCH).ToList();
 
             logger.LogInformation("PlayerBatch.NewMembers = {0}", memberTags.Count);
 
-            if (memberTags.Count < MAX_UPDATES)
+            if (memberTags.Count < Constants.PLAYER_BATCH)
             {
-                var playerTags = db.Players.Where(p => db.Members.Where(m => m.Tag == p.Tag).Any()).OrderBy(p => p.LastUpdated).Select(p => p.Tag).Take(MAX_UPDATES - memberTags.Count).ToList();
+                var playerTags = db.Players.Where(p => db.Members.Where(m => m.Tag == p.Tag).Any()).OrderBy(p => p.LastUpdated).Select(p => p.Tag).Take(Constants.PLAYER_BATCH - memberTags.Count).ToList();
                 foreach (var playerTag in playerTags)
                     memberTags.Add(playerTag);
             }

@@ -96,31 +96,10 @@ namespace LWFStatsWeb.Models
                 else
                     opponentMembers = new List<WarMember>();
 
-                if (Clan.Members != null)
+                if (Clan.Members != null && Opponent.Members != null)
                 {
-                    Members = Clan.Members;
-                    foreach(var member in Clan.Members)
-                    {
-                        if(member.Attacks != null)
-                        {
-                            foreach(var attack in member.Attacks)
-                            {
-                                attack.WarID = this.ID;
-
-                                var defender = opponentMembers.SingleOrDefault(m => m.Tag == attack.DefenderTag);
-                                if(defender != null)
-                                {
-                                    attack.DefenderMapPosition = defender.MapPosition;
-                                    attack.DefenderTownHallLevel = defender.TownHallLevel;
-                                }
-
-                                if (Attacks == null)
-                                    Attacks = new List<WarAttack>();
-
-                                Attacks.Add(attack);
-                            }
-                        }
-                    }
+                    FixMembers(Clan.Members, Opponent.Members, false);
+                    FixMembers(Opponent.Members, Clan.Members, true);
                 }
             }
 
@@ -152,6 +131,39 @@ namespace LWFStatsWeb.Models
             
         }
 
+        private void FixMembers(ICollection <WarMember> members, ICollection<WarMember> opponentMembers, bool isOpponent)
+        {
+            if (Members == null)
+                Members = new List<WarMember>();
+
+            foreach (var member in members)
+            {
+                member.WarID = ID;
+                member.IsOpponent = isOpponent;
+                Members.Add(member);
+                if (member.Attacks != null)
+                {
+                    foreach (var attack in member.Attacks)
+                    {
+                        attack.WarID = ID;
+                        attack.IsOpponent = isOpponent;
+
+                        var defender = opponentMembers.SingleOrDefault(m => m.Tag == attack.DefenderTag);
+                        if (defender != null)
+                        {
+                            attack.DefenderMapPosition = defender.MapPosition;
+                            attack.DefenderTownHallLevel = defender.TownHallLevel;
+                        }
+
+                        if (Attacks == null)
+                            Attacks = new List<WarAttack>();
+
+                        Attacks.Add(attack);
+                    }
+                }
+            }
+        }
+
         public string ClanLinkID
         {
             get
@@ -175,6 +187,14 @@ namespace LWFStatsWeb.Models
                 if (EndTime == DateTime.MinValue)
                     return EndTime;
                 return EndTime.AddHours(-47);
+            }
+        }
+
+        public long WarLinkID
+        {
+            get
+            {
+                return Logic.Utils.WarTimeToId(EndTime);
             }
         }
 

@@ -37,7 +37,7 @@ namespace LWFStatsWeb.Controllers
             if (count != null && count.HasValue)
                 warsToTake = count.Value;
 
-            var recentSyncs = db.WarSyncs.OrderByDescending(w => w.Start).Take(warsToTake).ToList();
+            var recentSyncs = db.WarSyncs.Where(w => w.Start < Constants.MaxVisibleEndTime).OrderByDescending(w => w.Start).Take(warsToTake).ToList();
 
             var earliestWar = DateTime.MaxValue;
 
@@ -155,7 +155,7 @@ namespace LWFStatsWeb.Controllers
             logger.LogInformation("Index {0}", count);
 
             var model = memoryCache.GetOrCreate("Syncs.All"+count, entry => {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
                 return GetData(count);
             });
 
@@ -180,13 +180,16 @@ namespace LWFStatsWeb.Controllers
             model.Wars = new List<War>();
             var syncStart = model.Sync.Finish;
 
-            foreach(var war in db.Wars.Where(w => w.EndTime >= model.Sync.Start && w.EndTime <= model.Sync.Finish && w.Synced == true))
+            if (model.Sync.Start < Constants.MaxVisibleEndTime)
             {
-                if (validClans.Contains(war.ClanTag))
+                foreach (var war in db.Wars.Where(w => w.EndTime >= model.Sync.Start && w.EndTime <= model.Sync.Finish && w.Synced == true))
                 {
-                    model.Wars.Add(war);
-                    if (war.EndTime < syncStart)
-                        syncStart = war.EndTime;
+                    if (validClans.Contains(war.ClanTag))
+                    {
+                        model.Wars.Add(war);
+                        if (war.EndTime < syncStart)
+                            syncStart = war.EndTime;
+                    }
                 }
             }
 
@@ -204,7 +207,7 @@ namespace LWFStatsWeb.Controllers
             logger.LogInformation("Details {0}", id);
 
             var model = memoryCache.GetOrCreate("Sync.All" + id, entry => {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
                 return GetWars(id);
             });
 

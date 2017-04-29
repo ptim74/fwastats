@@ -43,7 +43,7 @@ namespace LWFStatsWeb.Controllers
 
             var model = memoryCache.GetOrCreate("Data.ClanMembers." + tag, entry =>
             {
-                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
 
                  var members = from m in db.Members
                                where m.ClanTag == tag
@@ -90,7 +90,7 @@ namespace LWFStatsWeb.Controllers
 
             var model = memoryCache.GetOrCreate("Data.ClanWars." + tag, entry =>
             {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
 
                 var data = new ClanWars();
 
@@ -137,7 +137,7 @@ namespace LWFStatsWeb.Controllers
 
             var model = memoryCache.GetOrCreate("Data.Clans", entry =>
             {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(15);
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
 
                 var data = new Clans();
 

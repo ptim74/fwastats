@@ -41,5 +41,7 @@ namespace LWFStatsWeb.Models
         [NotMapped]
         [DataMember]
         public WarAttack BestOpponentAttack { get; set; }
+
+        public bool IsOpponent { get; set; }
     }
 }
