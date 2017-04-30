@@ -8,8 +8,8 @@ namespace LWFStatsWeb
     public sealed class Constants
     {
         public const int CACHE_TIME = 15;
-        public const double HIDE_TIME = 2.5;
-        public const int PLAYER_BATCH = 1000;
+        public const double HIDE_TIME = 3.0;
+        public const int PLAYER_BATCH = 100;
 
         public static DateTime MaxVisibleEndTime
         {

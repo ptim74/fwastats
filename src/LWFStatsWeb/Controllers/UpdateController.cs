@@ -450,6 +450,16 @@ namespace LWFStatsWeb.Controllers
                                             db.Entry(member).State = EntityState.Added;
                                         }
                                     }
+
+                                    if(warMembers.Count > 0)
+                                    {
+                                        var clanPlayers = from m in db.WarMembers from p in db.Players where m.WarID == war.ID && m.Tag == p.Tag && m.TownHallLevel != p.TownHallLevel select new { p, m };
+                                        foreach(var player in clanPlayers.ToList())
+                                        {
+                                            player.p.TownHallLevel = player.m.TownHallLevel;
+                                            player.p.LastUpdated = war.SearchTime;
+                                        }
+                                    }
                                 }
 
                                 var addedAttacks = new HashSet<int>();
