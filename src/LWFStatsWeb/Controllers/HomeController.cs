@@ -79,6 +79,7 @@ namespace LWFStatsWeb.Controllers
 
                         var stats = new SyncStats();
                         stats.Name = latestSync.Name;
+                        var syncWins = 0;
 
                         if(latestSync.Finish > DateTime.UtcNow)
                         {
@@ -109,7 +110,7 @@ namespace LWFStatsWeb.Controllers
                             {
                                 if (war.Result == "win")
                                 {
-                                    totalWins++;
+                                    syncWins++;
                                 }
                                 stats.NotStarted--;
                                 if (validOpponentTags.Contains(war.OpponentTag))
@@ -121,6 +122,7 @@ namespace LWFStatsWeb.Controllers
 
                         if(stats.Status == "ended")
                         {
+                            totalWins += syncWins;
                             totalMatches += stats.AllianceMatches;
                             totalNotStarted += stats.NotStarted;
                             totalMismatches += stats.WarMatches;

@@ -1,6 +1,7 @@
 ﻿using LWFStatsWeb.Data;
 using LWFStatsWeb.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -40,12 +41,6 @@ namespace LWFStatsWeb.Logic
 
         public void CalculateSyncs()
         {
-            foreach (var s in db.WarSyncs.ToList())
-            {
-                db.WarSyncs.Remove(s);
-            }
-            db.SaveChanges();
-
             var syncs = new List<WarSync>();
 
             var dateQ = new Queue<DateTime>();
@@ -115,13 +110,11 @@ namespace LWFStatsWeb.Logic
                     if (res.EndTime > latestWarStarted)
                         latestWarStarted = res.EndTime;
 
-                    ClanValidity clan;
-                    if (clanList.TryGetValue(res.ClanTag, out clan))
+                    if (clanList.TryGetValue(res.ClanTag, out ClanValidity clan))
                     {
                         if (clan.ValidFrom < searchTime && clan.ValidTo > searchTime)
                         {
-                            ClanValidity opponent;
-                            if (clanList.TryGetValue(res.OpponentTag, out opponent))
+                            if (clanList.TryGetValue(res.OpponentTag, out ClanValidity opponent))
                             {
                                 if (opponent.ValidFrom < searchTime && opponent.ValidTo > searchTime)
                                 {
@@ -144,8 +137,48 @@ namespace LWFStatsWeb.Logic
                 }
 
                 s.Finish = latestWarStarted;
+            }
 
-                db.WarSyncs.Add(s);
+            var syncId = 0;
+            var newSync = syncs[syncId++];
+
+            foreach(var existingSync in db.WarSyncs.OrderBy(s => s.Start))
+            {
+                if (newSync != null)
+                {
+                    if (existingSync.Finish > newSync.Start && existingSync.Start < newSync.Finish)
+                    {
+                        existingSync.Start = newSync.Start;
+                        existingSync.Finish = newSync.Finish;
+                        existingSync.MissedStarts = newSync.MissedStarts;
+                        existingSync.AllianceMatches = newSync.AllianceMatches;
+                        existingSync.WarMatches = newSync.WarMatches;
+                        if (syncId < syncs.Count)
+                            newSync = syncs[syncId++];
+                        else
+                            newSync = null;
+                    }
+                    else
+                    {
+                        db.WarSyncs.Remove(existingSync);
+                        while (newSync.Finish < existingSync.Start && syncId < syncs.Count)
+                        {
+                            db.WarSyncs.Add(newSync);
+                            if (syncId < syncs.Count)
+                                newSync = syncs[syncId++];
+                            else
+                                newSync = null;
+                        }
+                    }
+                }
+            }
+
+            if (newSync != null) //This was never added in loop
+                syncId--;
+
+            while (syncId < syncs.Count)
+            {
+                db.WarSyncs.Add(syncs[syncId++]);
             }
 
             db.SaveChanges();
@@ -223,42 +256,29 @@ namespace LWFStatsWeb.Logic
             if (syncs.Count() == 0 || validClans.Count() == 0 || wars.Count() == 0)
                 return;
 
-            var currentSync = syncs.First();
-            
-            foreach(var war in db.Wars)
+            var syncId = 0;
+            var currentSync = syncs[syncId++];
+
+            foreach (var war in wars)
             {
-                var warModified = false;
                 var clanIsValid = false;
-                ClanValidity validClan;
-                if (validClans.TryGetValue(war.ClanTag, out validClan))
+                if (validClans.TryGetValue(war.ClanTag, out ClanValidity validClan))
                 {
                     if (validClan.ValidFrom < war.SearchTime && validClan.ValidTo > war.SearchTime)
                         clanIsValid = true;
                 }
-                if(war.EndTime < currentSync.Start || war.EndTime > currentSync.Finish)
+                while(war.EndTime > currentSync.Finish && syncId < syncs.Count)
                 {
-                    foreach (var sync in syncs.Where(s => war.EndTime >= s.Start && war.EndTime <= s.Finish))
-                    {
-                        currentSync = sync;
-                        break;
-                    }
+                    currentSync = syncs[syncId++];
                 }
 
                 if(war.EndTime >= currentSync.Start && war.EndTime <= currentSync.Finish && war.TeamSize == 40 && clanIsValid)
                 {
-                    if(!war.Synced)
-                    {
-                        war.Synced = true;
-                        warModified = true;
-                    }
+                    war.Synced = true;
                 }
                 else
                 {
-                    if (war.Synced)
-                    {
-                        war.Synced = false;
-                        warModified = true;
-                    }
+                    war.Synced = false;
                 }
 
                 var matched = false;
@@ -269,20 +289,10 @@ namespace LWFStatsWeb.Logic
                         matched = true;
                 }
 
-                if(war.Matched != matched)
-                {
-                    war.Matched = matched;
-                    warModified = true;
-                }
-
-                if(warModified)
-                {
-                    db.Update(war);
-                }
+                war.Matched = matched;
             }
 
             db.SaveChanges();
-
         }
 
         public void UpdateClanStats()
@@ -328,8 +338,6 @@ namespace LWFStatsWeb.Logic
                     clan.ThLowCount = weight.ThLowCount;
                     clan.EstimatedWeight = weight.EstimatedWeight;
                 }
-
-                db.Update(clan);
             }
 
             db.SaveChanges();
@@ -337,25 +345,28 @@ namespace LWFStatsWeb.Logic
 
         public void DeleteHistory()
         {
-            var MAX_UPDATES = 1000;
-
             var keepEventsSince = DateTime.UtcNow.AddDays(-1.0);
 
-            var clanEvents = db.ClanEvents.Where(e => e.EventDate < keepEventsSince).OrderBy(e => e.EventDate).Take(MAX_UPDATES);
-            db.ClanEvents.RemoveRange(clanEvents);
-            db.SaveChanges();
+            db.Database.ExecuteSqlCommand("DELETE FROM ClanEvents WHERE EventDate < {0}", keepEventsSince);
+
+            var keepAttacksSince = DateTime.UtcNow.AddDays(-7.0);
+
+            //Don't remove half sync
+            var isInMiddleSync2 = db.WarSyncs.Where(s => s.Start >= keepAttacksSince && s.Finish <= keepAttacksSince).FirstOrDefault();
+            if (isInMiddleSync2 != null)
+                keepAttacksSince = isInMiddleSync2.Start.AddHours(-1);
+
+            db.Database.ExecuteSqlCommand("DELETE FROM WarMembers WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime = {0} )", keepAttacksSince);
+
+            db.Database.ExecuteSqlCommand("DELETE FROM WarAttacks WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime = {0} )", keepAttacksSince);
 
             if (history.Value.Members > 0)
             {
                 var keepMembersSince = DateTime.UtcNow.AddDays(-1.0 * history.Value.Members);
 
-                var historyEvents = db.PlayerEvents.Where(e => e.EventDate < keepMembersSince).OrderBy(e => e.EventDate).Take(MAX_UPDATES);
-                db.PlayerEvents.RemoveRange(historyEvents);
-                db.SaveChanges();
+                db.Database.ExecuteSqlCommand("DELETE FROM PlayerEvents WHERE EventDate < {0}", keepMembersSince);
 
-                var historyPlayers = db.Players.Where(p => p.LastUpdated < keepMembersSince).OrderBy(p => p.LastUpdated).Take(MAX_UPDATES);
-                db.Players.RemoveRange(historyPlayers);
-                db.SaveChanges();
+                db.Database.ExecuteSqlCommand("DELETE FROM Players WHERE LastUpdated < {0}", keepMembersSince);
             }
 
             if(history.Value.Wars > 0)
@@ -367,17 +378,11 @@ namespace LWFStatsWeb.Logic
                 if (isInMiddleSync != null)
                     keepWarsSince = isInMiddleSync.Start.AddHours(-1);
 
-                var historySyncs = db.WarSyncs.Where(s => s.Finish < keepWarsSince);
-                db.WarSyncs.RemoveRange(historySyncs);
-                db.SaveChanges();
+                db.Database.ExecuteSqlCommand("DELETE FROM WarSyncs WHERE Finish < {0}", keepWarsSince);
 
-                var historyWars = db.Wars.Where(w => w.EndTime < keepWarsSince).OrderBy(w => w.EndTime).Take(MAX_UPDATES);
-                db.Wars.RemoveRange(historyWars);
-                db.SaveChanges();
+                db.Database.ExecuteSqlCommand("DELETE FROM Wars WHERE EndTime < {0}", keepWarsSince);
 
-                var historyValidities = db.ClanValidities.Where(v => v.ValidTo < keepWarsSince);
-                db.ClanValidities.RemoveRange(historyValidities);
-                db.SaveChanges();
+                db.Database.ExecuteSqlCommand("DELETE FROM ClanValidities WHERE ValidTo < {0}", keepWarsSince);
             }
         }
     }

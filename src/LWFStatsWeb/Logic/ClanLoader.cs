@@ -47,7 +47,7 @@ namespace LWFStatsWeb.Logic
             var response = await request.GetResponseAsync();
             using (var reader = new StreamReader(response.GetResponseStream()))
             {
-                return reader.ReadToEnd();
+                return await reader.ReadToEndAsync();
             }
         }
 
@@ -56,7 +56,6 @@ namespace LWFStatsWeb.Logic
             Errors = new List<string>();
             Objects = new List<ClanObject>();
 
-            //var tagList = new List<string>();
             var tagDict = new Dictionary<string, string>();
 
             foreach(var listOptions in options.Value)

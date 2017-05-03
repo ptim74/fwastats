@@ -50,7 +50,7 @@ namespace LWFStatsWeb.Logic
                 var response = await request.GetResponseAsync();
                 using (var reader = new StreamReader(response.GetResponseStream()))
                 {
-                    var data = reader.ReadToEnd();
+                    var data = await reader.ReadToEndAsync();
                     return data;
                 }
             }
@@ -58,7 +58,7 @@ namespace LWFStatsWeb.Logic
             {
                 using (var reader = new StreamReader(e.Response.GetResponseStream()))
                 {
-                    var data = reader.ReadToEnd();
+                    var data = await reader.ReadToEndAsync();
                     var error = JsonConvert.DeserializeObject<ClashApiError>(data);
                     if(error != null)
                     {
