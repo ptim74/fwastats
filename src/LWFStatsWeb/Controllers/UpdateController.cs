@@ -176,10 +176,10 @@ namespace LWFStatsWeb.Controllers
                     dbClan.WarWins = modifiedClan.WarWins;
                     dbClan.WarWinStreak = modifiedClan.WarWinStreak;
 
-                    var dbMembers = db.Members.Where(m => m.ClanTag == dbClan.Tag).ToDictionary(m => m.Tag);
-
                     if (modifiedClan.MemberList != null)
                     {
+                        var dbMembers = db.Members.Where(m => m.ClanTag == dbClan.Tag).ToDictionary(m => m.Tag);
+
                         foreach (var modifiedMember in modifiedClan.MemberList)
                         {
                             //old clan member -> update fields
@@ -251,24 +251,24 @@ namespace LWFStatsWeb.Controllers
                                     });
                                 }
                             }
+                        }
 
-                            var currentMembers = modifiedClan.MemberList.Select(m => m.Tag).ToDictionary(m => m);
+                        var currentMembers = modifiedClan.MemberList.Select(m => m.Tag).ToDictionary(m => m);
 
-                            //chech if members have left clan
-                            foreach (var clanMember in dbMembers.Values)
+                        //chech if members have left clan
+                        foreach (var clanMember in dbMembers.Values)
+                        {
+                            if (!currentMembers.ContainsKey(clanMember.Tag))
                             {
-                                if (!currentMembers.ContainsKey(clanMember.Tag))
+                                db.PlayerEvents.Add(new PlayerEvent
                                 {
-                                    db.PlayerEvents.Add(new PlayerEvent
-                                    {
-                                        ClanTag = clanTag,
-                                        PlayerTag = clanMember.Tag,
-                                        EventDate = DateTime.UtcNow,
-                                        EventType = PlayerEventType.Leave
-                                    });
+                                    ClanTag = clanTag,
+                                    PlayerTag = clanMember.Tag,
+                                    EventDate = DateTime.UtcNow,
+                                    EventType = PlayerEventType.Leave
+                                });
 
-                                    db.Members.Remove(clanMember);
-                                }
+                                db.Members.Remove(clanMember);
                             }
                         }
                     }
