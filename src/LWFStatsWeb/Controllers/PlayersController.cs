@@ -99,7 +99,7 @@ namespace LWFStatsWeb.Controllers
 
             var tag = Utils.LinkIdToTag(id);
 
-            var model = await memoryCache.GetOrCreateAsync<DetailsViewModel>("PlayerDetails." + tag, async entry => {
+            var model = await memoryCache.GetOrCreateAsync<DetailsViewModel>(Constants.CACHE_PLAYER_DETAILS_ + tag, async entry => {
 
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
 

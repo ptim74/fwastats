@@ -9,6 +9,7 @@ using LWFStatsWeb.Data;
 using LWFStatsWeb.Logic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace LWFStatsWeb.Controllers
 {
@@ -20,6 +21,9 @@ namespace LWFStatsWeb.Controllers
         private readonly IClashApi api;
         private readonly IClanStatistics statistics;
         ILogger<UpdateController> logger;
+        private IMemoryCache memoryCache;
+
+        private static object lockObject = new object();
 
         public UpdateController(
             ApplicationDbContext context, 
@@ -27,6 +31,7 @@ namespace LWFStatsWeb.Controllers
             IClanUpdater updater,
             IClashApi api,
             IClanStatistics statistics,
+            IMemoryCache memoryCache,
             ILogger<UpdateController> logger)
         {
             this.db = context;
@@ -34,6 +39,7 @@ namespace LWFStatsWeb.Controllers
             this.updater = updater;
             this.api = api;
             this.statistics = statistics;
+            this.memoryCache = memoryCache;
             this.logger = logger;
         }
 
@@ -119,303 +125,326 @@ namespace LWFStatsWeb.Controllers
             return status;
         }
 
-        protected async Task<UpdateTaskResponse> PerformTask(string id)
+        protected void PerformDelete(string clanTag)
         {
-            var status = new UpdateTaskResponse();
-            status.ID = id;
-
-            string clanName = "";
-            string clanTag = "";
-            UpdateTaskMode updateMode = UpdateTaskMode.Update;
-
-            try
+            var clan = db.Clans.SingleOrDefault(c => c.Tag == clanTag);
+            if (clan != null)
             {
-                var task = db.UpdateTasks.SingleOrDefault(t => t.ID == Guid.Parse(id));
+                var members = db.Members.Where(m => m.ClanTag == clan.Tag).ToList();
+                db.Members.RemoveRange(members);
 
-                clanName = task.ClanName;
-                clanTag = task.ClanTag;
-                updateMode = task.Mode;
+                db.Clans.Remove(clan);
 
-                db.UpdateTasks.Remove(task);
                 db.SaveChanges();
+            }
+        }
 
-                if (task.Mode == UpdateTaskMode.Delete)
+        protected void PerformInsert(Clan clan)
+        {
+            var existingMembers = (from m in db.Members where m.ClanTag != clan.Tag select m.Tag).ToDictionary(m => m);
+
+            foreach (var clanMember in clan.MemberList)
+            {
+                //Member hopped from other clan
+                if (existingMembers.ContainsKey(clanMember.Tag))
+                    db.Entry(clanMember).State = EntityState.Modified;
+            }
+
+            if (clan.Wars != null)
+            {
+                var existingWars = (from w in db.Wars where w.ClanTag == clan.Tag select w.ID).ToDictionary(w => w);
+
+                foreach (var clanWar in clan.Wars)
                 {
-                    var clan = db.Clans.SingleOrDefault(c => c.Tag == task.ClanTag);
-                    if (clan != null)
+                    if (!existingWars.ContainsKey(clanWar.ID))
+                        db.Wars.Add(clanWar);
+                }
+            }
+
+            db.Clans.Add(clan);
+
+            db.SaveChanges();
+        }
+
+        protected void PerformUpdate(Clan clan)
+        {
+            var existingClan = db.Clans.SingleOrDefault(c => c.Tag == clan.Tag);
+
+            existingClan.Group = clan.Group;
+            existingClan.BadgeUrl = clan.BadgeUrl;
+            existingClan.ClanLevel = clan.ClanLevel;
+            existingClan.ClanPoints = clan.ClanPoints;
+            existingClan.Type = clan.Type;
+            existingClan.Description = clan.Description;
+            existingClan.IsWarLogPublic = clan.IsWarLogPublic;
+            existingClan.Members = clan.Members;
+            existingClan.Name = clan.Name;
+            existingClan.RequiredTrophies = clan.RequiredTrophies;
+            existingClan.WarLosses = clan.WarLosses;
+            existingClan.WarTies = clan.WarTies;
+            existingClan.WarWins = clan.WarWins;
+            existingClan.WarWinStreak = clan.WarWinStreak;
+
+            if (clan.MemberList != null)
+            {
+                var existingMembers = db.Members.Where(m => m.ClanTag == existingClan.Tag).ToDictionary(m => m.Tag);
+
+                foreach (var member in clan.MemberList)
+                {
+                    //old clan member -> update fields
+                    if (existingMembers.TryGetValue(member.Tag, out Member existingMember))
                     {
-                        var members = db.Members.Where(m => m.ClanTag == clan.Tag).ToList();
-                        db.Members.RemoveRange(members);
+                        existingMember.BadgeUrl = member.BadgeUrl;
+                        existingMember.ClanRank = member.ClanRank;
+                        existingMember.Donations = member.Donations;
+                        existingMember.DonationsReceived = member.DonationsReceived;
+                        existingMember.ExpLevel = member.ExpLevel;
+                        existingMember.Name = member.Name;
+                        existingMember.Trophies = member.Trophies;
+                        if (existingMember.Role != member.Role)
+                        {
+                            var eventType = PlayerEventType.Promote;
+                            if (PlayerEvent.RoleToValue(existingMember.Role) > PlayerEvent.RoleToValue(member.Role))
+                                eventType = PlayerEventType.Demote;
 
-                        db.Clans.Remove(clan);
+                            db.PlayerEvents.Add(new PlayerEvent
+                            {
+                                ClanTag = clan.Tag,
+                                PlayerTag = member.Tag,
+                                EventDate = DateTime.UtcNow,
+                                EventType = eventType,
+                                Role = member.Role
+                            });
+                        }
+                        existingMember.Role = member.Role;
+                    }
+                    else //new clan member
+                    {
+                        //member hopped from other alliance clan
+                        var otherClanMember = db.Members.Where(m => m.Tag == member.Tag).SingleOrDefault();
+                        if (otherClanMember != null)
+                        {
+                            db.PlayerEvents.Add(new PlayerEvent
+                            {
+                                ClanTag = otherClanMember.ClanTag,
+                                PlayerTag = otherClanMember.Tag,
+                                EventDate = DateTime.UtcNow,
+                                EventType = PlayerEventType.Leave
+                            });
 
-                        db.SaveChanges();
+                            otherClanMember.ClanTag = member.ClanTag;
+                        }
+                        else
+                        {
+                            db.Members.Add(member);
+                        }
+
+                        db.PlayerEvents.Add(new PlayerEvent
+                        {
+                            ClanTag = clan.Tag,
+                            PlayerTag = member.Tag,
+                            EventDate = DateTime.UtcNow,
+                            EventType = PlayerEventType.Join
+                        });
+
+                        //member is promoted after joining
+                        if (member.Role != "member")
+                        {
+                            db.PlayerEvents.Add(new PlayerEvent
+                            {
+                                ClanTag = clan.Tag,
+                                PlayerTag = member.Tag,
+                                EventDate = DateTime.UtcNow,
+                                EventType = PlayerEventType.Promote,
+                                Role = member.Role
+                            });
+                        }
                     }
                 }
 
-                if (task.Mode == UpdateTaskMode.Update)
+                var currentMemberTags = clan.MemberList.Select(m => m.Tag).ToDictionary(m => m);
+
+                //chech if members have left clan
+                foreach (var existingMember in existingMembers.Values)
                 {
-
-                    var modifiedClan = await api.GetClan(task.ClanTag, true, true);
-                    //lock (lockObject)
-                    //{
-                    var dbClan = db.Clans.SingleOrDefault(c => c.Tag == task.ClanTag);
-
-                    dbClan.Group = task.ClanGroup;
-                    dbClan.BadgeUrl = modifiedClan.BadgeUrl;
-                    dbClan.ClanLevel = modifiedClan.ClanLevel;
-                    dbClan.ClanPoints = modifiedClan.ClanPoints;
-                    dbClan.Type = modifiedClan.Type;
-                    dbClan.Description = modifiedClan.Description;
-                    dbClan.IsWarLogPublic = modifiedClan.IsWarLogPublic;
-                    dbClan.Members = modifiedClan.Members;
-                    dbClan.Name = modifiedClan.Name;
-                    dbClan.RequiredTrophies = modifiedClan.RequiredTrophies;
-                    dbClan.WarLosses = modifiedClan.WarLosses;
-                    dbClan.WarTies = modifiedClan.WarTies;
-                    dbClan.WarWins = modifiedClan.WarWins;
-                    dbClan.WarWinStreak = modifiedClan.WarWinStreak;
-
-                    if (modifiedClan.MemberList != null)
+                    if (!currentMemberTags.ContainsKey(existingMember.Tag))
                     {
-                        var dbMembers = db.Members.Where(m => m.ClanTag == dbClan.Tag).ToDictionary(m => m.Tag);
-
-                        foreach (var modifiedMember in modifiedClan.MemberList)
+                        db.PlayerEvents.Add(new PlayerEvent
                         {
-                            //old clan member -> update fields
-                            if (dbMembers.TryGetValue(modifiedMember.Tag, out Member dbMember))
-                            {
-                                dbMember.BadgeUrl = modifiedMember.BadgeUrl;
-                                dbMember.ClanRank = modifiedMember.ClanRank;
-                                dbMember.Donations = modifiedMember.Donations;
-                                dbMember.DonationsReceived = modifiedMember.DonationsReceived;
-                                dbMember.ExpLevel = modifiedMember.ExpLevel;
-                                dbMember.Name = modifiedMember.Name;
-                                dbMember.Trophies = modifiedMember.Trophies;
-                                if (dbMember.Role != modifiedMember.Role)
-                                {
-                                    var eventType = PlayerEventType.Promote;
-                                    if (PlayerEvent.RoleToValue(dbMember.Role) > PlayerEvent.RoleToValue(modifiedMember.Role))
-                                        eventType = PlayerEventType.Demote;
+                            ClanTag = clan.Tag,
+                            PlayerTag = existingMember.Tag,
+                            EventDate = DateTime.UtcNow,
+                            EventType = PlayerEventType.Leave
+                        });
 
-                                    db.PlayerEvents.Add(new PlayerEvent
-                                    {
-                                        ClanTag = clanTag,
-                                        PlayerTag = modifiedMember.Tag,
-                                        EventDate = DateTime.UtcNow,
-                                        EventType = eventType,
-                                        Role = modifiedMember.Role
-                                    });
-                                }
-                                dbMember.Role = modifiedMember.Role;
-                            }
-                            else //new clan member
-                            {
-                                //member hopped from other alliance clan
-                                var otherClanMember = db.Members.Where(m => m.Tag == modifiedMember.Tag).SingleOrDefault();
-                                if (otherClanMember != null)
-                                {
-                                    db.PlayerEvents.Add(new PlayerEvent
-                                    {
-                                        ClanTag = otherClanMember.ClanTag,
-                                        PlayerTag = otherClanMember.Tag,
-                                        EventDate = DateTime.UtcNow,
-                                        EventType = PlayerEventType.Leave
-                                    });
+                        db.Members.Remove(existingMember);
+                    }
+                }
+            }
 
-                                    otherClanMember.ClanTag = modifiedMember.ClanTag;
-                                }
-                                else
-                                {
-                                    db.Members.Add(modifiedMember);
-                                }
+            //db.SaveChanges(); //clan and members
 
-                                db.PlayerEvents.Add(new PlayerEvent
-                                {
-                                    ClanTag = clanTag,
-                                    PlayerTag = modifiedMember.Tag,
-                                    EventDate = DateTime.UtcNow,
-                                    EventType = PlayerEventType.Join
-                                });
+            if (clan.Wars != null)
+            {
+                var clanWars = (from w in db.Wars where w.ClanTag == clan.Tag select new { w.ID, w.Result, w.EndTime, w.OpponentTag, w.TeamSize, w.Friendly, w.Matched, w.Synced }).ToDictionary(w => w.ID);
 
-                                //member is promoted after joining
-                                if (modifiedMember.Role != "member")
-                                {
-                                    db.PlayerEvents.Add(new PlayerEvent
-                                    {
-                                        ClanTag = clanTag,
-                                        PlayerTag = modifiedMember.Tag,
-                                        EventDate = DateTime.UtcNow,
-                                        EventType = PlayerEventType.Promote,
-                                        Role = modifiedMember.Role
-                                    });
-                                }
-                            }
-                        }
+                foreach (var war in clan.Wars)
+                {
+                    var earliestEndTime = war.EndTime.AddHours(-8); //Prepare for maintenance break
+                    var latestEndTime = war.EndTime;
+                    var duplicate = (from w in clanWars.Values
+                                     where w.ID != war.ID &&
+                                        w.EndTime > earliestEndTime &&
+                                        w.EndTime < latestEndTime &&
+                                        w.OpponentTag == war.OpponentTag &&
+                                        w.TeamSize == war.TeamSize &&
+                                        w.Friendly == false &&
+                                        war.Friendly == false
+                                     select w).FirstOrDefault();
 
-                        var currentMembers = modifiedClan.MemberList.Select(m => m.Tag).ToDictionary(m => m);
-
-                        //chech if members have left clan
-                        foreach (var clanMember in dbMembers.Values)
+                    if (clanWars.TryGetValue(war.ID, out var existingWar))
+                    {
+                        if (!war.Result.Equals(existingWar.Result) || war.Result.Equals("inWar"))
                         {
-                            if (!currentMembers.ContainsKey(clanMember.Tag))
-                            {
-                                db.PlayerEvents.Add(new PlayerEvent
-                                {
-                                    ClanTag = clanTag,
-                                    PlayerTag = clanMember.Tag,
-                                    EventDate = DateTime.UtcNow,
-                                    EventType = PlayerEventType.Leave
-                                });
-
-                                db.Members.Remove(clanMember);
-                            }
+                            war.Matched = existingWar.Matched;
+                            war.Synced = existingWar.Synced;
+                            db.Entry(war).State = EntityState.Modified;
                         }
                     }
-
-                    db.SaveChanges(); //clan and members
-
-                    if (modifiedClan.Wars != null)
+                    else
                     {
-                        var clanWars = (from w in db.Wars where w.ClanTag == modifiedClan.Tag select new { w.ID, w.Result, w.EndTime, w.OpponentTag, w.TeamSize, w.Friendly, w.Matched, w.Synced }).ToDictionary(w => w.ID);
+                        db.Entry(war).State = EntityState.Added;
+                    }
 
-                        foreach (var war in modifiedClan.Wars)
+                    var addedMembers = new HashSet<string>();
+
+                    if (war.Members != null && war.Members.Count > 0)
+                    {
+                        var warMembers = (from m in db.WarMembers where m.WarID == war.ID select new { m.Tag, m.OpponentAttacks, m.ID }).ToDictionary(m => m.Tag, m => new { m.ID, m.OpponentAttacks });
+                        foreach (var member in war.Members)
                         {
-                            var earliestEndTime = war.EndTime.AddHours(-8); //Prepare for maintenance break
-                            var latestEndTime = war.EndTime;
-                            var duplicate = (from w in clanWars.Values
-                                             where w.ID != war.ID &&
-                                                w.EndTime > earliestEndTime &&
-                                                w.EndTime < latestEndTime &&
-                                                w.OpponentTag == war.OpponentTag &&
-                                                w.TeamSize == war.TeamSize &&
-                                                w.Friendly == false &&
-                                                war.Friendly == false
-                                             select w).FirstOrDefault();
-
-                            if (clanWars.TryGetValue(war.ID, out var existingWar))
+                            addedMembers.Add(member.Tag);
+                            if (warMembers.TryGetValue(member.Tag, out var memberDetails))
                             {
-                                if (!war.Result.Equals(existingWar.Result) || war.Result.Equals("inWar"))
+                                if (memberDetails.OpponentAttacks != member.OpponentAttacks)
                                 {
-                                    war.Matched = existingWar.Matched;
-                                    war.Synced = existingWar.Synced;
-                                    db.Entry(war).State = EntityState.Modified;
+                                    member.ID = memberDetails.ID;
+                                    db.Entry(member).State = EntityState.Modified;
                                 }
                             }
                             else
                             {
-                                db.Entry(war).State = EntityState.Added;
+                                db.Entry(member).State = EntityState.Added;
                             }
+                        }
 
-                            var addedMembers = new HashSet<string>();
-
-                            if (war.Members != null && war.Members.Count > 0)
+                        if (warMembers.Count > 0) //Note: This is not executed on first update
+                        {
+                            var clanPlayers = (from m in db.WarMembers from p in db.Players where m.WarID == war.ID && m.Tag == p.Tag && m.TownHallLevel != p.TownHallLevel select new { p, m }).ToList();
+                            foreach (var player in clanPlayers)
                             {
-                                var warMembers = (from m in db.WarMembers where m.WarID == war.ID select new { m.Tag, m.OpponentAttacks, m.ID }).ToDictionary(m => m.Tag, m => new { m.ID, m.OpponentAttacks });
-                                foreach (var member in war.Members)
+                                player.p.TownHallLevel = player.m.TownHallLevel;
+
+                                db.PlayerEvents.Add(new PlayerEvent
                                 {
-                                    addedMembers.Add(member.Tag);
-                                    if (warMembers.TryGetValue(member.Tag, out var memberDetails))
-                                    {
-                                        if (memberDetails.OpponentAttacks != member.OpponentAttacks)
-                                        {
-                                            member.ID = memberDetails.ID;
-                                            db.Entry(member).State = EntityState.Modified;
-                                        }
-                                    }
-                                    else
-                                    {
-                                        db.Entry(member).State = EntityState.Added;
-                                    }
-                                }
+                                    ClanTag = clan.Tag,
+                                    PlayerTag = player.p.Tag,
+                                    EventDate = DateTime.UtcNow,
+                                    EventType = PlayerEventType.Townhall,
+                                    Value = player.p.TownHallLevel
+                                });
 
-                                if (warMembers.Count > 0) //Note: This is not executed on first update
-                                {
-                                    var clanPlayers = (from m in db.WarMembers from p in db.Players where m.WarID == war.ID && m.Tag == p.Tag && m.TownHallLevel != p.TownHallLevel select new { p, m }).ToList();
-                                    foreach (var player in clanPlayers)
-                                    {
-                                        player.p.TownHallLevel = player.m.TownHallLevel;
-
-                                        db.PlayerEvents.Add(new PlayerEvent
-                                        {
-                                            ClanTag = clanTag,
-                                            PlayerTag = player.p.Tag,
-                                            EventDate = DateTime.UtcNow,
-                                            EventType = PlayerEventType.Townhall,
-                                            Value = player.p.TownHallLevel
-                                        });
-
-                                    }
-                                }
-                            }
-
-                            db.SaveChanges();
-
-                            var addedAttacks = new HashSet<int>();
-
-                            if (war.Attacks != null && war.Attacks.Count > 0)
-                            {
-                                var warAttacks = (from a in db.WarAttacks where a.WarID == war.ID select a.Order).ToDictionary(m => m);
-                                foreach (var attack in war.Attacks)
-                                {
-                                    addedAttacks.Add(attack.Order);
-                                    if (!warAttacks.ContainsKey(attack.Order))
-                                        db.Entry(attack).State = EntityState.Added;
-                                }
-                            }
-
-                            db.SaveChanges();
-
-                            if (duplicate != null)
-                            {
-                                var existingMembers = db.WarMembers.Where(w => w.WarID == war.ID).ToList();
-                                foreach (var existingMember in existingMembers)
-                                {
-                                    if (!addedMembers.Contains(existingMember.Tag))
-                                        addedMembers.Add(existingMember.Tag);
-                                }
-                                var duplicateMembers = db.WarMembers.Where(w => w.WarID == duplicate.ID).ToList();
-                                foreach (var member in duplicateMembers)
-                                {
-                                    if (addedMembers.Contains(member.Tag))
-                                    {
-                                        db.Entry(member).State = EntityState.Deleted;
-                                    }
-                                    else
-                                    {
-                                        member.WarID = war.ID;
-                                    }
-
-                                }
-
-                                var existingAttacks = db.WarAttacks.Where(w => w.WarID == war.ID).ToList();
-                                foreach (var existingAttack in existingAttacks)
-                                {
-                                    if (!addedAttacks.Contains(existingAttack.Order))
-                                        addedAttacks.Add(existingAttack.Order);
-                                }
-                                var duplicateAttacks = db.WarAttacks.Where(w => w.WarID == duplicate.ID).ToList();
-                                foreach (var attack in duplicateAttacks)
-                                {
-                                    if (addedAttacks.Contains(attack.Order))
-                                    {
-                                        db.Entry(attack).State = EntityState.Deleted;
-                                    }
-                                    else
-                                    {
-                                        attack.WarID = war.ID;
-                                    }
-
-                                }
-
-                                var duplicateWar = new War { ID = duplicate.ID };
-                                db.Entry(duplicateWar).State = EntityState.Deleted;
                             }
                         }
                     }
 
-                    db.SaveChanges();
-                    //}
+                    var addedAttacks = new HashSet<int>();
+
+                    if (war.Attacks != null && war.Attacks.Count > 0)
+                    {
+                        var warAttacks = (from a in db.WarAttacks where a.WarID == war.ID select a.Order).ToDictionary(m => m);
+                        foreach (var attack in war.Attacks)
+                        {
+                            addedAttacks.Add(attack.Order);
+                            if (!warAttacks.ContainsKey(attack.Order))
+                                db.Entry(attack).State = EntityState.Added;
+                        }
+                    }
+
+                    if (duplicate != null)
+                    {
+                        var existingMembers = db.WarMembers.Where(w => w.WarID == war.ID).ToList();
+                        foreach (var existingMember in existingMembers)
+                        {
+                            if (!addedMembers.Contains(existingMember.Tag))
+                                addedMembers.Add(existingMember.Tag);
+                        }
+                        var duplicateMembers = db.WarMembers.Where(w => w.WarID == duplicate.ID).ToList();
+                        foreach (var member in duplicateMembers)
+                        {
+                            if (addedMembers.Contains(member.Tag))
+                            {
+                                db.Entry(member).State = EntityState.Deleted;
+                            }
+                            else
+                            {
+                                member.WarID = war.ID;
+                            }
+
+                        }
+
+                        var existingAttacks = db.WarAttacks.Where(w => w.WarID == war.ID).ToList();
+                        foreach (var existingAttack in existingAttacks)
+                        {
+                            if (!addedAttacks.Contains(existingAttack.Order))
+                                addedAttacks.Add(existingAttack.Order);
+                        }
+                        var duplicateAttacks = db.WarAttacks.Where(w => w.WarID == duplicate.ID).ToList();
+                        foreach (var attack in duplicateAttacks)
+                        {
+                            if (addedAttacks.Contains(attack.Order))
+                            {
+                                db.Entry(attack).State = EntityState.Deleted;
+                            }
+                            else
+                            {
+                                attack.WarID = war.ID;
+                            }
+
+                        }
+
+                        var duplicateWar = new War { ID = duplicate.ID };
+                        db.Entry(duplicateWar).State = EntityState.Deleted;
+                    }
+                }
+            }
+
+            db.SaveChanges(); // war and attacks
+        }
+
+        protected async Task<UpdateTaskResponse> PerformTask(string id)
+        {
+            var status = new UpdateTaskResponse { ID = id };
+            var task = new UpdateTask();
+
+            try
+            {
+                task = db.UpdateTasks.SingleOrDefault(t => t.ID == Guid.Parse(id));
+
+                db.UpdateTasks.Remove(task);
+
+                if (task.Mode == UpdateTaskMode.Delete)
+                {
+                    lock (lockObject)
+                        this.PerformDelete(task.ClanTag);
+                }
+
+                if (task.Mode == UpdateTaskMode.Update)
+                {
+                    var modifiedClan = await api.GetClan(task.ClanTag, true, true);
+                    modifiedClan.Group = task.ClanGroup;
+                    lock (lockObject)
+                        this.PerformUpdate(modifiedClan);
                 }
 
                 if (task.Mode == UpdateTaskMode.Insert)
@@ -424,44 +453,19 @@ namespace LWFStatsWeb.Controllers
                     if (clan == null)
                         throw new Exception(string.Format("Clan {0} not found", task.ClanTag));
 
-                    //lock (lockObject)
-                    //{
-
                     clan.Group = task.ClanGroup;
-
-                    var existingMembers = (from m in db.Members where m.ClanTag != task.ClanTag select m.Tag).ToDictionary(m => m);
-
-                    foreach (var clanMember in clan.MemberList)
-                    {
-                        //Member hopped from other clan
-                        if (existingMembers.ContainsKey(clanMember.Tag))
-                            db.Entry(clanMember).State = EntityState.Modified;
-                    }
-
-                    if (clan.Wars != null)
-                    {
-                        var existingWars = (from w in db.Wars where w.ClanTag == task.ClanTag select w.ID).ToDictionary(w => w);
-
-                        foreach (var clanWar in clan.Wars)
-                        {
-                            if (!existingWars.ContainsKey(clanWar.ID))
-                                db.Wars.Add(clanWar);
-                        }
-                    }
-
-                    db.Clans.Add(clan);
-
-                    db.SaveChanges();
-                    //}
+                    lock (lockObject)
+                        this.PerformInsert(clan);
+                    
                 }
 
-                status.Message = clanName;
+                status.Message = task.ClanName;
                 status.Status = true;
             }
             catch (Exception e)
             {
                 logger.LogError("PerformTask.Error: {0}", e.ToString());
-                status.Message = string.Format("{0} {1} {2} Failed: {3}", clanTag, clanName, updateMode, e.Message);
+                status.Message = string.Format("{0} {1} {2} Failed: {3}", task.ClanTag, task.ClanName, task.Mode, e.Message);
                 status.Status = false;
             }
 
@@ -481,12 +485,14 @@ namespace LWFStatsWeb.Controllers
             }
             catch (Exception e)
             {
-                model = new IndexViewModel();
-                model.Errors = new List<string>();
-                model.Errors.Add(e.GetType().FullName);
-                model.Errors.Add(e.Message);
-                model.Errors.Add(e.StackTrace);
-                model.Tasks = new List<UpdateTask>();
+                model = new IndexViewModel()
+                {
+                    Errors = new List<string>() {
+                        e.GetType().FullName,
+                        e.Message,
+                        e.StackTrace },
+                    Tasks = new List<UpdateTask>()
+                };
             }
 
             return View(model);
@@ -549,6 +555,13 @@ namespace LWFStatsWeb.Controllers
             logger.LogInformation("PerformFinished.UpdateClanStats");
             statistics.UpdateClanStats();
 
+            memoryCache.Remove(Constants.CACHE_HOME_INDEX);
+            memoryCache.Remove(Constants.CACHE_CLANS_ALL);
+            memoryCache.Remove(Constants.CACHE_CLANS_FOLLOWING);
+            memoryCache.Remove(Constants.CACHE_CLANS_DEPARTED);
+            memoryCache.Remove(Constants.CACHE_SYNCS_ALL);
+            memoryCache.Remove(Constants.CACHE_DATA_CLANS);
+
             logger.LogInformation("PerformFinished.Done");
         }
 
@@ -558,8 +571,6 @@ namespace LWFStatsWeb.Controllers
             var model = new IndexViewModel();
             model.Errors = new List<string>();
             var updates = 0;
-
-
 
             var prevEndTimes = new Dictionary<string, DateTime>();
 

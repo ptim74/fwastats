@@ -154,7 +154,8 @@ namespace LWFStatsWeb.Controllers
         {
             logger.LogInformation("Index {0}", count);
 
-            var model = memoryCache.GetOrCreate("Syncs.All"+count, entry => {
+            var model = memoryCache.GetOrCreate(Constants.CACHE_SYNCS_ALL + count, entry =>
+            {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
                 return GetData(count);
             });
@@ -206,7 +207,7 @@ namespace LWFStatsWeb.Controllers
         {
             logger.LogInformation("Details {0}", id);
 
-            var model = memoryCache.GetOrCreate("Sync.All" + id, entry => {
+            var model = memoryCache.GetOrCreate(Constants.CACHE_SYNC_DETAILS_ + id, entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
                 return GetWars(id);
             });

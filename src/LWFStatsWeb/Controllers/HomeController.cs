@@ -29,12 +29,11 @@ namespace LWFStatsWeb.Controllers
 
         public IActionResult Index()
         {
-            var CACHEKEY = "Home.Index";
             IndexViewModel model;
 
             logger.LogInformation("Index");
 
-            if (!memoryCache.TryGetValue<IndexViewModel>(CACHEKEY, out model))
+            if (!memoryCache.TryGetValue<IndexViewModel>(Constants.CACHE_HOME_INDEX, out model))
             {
                 model = new IndexViewModel();
                 model.Counters = new List<CounterStats>();
@@ -147,7 +146,7 @@ namespace LWFStatsWeb.Controllers
 
                     model.Counters.Add(counters);
 
-                    memoryCache.Set<IndexViewModel>(CACHEKEY, model, 
+                    memoryCache.Set<IndexViewModel>(Constants.CACHE_HOME_INDEX, model, 
                         new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(Constants.CACHE_TIME)));
 
                 }

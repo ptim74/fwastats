@@ -41,7 +41,7 @@ namespace LWFStatsWeb.Controllers
 
             var tag = Utils.LinkIdToTag(id);
 
-            var model = memoryCache.GetOrCreate("Data.ClanMembers." + tag, entry =>
+            var model = memoryCache.GetOrCreate(Constants.CACHE_DATA_MEMBERS_ + tag, entry =>
             {
                  entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
 
@@ -88,7 +88,7 @@ namespace LWFStatsWeb.Controllers
 
             var tag = Utils.LinkIdToTag(id);
 
-            var model = memoryCache.GetOrCreate("Data.ClanWars." + tag, entry =>
+            var model = memoryCache.GetOrCreate(Constants.CACHE_DATA_WARS_ + tag, entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
 
@@ -135,7 +135,7 @@ namespace LWFStatsWeb.Controllers
         {
             logger.LogInformation("Clans");
 
-            var model = memoryCache.GetOrCreate("Data.Clans", entry =>
+            var model = memoryCache.GetOrCreate(Constants.CACHE_DATA_CLANS, entry =>
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
 

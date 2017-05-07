@@ -68,7 +68,7 @@ namespace LWFStatsWeb.Controllers
         {
             logger.LogInformation("Index");
 
-            var model = memoryCache.GetOrCreate("Clans.All", entry => {
+            var model = memoryCache.GetOrCreate(Constants.CACHE_CLANS_ALL, entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
                 return GetClanList();
             });
@@ -80,7 +80,7 @@ namespace LWFStatsWeb.Controllers
         {
             logger.LogInformation("Departed");
 
-            var model = memoryCache.GetOrCreate("Clans.Departed", entry => {
+            var model = memoryCache.GetOrCreate(Constants.CACHE_CLANS_DEPARTED, entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
 
                 var clans = new List<FormerClan>();
@@ -233,7 +233,7 @@ namespace LWFStatsWeb.Controllers
 
             var tag = Utils.LinkIdToTag(id);
 
-            var model = await memoryCache.GetOrCreateAsync("ClanDetails." + tag, async entry => {
+            var model = await memoryCache.GetOrCreateAsync(Constants.CACHE_CLANS_DETAILS_ + tag, async entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
 
                 var details = new DetailsViewModel();
@@ -286,7 +286,7 @@ namespace LWFStatsWeb.Controllers
         {
             logger.LogInformation("Following");
 
-            var model = memoryCache.GetOrCreate("Clans.Following", entry => {
+            var model = memoryCache.GetOrCreate(Constants.CACHE_CLANS_FOLLOWING, entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
 
                 var clans = new Dictionary<string, FollowingClan>();
@@ -497,13 +497,11 @@ namespace LWFStatsWeb.Controllers
                         }
                     }
 
-                    memoryCache.Remove("ClanDetails." + tag);
-                    memoryCache.Remove("ClanMembers." + tag);
-                    memoryCache.Remove("Clans.All");
-                    memoryCache.Remove("Clans.FWA");
-                    memoryCache.Remove("Clans.FWAL");
-                    memoryCache.Remove("Clans.Following");
-                    memoryCache.Remove("Clans.Departed");
+                    memoryCache.Remove(Constants.CACHE_CLANS_DETAILS_ + tag);
+                    memoryCache.Remove(Constants.CACHE_DATA_MEMBERS_ + tag);
+                    memoryCache.Remove(Constants.CACHE_CLANS_ALL);
+                    memoryCache.Remove(Constants.CACHE_CLANS_FOLLOWING);
+                    memoryCache.Remove(Constants.CACHE_CLANS_DEPARTED);
 
                     await db.SaveChangesAsync();
                 }
@@ -600,7 +598,7 @@ namespace LWFStatsWeb.Controllers
 
             db.SaveChanges();
 
-            memoryCache.Remove("ClanMembers." + tag);
+            memoryCache.Remove(Constants.CACHE_DATA_MEMBERS_ + tag);
 
             return Weight(id);
         }

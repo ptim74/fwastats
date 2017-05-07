@@ -47,8 +47,9 @@ namespace LWFStatsWeb.Logic
             for (int i = 0; i < 10; i++)
                 dateQ.Enqueue(DateTime.MinValue);
 
-            var oneHour = new TimeSpan(1, 0, 0);
-            var twoHour = new TimeSpan(2, 0, 0);
+            var enterSync = new TimeSpan(0, 15, 0);
+            var exitSync = new TimeSpan(1, 0, 0);
+            var syncDuration = new TimeSpan(2, 15, 0);
 
             var sync = new WarSync();
 
@@ -60,18 +61,19 @@ namespace LWFStatsWeb.Logic
 
                 if (!sync.IsStarted)
                 {
-                    if (fewWarsStartetWithin < oneHour)
+                    if (fewWarsStartetWithin < enterSync)
                     {
                         sync.Start = fewWarsBeforeStartedAt;
                     }
                 }
                 else
                 {
-                    if (fewWarsStartetWithin > twoHour)
+                    if (fewWarsStartetWithin > exitSync)
                     {
                         //This will be fixed later, finish would be last value in queue
                         //TODO: test if dateQ.Last() would work
-                        sync.Finish = fewWarsBeforeStartedAt.Add(twoHour);
+                        //sync.Finish = fewWarsBeforeStartedAt.Add(exitSync);
+                        sync.Finish = sync.Start.Add(syncDuration);
                         syncs.Add(sync);
                         sync = new WarSync();
                     }
@@ -83,7 +85,8 @@ namespace LWFStatsWeb.Logic
             //Latest sync is still active
             if (sync.IsStarted && !sync.IsFinished)
             {
-                sync.Finish = dateQ.Peek().Add(twoHour);
+                //sync.Finish = dateQ.Peek().Add(exitSync);
+                sync.Finish = sync.Start.Add(syncDuration);
                 syncs.Add(sync);
             }
 
@@ -356,9 +359,9 @@ namespace LWFStatsWeb.Logic
             if (isInMiddleSync2 != null)
                 keepAttacksSince = isInMiddleSync2.Start.AddHours(-1);
 
-            db.Database.ExecuteSqlCommand("DELETE FROM WarMembers WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime = {0} )", keepAttacksSince);
+            db.Database.ExecuteSqlCommand("DELETE FROM WarMembers WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} )", keepAttacksSince);
 
-            db.Database.ExecuteSqlCommand("DELETE FROM WarAttacks WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime = {0} )", keepAttacksSince);
+            db.Database.ExecuteSqlCommand("DELETE FROM WarAttacks WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} )", keepAttacksSince);
 
             if (history.Value.Members > 0)
             {
