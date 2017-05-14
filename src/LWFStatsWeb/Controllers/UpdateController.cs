@@ -340,7 +340,7 @@ namespace LWFStatsWeb.Controllers
 
                         if (warMembers.Count > 0) //Note: This is not executed on first update
                         {
-                            var clanPlayers = (from m in db.WarMembers from p in db.Players where m.WarID == war.ID && m.Tag == p.Tag && m.TownHallLevel != p.TownHallLevel select new { p, m }).ToList();
+                            var clanPlayers = (from m in db.WarMembers from p in db.Players where m.WarID == war.ID && m.Tag == p.Tag && m.TownHallLevel > p.TownHallLevel select new { p, m }).ToList();
                             foreach (var player in clanPlayers)
                             {
                                 player.p.TownHallLevel = player.m.TownHallLevel;
