@@ -7,7 +7,7 @@ namespace LWFStatsWeb.Models.UpdateViewModels
 {
     public class PlayersViewModel
     {
-        public List<string> Errors { get; set; }
-        public List<PlayerUpdateTask> Tasks { get; set; }
+        public ICollection<string> Errors { get; set; }
+        public ICollection<PlayerUpdateTask> Tasks { get; set; }
     }
 }

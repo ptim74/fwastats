@@ -81,6 +81,48 @@ namespace LWFStatsWeb.Controllers
         }
 
         [FormatFilter]
+        [Route("Clan/{id}/WarMembers.{format}")]
+        public IActionResult WarMembers(string id)
+        {
+            logger.LogInformation("WarMembers {0}", id);
+
+            var tag = Utils.LinkIdToTag(id);
+
+            var model = memoryCache.GetOrCreate(Constants.CACHE_DATA_WARMEMBERS_ + tag, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
+
+                var warId = (from w in db.Wars where w.ClanTag == tag join m in db.WarMembers on w.ID equals m.WarID orderby m.WarID descending select m.WarID).FirstOrDefault();
+
+                var members = from m in db.WarMembers
+                              where m.WarID == warId && m.IsOpponent == false
+                              join p in db.Players on m.Tag equals p.Tag
+                              join iw in db.Weights on m.Tag equals iw.Tag into Weights
+                              from w in Weights.DefaultIfEmpty()
+                              orderby m.MapPosition
+                              select new { Member = m, Player = p, Weight = w };
+
+                var data = new WarMembers();
+
+                foreach (var row in members)
+                {
+                    data.Add(new WarMemberModel
+                    {
+                        Position = row.Member.MapPosition,
+                        Name = row.Member.Name,
+                        Tag = row.Member.Tag,
+                        TownHall = row.Player.TownHallLevel,
+                        Weight = row.Weight != null ? row.Weight.WarWeight : 0
+                    });
+                }
+
+                return data;
+            });
+
+            return Ok(model);
+        }
+
+        [FormatFilter]
         [Route("Clan/{id}/Wars.{format}")]
         public IActionResult ClanWars(string id)
         {

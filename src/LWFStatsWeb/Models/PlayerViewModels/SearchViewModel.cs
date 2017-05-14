@@ -8,6 +8,6 @@ namespace LWFStatsWeb.Models.PlayerViewModels
     public class SearchViewModel
     {
         public string Query { get; set; }
-        public List<SearchResultModel> Results { get; set; }
+        public ICollection<SearchResultModel> Results { get; set; }
     }
 }

@@ -9,7 +9,7 @@ namespace LWFStatsWeb
     {
         public const int CACHE_TIME = 15;
         public const double HIDE_TIME = 2.25;
-        public const int PLAYER_BATCH = 100;
+        public const int PLAYER_BATCH = 200;
 
         public static DateTime MaxVisibleEndTime
         {
@@ -29,6 +29,7 @@ namespace LWFStatsWeb
         public const string CACHE_DATA_MEMBERS_ = "Data.ClanMembers.";
         public const string CACHE_DATA_WARS_ = "Data.ClanWars.";
         public const string CACHE_DATA_CLANS = "Data.Clans";
+        public const string CACHE_DATA_WARMEMBERS_ = "Data.WarMembers.";
 
         public const string CACHE_PLAYER_DETAILS_ = "PlayerDetails.";
 

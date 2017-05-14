@@ -31,8 +31,23 @@
 <h4>Edit Clan Weight</h4>
 
 <form asp-action="Weight">
+    <input type="hidden" asp-for="ClanTag" />
+    <div class="form-group">
+        <label for="WarID">Select members</label>
+        <select class="form-control" id="WarID" name="WarID" onchange='this.form.submit()'>
+            <!option @(Model.WarID == 0 ? "selected='selected'" : "") value="0">All Members</!option>
+            @foreach (var war in Model.Wars)
+            {
+                <!option @(Model.WarID == war.ID ? "selected='selected'" : "") value="@war.ID">War against @war.OpponentName</!option>
+            }
+        </select>
+    </div>
+</form>
+
+<form asp-action="Weight">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <input type="hidden" asp-for="ClanTag" />
+    <input type="hidden" asp-for="WarID" />
     <table id="myTable" style="margin-bottom:70px" class="table table-condensed table-hover tablesorter">
         <thead>
             <tr>
@@ -194,23 +209,17 @@
 
 
             });
-        });
 
-        $(function () {
             $('.member-in-war').change(function (e) {
                 $(this).parent().parent().addClass($(this).is(':checked') ? 'success' : 'danger');
                 $(this).parent().parent().removeClass($(this).is(':checked') ? 'danger' : 'success');
                 calculateWarWeight();
             });
-        });
 
-        $(function () {
             $('.member-weight').change(function (e) {
                 calculateWarWeight();
             });
-        });
 
-        $(function () {
             $('.weight-multiply').click(function (e) {
                 var fieldName = $(this).attr('data-field');
                 var input = $("input[name='" + fieldName + "']");

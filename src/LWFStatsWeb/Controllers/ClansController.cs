@@ -527,8 +527,65 @@ namespace LWFStatsWeb.Controllers
             return db.ClanValidities.Any(e => e.Tag == id);
         }
 
+        private ICollection<War> GetDetailedWars(string clanTag)
+        {
+            var minEndTime = DateTime.UtcNow.AddDays(-7);
+            var maxEndTime = DateTime.UtcNow.AddDays(1);
+
+            return db.Wars.Where(w => w.ClanTag == clanTag && w.EndTime > minEndTime && w.EndTime < maxEndTime).OrderBy(w => w.EndTime).ToList();
+        }
+
+        [Route("Clan/{id}/Attacks")]
+        public IActionResult Attacks(string id)
+        {
+            logger.LogInformation("Attacks {0}", id);
+
+            var tag = Utils.LinkIdToTag(id);
+
+            var clan = db.Clans.Where(c => c.Tag == tag).SingleOrDefault();
+
+            var model = new ClanAttackModel
+            {
+                Tag = clan.Tag,
+                Name = clan.Name,
+                BadgeUrl = clan.BadgeUrl,
+                Members = new List<ClanAttackMember>(),
+                Wars = new List<ClanAttackWar>()
+            };
+
+            foreach(var member in db.Members.Where(m => m.ClanTag == tag).ToList())
+            {
+                model.Members.Add(new ClanAttackMember {
+                     Name = member.Name,
+                     Tag = member.Tag,
+                     Attacks = new Dictionary<string, ICollection<WarAttack>>()
+                });
+            }
+
+            var modelMemberDict = model.Members.ToDictionary(m => m.Tag);
+
+            foreach (var war in this.GetDetailedWars(tag))
+            {
+                var warMembers = db.WarMembers.Where(m => m.WarID == war.ID && m.IsOpponent == false).OrderBy(m => m.Tag).ToDictionary(m => m.Tag);
+                var warAttacks = db.WarAttacks.Where(a => a.WarID == war.ID && a.IsOpponent == false).OrderBy(a => a.Order).ToLookup(a => a.AttackerTag);
+
+                foreach(var member in model.Members)
+                {
+                    if (warMembers.ContainsKey(member.Tag))
+                    {
+                        member.Attacks.Add(war.ID, warAttacks[member.Tag].ToList());
+                    }
+                }
+
+                model.Wars.Add(new ClanAttackWar { ID = war.ID, OpponentName = war.OpponentName });
+            }
+
+            return View(model);
+        }
+
         [Route("Clan/{id}/Weight")]
-        public IActionResult Weight(string id)
+        [Route("Clan/{id}/Weight/{WarID}")]
+        public IActionResult Weight(string id, long WarID)
         {
             logger.LogInformation("Weight {0}", id);
 
@@ -536,36 +593,96 @@ namespace LWFStatsWeb.Controllers
 
             var clan = db.Clans.Where(c => c.Tag == tag).SingleOrDefault();
 
-            var model = new WeightViewModel { ClanTag = clan.Tag, ClanLink = clan.LinkID, ClanName = clan.Name, ClanBadge = clan.BadgeUrl };
+            var warEndTime = Utils.WarIdToTime(WarID);
 
-            var members = db.Members.Where(m => m.ClanTag == tag).OrderBy(m => m.ClanRank).ToList();
+            var model = new WeightViewModel { ClanTag = clan.Tag, ClanLink = clan.LinkID, ClanName = clan.Name, ClanBadge = clan.BadgeUrl, WarID = WarID };
 
-            var weights = (from m in db.Members join w in db.Weights on m.Tag equals w.Tag select w).ToDictionary(w => w.Tag);
+            model.Wars = new List<WeightWarModel>();
 
-            var thlevels = (from p in db.Players join m in db.Members on p.Tag equals m.Tag where m.ClanTag == tag select new { p.Tag, p.TownHallLevel }).ToDictionary(p => p.Tag, t => t.TownHallLevel);
-
-            //var wars = (from w in db.Wars where w.ClanTag == tag && w.Synced orderby w.EndTime descending).Take(3).Select()
-
-            var memberWeights = new List<MemberWeightModel>();
-
-            foreach(var member in members)
+            foreach (var war1 in this.GetDetailedWars(tag).Reverse())
             {
-                var memberWeight = new MemberWeightModel { Tag = member.Tag, Name = member.Name };
-                Weight weight;
-                if(weights.TryGetValue(member.Tag, out weight))
-                {
-                    memberWeight.InWar = weight.InWar;
-                    memberWeight.Weight = weight.WarWeight;
-                }
-                int thlevel = 0;
-                if (thlevels.TryGetValue(member.Tag, out thlevel))
-                    memberWeight.TownHallLevel = thlevel;
-                memberWeights.Add(memberWeight);
+                model.Wars.Add(new WeightWarModel { ID = Utils.WarTimeToId(war1.EndTime), OpponentName = war1.OpponentName });
             }
 
-            model.Members = memberWeights.OrderByDescending(w => w.Weight + w.TownHallLevel).ToList();
+            var war = db.Wars.Where(w => w.ClanTag == tag && w.EndTime == warEndTime).SingleOrDefault();
+
+            if (war == null) //All clan members
+            {
+                var members = db.Members.Where(m => m.ClanTag == tag).OrderBy(m => m.ClanRank).ToList();
+
+                var weights = (from m in db.Members join w in db.Weights on m.Tag equals w.Tag select w).ToDictionary(w => w.Tag);
+
+                var thlevels = (from p in db.Players join m in db.Members on p.Tag equals m.Tag where m.ClanTag == tag select new { p.Tag, p.TownHallLevel }).ToDictionary(p => p.Tag, t => t.TownHallLevel);
+
+                var memberWeights = new List<MemberWeightModel>();
+
+                foreach (var member in members)
+                {
+                    var memberWeight = new MemberWeightModel { Tag = member.Tag, Name = member.Name };
+                    if (weights.TryGetValue(member.Tag, out Weight weight))
+                    {
+                        memberWeight.InWar = weight.InWar;
+                        memberWeight.Weight = weight.WarWeight;
+                    }
+                    int thlevel = 0;
+                    if (thlevels.TryGetValue(member.Tag, out thlevel))
+                        memberWeight.TownHallLevel = thlevel;
+                    memberWeights.Add(memberWeight);
+                }
+
+                model.Members = memberWeights.OrderByDescending(w => w.Weight + w.TownHallLevel).ToList();
+
+            }
+            else //clan members of war
+            {
+                var members = db.WarMembers.Where(m => m.WarID == war.ID && m.IsOpponent == false).OrderBy(m => m.MapPosition).ToList();
+
+                var weights = (from m in db.WarMembers join w in db.Weights on m.Tag equals w.Tag where m.WarID == war.ID select w).ToDictionary(w => w.Tag);
+
+                var memberWeights = new List<MemberWeightModel>();
+
+                foreach (var member in members)
+                {
+                    var memberWeight = new MemberWeightModel { Tag = member.Tag, Name = member.Name, TownHallLevel = member.TownHallLevel, InWar = true };
+                    if (weights.TryGetValue(member.Tag, out Weight weight))
+                    {
+                        memberWeight.Weight = weight.WarWeight;
+                    }
+                    memberWeights.Add(memberWeight);
+                }
+
+                model.Members = memberWeights.ToList();
+            }
 
             return View(model);
+        }
+
+        protected void SaveWeight(WeightViewModel model)
+        {
+            if (model != null && model.Members != null)
+            {
+                foreach (var member in model.Members)
+                {
+                    var weight = db.Weights.Where(w => w.Tag == member.Tag).SingleOrDefault();
+                    if (weight == null)
+                    {
+                        weight = new Weight { Tag = member.Tag, WarWeight = member.Weight, InWar = member.InWar, LastModified = DateTime.UtcNow };
+                        db.Add(weight);
+                    }
+                    else
+                    {
+                        if (weight.WarWeight != member.Weight || weight.InWar != member.InWar)
+                        {
+                            weight.WarWeight = member.Weight;
+                            weight.InWar = member.InWar;
+                            weight.LastModified = DateTime.UtcNow;
+                            db.Entry(weight).State = EntityState.Modified;
+                        }
+                    }
+                }
+
+                db.SaveChanges();
+            }
         }
 
         [HttpPost]
@@ -576,31 +693,11 @@ namespace LWFStatsWeb.Controllers
 
             var tag = Utils.LinkIdToTag(id);
 
-            foreach(var member in model.Members)
-            {
-                var weight = db.Weights.Where(w => w.Tag == member.Tag).SingleOrDefault();
-                if (weight == null)
-                {
-                    weight = new Weight { Tag = member.Tag, WarWeight = member.Weight, InWar = member.InWar, LastModified = DateTime.UtcNow };
-                    db.Add(weight);
-                }
-                else
-                {
-                    if (weight.WarWeight != member.Weight || weight.InWar != member.InWar)
-                    {
-                        weight.WarWeight = member.Weight;
-                        weight.InWar = member.InWar;
-                        weight.LastModified = DateTime.UtcNow;
-                        db.Entry(weight).State = EntityState.Modified;
-                    }
-                }
-            }
-
-            db.SaveChanges();
+            SaveWeight(model);
 
             memoryCache.Remove(Constants.CACHE_DATA_MEMBERS_ + tag);
 
-            return Weight(id);
+            return Weight(id, model.WarID);
         }
 
         [Route("Clan/{id}/Donations")]

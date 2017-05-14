@@ -8,6 +8,6 @@ namespace LWFStatsWeb.Models.PlayerViewModels
     public class DetailsViewModel
     {
         public Player Player { get; set; }
-        public List<PlayerDetailsEvent> Events { get; set; } 
+        public ICollection<PlayerDetailsEvent> Events { get; set; } 
     }
 }

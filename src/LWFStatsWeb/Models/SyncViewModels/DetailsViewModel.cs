@@ -8,6 +8,6 @@ namespace LWFStatsWeb.Models.SyncViewModels
     public class DetailsViewModel
     {
         public WarSync Sync { get; set; }
-        public List<War> Wars { get; set; }
+        public ICollection<War> Wars { get; set; }
     }
 }

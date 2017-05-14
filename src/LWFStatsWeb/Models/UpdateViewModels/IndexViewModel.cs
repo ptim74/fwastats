@@ -7,7 +7,7 @@ namespace LWFStatsWeb.Models.UpdateViewModels
 {
     public class IndexViewModel
     {
-        public List<string> Errors { get; set; }
-        public List<UpdateTask> Tasks { get; set; }
+        public ICollection<string> Errors { get; set; }
+        public ICollection<UpdateTask> Tasks { get; set; }
     }
 }

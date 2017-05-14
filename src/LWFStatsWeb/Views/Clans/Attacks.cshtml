@@ -1,0 +1,65 @@
+﻿@model LWFStatsWeb.Models.ClanViewModels.ClanAttackModel
+
+@{
+    ViewData["Title"] = Model.Name + " Attack Summary";
+    ViewBag.MetaRobots = "noindex, nofollow";
+    List<WarAttack> attacks;
+}
+
+<ol class="breadcrumb">
+    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Details" asp-route-id="@Model.LinkID">@Model.Name</a></li>
+    <li class="active">Attack Summary</li>
+</ol>
+
+<table class="table table-condensed table-hover table-responsive tablesorter">
+    <thead>
+        <tr>
+            <th>Name</th>
+            @foreach (var war in Model.Wars)
+            {
+                <th>@war.OpponentName</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var member in Model.Members)
+        {
+            <tr>
+                <td>@member.Name</td>
+                @foreach (var war in Model.Wars)
+                {
+                    <td>
+                    @if (member.Attacks.TryGetValue(war.ID, out attacks))
+                    {
+                        foreach (var attack in attacks)
+                        {
+                            @for (var starCount = 0; starCount < attack.Stars; starCount++)
+                            {
+                                @:⭐
+                            }
+                            if (attack.Stars == 0)
+                            {
+                                <span class="label label-info">0 Stars</span>
+                            }
+                            <span>#@attack.DefenderMapPosition</span>
+                            <br />
+                        }
+                        for (int i = attacks.Count; i < 2; i++)
+                        {
+                            <span class="label label-default">No Attack</span>
+                            <br />
+                        }
+                    }
+                    else
+                    {
+                        <span class="label label-danger">Opted Out</span>
+                    }
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+ 
