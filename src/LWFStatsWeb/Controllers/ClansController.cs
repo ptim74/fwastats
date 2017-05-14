@@ -553,7 +553,7 @@ namespace LWFStatsWeb.Controllers
                 Wars = new List<ClanAttackWar>()
             };
 
-            foreach(var member in db.Members.Where(m => m.ClanTag == tag).ToList())
+            foreach(var member in db.Members.Where(m => m.ClanTag == tag).OrderBy(m => m.ClanRank).ToList())
             {
                 model.Members.Add(new ClanAttackMember {
                      Name = member.Name,
@@ -610,7 +610,7 @@ namespace LWFStatsWeb.Controllers
             {
                 var members = db.Members.Where(m => m.ClanTag == tag).OrderBy(m => m.ClanRank).ToList();
 
-                var weights = (from m in db.Members join w in db.Weights on m.Tag equals w.Tag select w).ToDictionary(w => w.Tag);
+                var weights = (from m in db.Members where m.ClanTag == tag join w in db.Weights on m.Tag equals w.Tag select w).ToDictionary(w => w.Tag);
 
                 var thlevels = (from p in db.Players join m in db.Members on p.Tag equals m.Tag where m.ClanTag == tag select new { p.Tag, p.TownHallLevel }).ToDictionary(p => p.Tag, t => t.TownHallLevel);
 

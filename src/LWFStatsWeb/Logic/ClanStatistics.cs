@@ -369,7 +369,7 @@ namespace LWFStatsWeb.Logic
 
                 db.Database.ExecuteSqlCommand("DELETE FROM PlayerEvents WHERE EventDate < {0}", keepMembersSince);
 
-                db.Database.ExecuteSqlCommand("DELETE FROM Players WHERE LastUpdated < {0}", keepMembersSince);
+                db.Database.ExecuteSqlCommand("DELETE FROM Players WHERE LastUpdated < {0}", 60);
             }
 
             if(history.Value.Wars > 0)
