@@ -12,6 +12,7 @@ namespace LWFStatsWeb.Models.ClanViewModels
         public string ClanTag { get; set; }
         public string ClanName { get; set; }
         public string ClanBadge { get; set; }
+        public string Command { get; set; }
 
         public virtual ICollection<MemberWeightModel> Members { get; set; }
 

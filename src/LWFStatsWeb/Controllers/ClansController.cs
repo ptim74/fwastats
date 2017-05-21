@@ -12,6 +12,11 @@ using LWFStatsWeb.Logic;
 using System.IO;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Google.Apis.Sheets.v4.Data;
+using Google.Apis.Sheets.v4;
+using Google.Apis.Auth.OAuth2;
+using Google.Apis.Services;
 
 namespace LWFStatsWeb.Controllers
 {
@@ -21,17 +26,21 @@ namespace LWFStatsWeb.Controllers
         private readonly IClashApi api;
         private IMemoryCache memoryCache;
         ILogger<ClansController> logger;
+        IOptions<WeightSubmitOptions> submitOptions;
 
         public ClansController(
             ApplicationDbContext db,
             IClashApi api,
             IMemoryCache memoryCache,
-            ILogger<ClansController> logger)
+            ILogger<ClansController> logger,
+            IOptions<WeightSubmitOptions> submitOptions
+            )
         {
             this.db = db;
             this.api = api;
             this.memoryCache = memoryCache;
             this.logger = logger;
+            this.submitOptions = submitOptions;
         }
 
         protected IndexViewModel GetClanList()
@@ -583,12 +592,8 @@ namespace LWFStatsWeb.Controllers
             return View(model);
         }
 
-        [Route("Clan/{id}/Weight")]
-        [Route("Clan/{id}/Weight/{WarID}")]
-        public IActionResult Weight(string id, long WarID)
+        protected WeightViewModel WeightData(string id, long WarID)
         {
-            logger.LogInformation("Weight {0}", id);
-
             var tag = Utils.LinkIdToTag(id);
 
             var clan = db.Clans.Where(c => c.Tag == tag).SingleOrDefault();
@@ -654,6 +659,17 @@ namespace LWFStatsWeb.Controllers
                 model.Members = memberWeights.ToList();
             }
 
+            return model;
+        }
+
+        [Route("Clan/{id}/Weight")]
+        [Route("Clan/{id}/Weight/{WarID}")]
+        public IActionResult Weight(string id, long WarID)
+        {
+            logger.LogInformation("Weight {0}", id);
+
+            var model = WeightData(id, WarID);
+
             return View(model);
         }
 
@@ -685,6 +701,108 @@ namespace LWFStatsWeb.Controllers
             }
         }
 
+        protected IActionResult WeightSubmit(WeightViewModel weight)
+        {
+            var model = new WeightSubmitModel()
+            {
+                ClanTag = weight.ClanTag,
+                ClanName = weight.ClanName,
+                ClanLink = weight.ClanLink,
+                ClanBadge = weight.ClanBadge
+            };
+
+            try
+            {
+                var service = CreateSheetService();
+
+                var sheet = service.Spreadsheets.Get(submitOptions.Value.SheetId).Execute();
+                foreach(var s in sheet.Sheets)
+                {
+                    if (s.Properties.Title.Equals(submitOptions.Value.TabName))
+                        model.SheetUrl = sheet.SpreadsheetUrl + "#gid=" + s.Properties.SheetId;
+                }
+
+                if (!this.CheckSheet(service, submitOptions.Value.SheetId, submitOptions.Value.TabName, submitOptions.Value.CheckRange))
+                {
+                    throw new Exception("Someone is using weight sheet right now, please try again later");
+                }
+
+                var nameSection = new List<object>();
+                nameSection.Add(weight.ClanName);
+                nameSection.Add("");
+                nameSection.Add("");
+                nameSection.Add(weight.ClanTag);
+
+                var nameResult = this.UpdateSheet(service, submitOptions.Value.SheetId, submitOptions.Value.TabName, submitOptions.Value.ClanNameRange, nameSection);
+
+                var compositions = new Dictionary<int, int>();
+                var weightSection = new List<object>();
+
+                for (int i = 0; i <= 11; i++)
+                    compositions.Add(i, 0);
+
+                foreach(var member in weight.Members)
+                {
+                    compositions[member.TownHallLevel]++;
+                    weightSection.Add(member.Weight);
+                }
+
+                var compositionSection = new List<object>();
+                compositionSection.Add(compositions[11]);
+                compositionSection.Add(compositions[10]);
+                compositionSection.Add(compositions[9]);
+                compositionSection.Add(compositions[8]);
+                compositionSection.Add(compositions[7] + compositions[6] + compositions[5] + compositions[4] + compositions[3]);
+
+                var compositionResult = this.UpdateSheet(service, submitOptions.Value.SheetId, submitOptions.Value.TabName, submitOptions.Value.CompositionRange, compositionSection);
+
+                var weightResult = this.UpdateSheet(service, submitOptions.Value.SheetId, submitOptions.Value.TabName, submitOptions.Value.WeightRange, weightSection);
+
+                model.Message = "Redirecting to Weight Sheet...";
+                model.Status = true;
+            }
+            catch(Exception e)
+            {
+                model.Message = e.Message;
+            }
+            return View("WeightSubmit", model);
+        }
+
+        private SheetsService CreateSheetService()
+        {
+            ServiceAccountCredential credential = new ServiceAccountCredential(
+               new ServiceAccountCredential.Initializer(submitOptions.Value.ClientEmail)
+               {
+                   Scopes = new[] { SheetsService.Scope.Spreadsheets }
+               }.FromPrivateKey(submitOptions.Value.PrivateKey));
+
+            return new SheetsService(new BaseClientService.Initializer()
+            {
+                HttpClientInitializer = credential,
+                ApplicationName = "FWA Stats",
+            });
+        }
+
+        private UpdateValuesResponse UpdateSheet(SheetsService service, string sheetID, string tabName, string range, IList<object> values)
+        {
+            var valueRange = new ValueRange();
+            valueRange.MajorDimension = "COLUMNS";
+            valueRange.Values = new List<IList<object>> { values };
+
+            var update = service.Spreadsheets.Values.Update(valueRange, sheetID, string.Format("{0}!{1}", tabName, range));
+            update.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.RAW;
+            return update.Execute();
+        }
+
+        private bool CheckSheet(SheetsService service, string sheetID, string tabName, string range)
+        {
+            var check = service.Spreadsheets.Values.Get(sheetID, string.Format("{0}!{1}", tabName, range));
+            check.MajorDimension = SpreadsheetsResource.ValuesResource.GetRequest.MajorDimensionEnum.COLUMNS;
+            check.ValueRenderOption = SpreadsheetsResource.ValuesResource.GetRequest.ValueRenderOptionEnum.UNFORMATTEDVALUE;
+            var result = check.Execute();
+            return result.Values == null;
+        }
+
         [HttpPost]
         [Route("Clan/{id}/Weight")]
         public IActionResult Weight(string id, WeightViewModel model)
@@ -693,9 +811,16 @@ namespace LWFStatsWeb.Controllers
 
             var tag = Utils.LinkIdToTag(id);
 
-            SaveWeight(model);
+            if(model.Command != null)
+            {
+                SaveWeight(model);
+                memoryCache.Remove(Constants.CACHE_DATA_MEMBERS_ + tag);
 
-            memoryCache.Remove(Constants.CACHE_DATA_MEMBERS_ + tag);
+                if ( model.Command.Equals("submit", StringComparison.OrdinalIgnoreCase))
+                {
+                    return WeightSubmit(WeightData(id,model.WarID));
+                }
+            }
 
             return Weight(id, model.WarID);
         }
