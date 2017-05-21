@@ -713,6 +713,8 @@ namespace LWFStatsWeb.Controllers
 
             try
             {
+                logger.LogInformation("Weight.Submit {0}", weight.ClanLink);
+
                 var service = CreateSheetService();
 
                 var sheet = service.Spreadsheets.Get(submitOptions.Value.SheetId).Execute();
