@@ -701,6 +701,26 @@ namespace LWFStatsWeb.Controllers
             }
         }
 
+        [Route("Clan/{id}/WeightSubmitResult")]
+        public IActionResult WeightSubmitResult(string id)
+        {
+            var service = CreateSheetService();
+
+            var check = service.Spreadsheets.Values.Get(submitOptions.Value.SheetId, submitOptions.Value.ResultRange);
+            check.MajorDimension = SpreadsheetsResource.ValuesResource.GetRequest.MajorDimensionEnum.COLUMNS;
+            check.ValueRenderOption = SpreadsheetsResource.ValuesResource.GetRequest.ValueRenderOptionEnum.UNFORMATTEDVALUE;
+            var result = check.Execute();
+
+            var resultText = string.Empty;
+
+            if (result.Values != null)
+                foreach (var i in result.Values)
+                    foreach (var j in i)
+                        resultText = j.ToString();
+
+            return Json(resultText);
+        }
+
         protected IActionResult WeightSubmit(WeightViewModel weight)
         {
             var model = new WeightSubmitModel()
@@ -708,7 +728,8 @@ namespace LWFStatsWeb.Controllers
                 ClanTag = weight.ClanTag,
                 ClanName = weight.ClanName,
                 ClanLink = weight.ClanLink,
-                ClanBadge = weight.ClanBadge
+                ClanBadge = weight.ClanBadge, 
+                SheetUrl = "http://tinyurl.com/FWABaseWeightResponse"
             };
 
             try
@@ -717,26 +738,26 @@ namespace LWFStatsWeb.Controllers
 
                 var service = CreateSheetService();
 
-                var sheet = service.Spreadsheets.Get(submitOptions.Value.SheetId).Execute();
+                var lastSubmitDate = DateTime.MinValue;
 
-                foreach(var s in sheet.Sheets)
-                {
-                    if (s.Properties.Title.Equals(submitOptions.Value.TabName))
-                        model.SheetUrl = sheet.SpreadsheetUrl + "#gid=" + s.Properties.SheetId;
-                }
+                var check = service.Spreadsheets.Values.Get(submitOptions.Value.SheetId, submitOptions.Value.CheckRange);
+                check.MajorDimension = SpreadsheetsResource.ValuesResource.GetRequest.MajorDimensionEnum.COLUMNS;
+                check.ValueRenderOption = SpreadsheetsResource.ValuesResource.GetRequest.ValueRenderOptionEnum.UNFORMATTEDVALUE;
+                var result = check.Execute();
 
-                if (!this.CheckSheet(service, submitOptions.Value.SheetId, submitOptions.Value.TabName, submitOptions.Value.CheckRange))
-                {
-                    throw new Exception("Someone is using weight sheet right now, please try again later");
-                }
+                if (result.Values != null)
+                    foreach(var i in result.Values)
+                        foreach (var j in i)
+                            DateTime.TryParse(j.ToString(), out lastSubmitDate);
+
+                if (lastSubmitDate > DateTime.UtcNow.AddMinutes(-1))
+                    throw new Exception("Someone else is using weight sheet right now, please try again later");
 
                 var nameSection = new List<object>();
                 nameSection.Add(weight.ClanName);
                 nameSection.Add("");
                 nameSection.Add("");
                 nameSection.Add(weight.ClanTag);
-
-                var nameResult = this.UpdateSheet(service, submitOptions.Value.SheetId, submitOptions.Value.TabName, submitOptions.Value.ClanNameRange, nameSection);
 
                 var compositions = new Dictionary<int, int>();
                 var weightSection = new List<object>();
@@ -761,13 +782,32 @@ namespace LWFStatsWeb.Controllers
                 compositionSection.Add(compositions[8]);
                 compositionSection.Add(compositions[7] + compositions[6] + compositions[5] + compositions[4] + compositions[3]);
 
-                var compositionResult = this.UpdateSheet(service, submitOptions.Value.SheetId, submitOptions.Value.TabName, submitOptions.Value.CompositionRange, compositionSection);
+                var submitSection = new List<object>();
+                submitSection.Add("SubmitDataAuto");
 
-                var weightResult = this.UpdateSheet(service, submitOptions.Value.SheetId, submitOptions.Value.TabName, submitOptions.Value.WeightRange, weightSection);
+                var updateRequestBody = new BatchUpdateValuesRequest();
+                updateRequestBody.Data = new List<ValueRange>();
 
-                var tagResult = this.UpdateSheet(service, submitOptions.Value.SheetId, submitOptions.Value.TabName, submitOptions.Value.TagRange, tagSection);
+                updateRequestBody.Data.Add(new ValueRange { MajorDimension = "COLUMNS", Range = submitOptions.Value.ClanNameRange, Values = new List<IList<object>> { nameSection } });
 
-                var thResult = this.UpdateSheet(service, submitOptions.Value.SheetId, submitOptions.Value.TabName, submitOptions.Value.THRange, thSection);
+                updateRequestBody.Data.Add(new ValueRange { MajorDimension = "COLUMNS", Range = submitOptions.Value.CompositionRange, Values = new List<IList<object>> { compositionSection } });
+
+                updateRequestBody.Data.Add(new ValueRange { MajorDimension = "COLUMNS", Range = submitOptions.Value.WeightRange, Values = new List<IList<object>> { weightSection } });
+
+                updateRequestBody.Data.Add(new ValueRange { MajorDimension = "COLUMNS", Range = submitOptions.Value.TagRange, Values = new List<IList<object>> { tagSection } });
+
+                updateRequestBody.Data.Add(new ValueRange { MajorDimension = "COLUMNS", Range = submitOptions.Value.THRange, Values = new List<IList<object>> { thSection } });
+
+                updateRequestBody.Data.Add(new ValueRange { MajorDimension = "COLUMNS", Range = submitOptions.Value.AutoSubmitRange, Values = new List<IList<object>> { submitSection } });
+
+                updateRequestBody.Data.Add(new ValueRange { MajorDimension = "COLUMNS", Range = submitOptions.Value.CheckRange, Values = new List<IList<object>> { new List<object> { DateTime.UtcNow.ToString("s") } } });
+
+                updateRequestBody.ValueInputOption = "RAW";
+                updateRequestBody.IncludeValuesInResponse = false;
+
+                var updateRequest = service.Spreadsheets.Values.BatchUpdate(updateRequestBody, submitOptions.Value.SheetId);
+
+                var updateResponse = updateRequest.Execute();
 
                 model.Message = "Redirecting to Weight Sheet...";
                 model.Status = true;
@@ -791,29 +831,6 @@ namespace LWFStatsWeb.Controllers
                             Scopes = new[] { SheetsService.Scope.Spreadsheets }
                         }.FromPrivateKey(submitOptions.Value.PrivateKey))
                 });
-        }
-
-        private UpdateValuesResponse UpdateSheet(
-            SheetsService service, string sheetID, string tabName, string range, IList<object> values)
-        {
-            var valueRange = new ValueRange
-            {
-                MajorDimension = "COLUMNS",
-                Values = new List<IList<object>> { values }
-            };
-
-            var update = service.Spreadsheets.Values.Update(valueRange, sheetID, string.Format("{0}!{1}", tabName, range));
-            update.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.RAW;
-            return update.Execute();
-        }
-
-        private bool CheckSheet(SheetsService service, string sheetID, string tabName, string range)
-        {
-            var check = service.Spreadsheets.Values.Get(sheetID, string.Format("{0}!{1}", tabName, range));
-            check.MajorDimension = SpreadsheetsResource.ValuesResource.GetRequest.MajorDimensionEnum.COLUMNS;
-            check.ValueRenderOption = SpreadsheetsResource.ValuesResource.GetRequest.ValueRenderOptionEnum.UNFORMATTEDVALUE;
-            var result = check.Execute();
-            return result.Values == null;
         }
 
         [HttpPost]

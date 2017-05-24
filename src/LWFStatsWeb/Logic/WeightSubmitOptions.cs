@@ -17,5 +17,7 @@ namespace LWFStatsWeb.Logic
         public string CheckRange { get; set; }
         public string TagRange { get; set; }
         public string THRange { get; set; }
+        public string AutoSubmitRange { get; set; }
+        public string ResultRange { get; set; }
     }
 }

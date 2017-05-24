@@ -29,15 +29,15 @@
     </div>
 </div>
 
-<h4>Submit Weight</h4>
-
 @if(Model.Status == false)
 {
     <div class="alert alert-danger"><b>Error: </b>@Model.Message</div>
 }
 else
 {
-    <div class="alert alert-success"><b>Success: </b>@Model.Message</div>
+    <div id="div-wait" class="alert alert-info"></div>
+    <h4>Weight Sheet Response</h4>
+    <div id="div-result" class="alert alert-warning"></div>
 }
 
 <div>
@@ -50,7 +50,40 @@ else
     @if(Model.Status == true)
     {
         <script>
-            window.location.replace("@Model.SheetUrl");
+
+            $(function () {
+
+                var seconds_to_poll = 60;
+
+                function dataCallback(data, responseText, jqXHR) {
+                    $('#div-result').text(data);
+                }
+
+                function failCallback(data, responseText, jqXHR) {
+                    seconds_to_poll = 0;
+                    $('#div-result').text("Unknown error");
+                    $('#div-wait').hide();
+                }
+
+                function timerCallback()
+                {
+                    if (seconds_to_poll > 0)
+                    {
+                        $('#div-wait').text("It can take up to 60 seconds before weight gets submitted. Wait " + seconds_to_poll + " seconds.");
+                        $.getJSON('/Clan/@Model.ClanLink/WeightSubmitResult?counter=' + seconds_to_poll, dataCallback).fail(failCallback);
+                        seconds_to_poll--;
+                        setTimeout(timerCallback, 1000);
+                     }
+                    else
+                    {
+                        $('#div-wait').hide();
+                    }
+                }
+
+                timerCallback();
+
+            });
+
         </script>
     }
 }

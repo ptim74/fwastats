@@ -92,7 +92,8 @@ namespace LWFStatsWeb.Controllers
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
 
-                var warId = (from w in db.Wars where w.ClanTag == tag join m in db.WarMembers on w.ID equals m.WarID where w.EndTime < DateTime.UtcNow.AddDays(-1) orderby m.WarID descending select m.WarID).FirstOrDefault();
+                var maxEndDate = DateTime.UtcNow.AddDays(1);
+                var warId = (from w in db.Wars where w.ClanTag == tag join m in db.WarMembers on w.ID equals m.WarID where w.EndTime < maxEndDate select w.ID).Max();
 
                 var members = from m in db.WarMembers
                               where m.WarID == warId && m.IsOpponent == false
