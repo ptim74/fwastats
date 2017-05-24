@@ -30,6 +30,7 @@ namespace LWFStatsWeb
         public const string CACHE_DATA_WARS_ = "Data.ClanWars.";
         public const string CACHE_DATA_CLANS = "Data.Clans";
         public const string CACHE_DATA_WARMEMBERS_ = "Data.WarMembers.";
+        public const string CACHE_DATA_WEIGHTS = "Data.Weights";
 
         public const string CACHE_PLAYER_DETAILS_ = "PlayerDetails.";
 

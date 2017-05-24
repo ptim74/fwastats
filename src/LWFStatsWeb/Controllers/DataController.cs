@@ -92,7 +92,7 @@ namespace LWFStatsWeb.Controllers
             {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
 
-                var warId = (from w in db.Wars where w.ClanTag == tag join m in db.WarMembers on w.ID equals m.WarID orderby m.WarID descending select m.WarID).FirstOrDefault();
+                var warId = (from w in db.Wars where w.ClanTag == tag join m in db.WarMembers on w.ID equals m.WarID where w.EndTime < DateTime.UtcNow.AddDays(-1) orderby m.WarID descending select m.WarID).FirstOrDefault();
 
                 var members = from m in db.WarMembers
                               where m.WarID == warId && m.IsOpponent == false
@@ -225,6 +225,35 @@ namespace LWFStatsWeb.Controllers
             });
 
             return Ok(model);
+        }
+
+        [FormatFilter]
+        [Route("Weights.{format}")]
+        public IActionResult Weights()
+        {
+            logger.LogInformation("Weights");
+
+            var model = memoryCache.GetOrCreate(Constants.CACHE_DATA_WEIGHTS, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
+
+                var data = new Weights();
+
+                foreach(var weight in db.Weights.Where(w => w.WarWeight > 0))
+                {
+                    data.Add(new WeightModel
+                    {
+                        Tag = weight.Tag,
+                        Weight = weight.WarWeight,
+                        LastModified = weight.LastModified
+                    });
+                }
+
+                return data;
+            });
+
+            return Ok(model);
+
         }
     }
 }

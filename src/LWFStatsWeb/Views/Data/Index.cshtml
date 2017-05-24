@@ -132,6 +132,36 @@
     </tbody>
 </table>
 
+<h3 id="get-service-list">Weights</h3>
+
+<table class="table table-bordered">
+    <tbody>
+        <tr>
+            <th class="col-xs-4">Description</th>
+            <td class="col-xs-8">Get list of all member weights</td>
+        </tr>
+        <tr>
+            <th>URL</th>
+            <td>@Url.Action("Weights", new { format = "FORMAT" })</td>
+        </tr>
+        <tr>
+            <th>Sample CSV</th>
+            @{ sample_url = Url.Action("Weights", new { format = "csv" }); }
+            <td><a href="@sample_url">@sample_url</a></td>
+        </tr>
+        <tr>
+            <th>Sample JSON</th>
+            @{ sample_url = Url.Action("Weights", new { format = "json" }); }
+            <td><a href="@sample_url">@sample_url</a></td>
+        </tr>
+        <tr>
+            <th>Sample XML</th>
+            @{ sample_url = Url.Action("Weights", new { format = "xml" }); }
+            <td><a href="@sample_url">@sample_url</a></td>
+        </tr>
+    </tbody>
+</table>
+
 <h2>HOW TO</h2>
 <div class="panel-group">
 

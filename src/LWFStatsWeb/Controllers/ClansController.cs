@@ -718,6 +718,7 @@ namespace LWFStatsWeb.Controllers
                 var service = CreateSheetService();
 
                 var sheet = service.Spreadsheets.Get(submitOptions.Value.SheetId).Execute();
+
                 foreach(var s in sheet.Sheets)
                 {
                     if (s.Properties.Title.Equals(submitOptions.Value.TabName))
@@ -739,6 +740,8 @@ namespace LWFStatsWeb.Controllers
 
                 var compositions = new Dictionary<int, int>();
                 var weightSection = new List<object>();
+                var tagSection = new List<object>();
+                var thSection = new List<object>();
 
                 for (int i = 0; i <= 11; i++)
                     compositions.Add(i, 0);
@@ -747,6 +750,8 @@ namespace LWFStatsWeb.Controllers
                 {
                     compositions[member.TownHallLevel]++;
                     weightSection.Add(member.Weight);
+                    tagSection.Add(member.Tag);
+                    thSection.Add(member.TownHallLevel);
                 }
 
                 var compositionSection = new List<object>();
@@ -760,6 +765,10 @@ namespace LWFStatsWeb.Controllers
 
                 var weightResult = this.UpdateSheet(service, submitOptions.Value.SheetId, submitOptions.Value.TabName, submitOptions.Value.WeightRange, weightSection);
 
+                var tagResult = this.UpdateSheet(service, submitOptions.Value.SheetId, submitOptions.Value.TabName, submitOptions.Value.TagRange, tagSection);
+
+                var thResult = this.UpdateSheet(service, submitOptions.Value.SheetId, submitOptions.Value.TabName, submitOptions.Value.THRange, thSection);
+
                 model.Message = "Redirecting to Weight Sheet...";
                 model.Status = true;
             }
@@ -772,24 +781,26 @@ namespace LWFStatsWeb.Controllers
 
         private SheetsService CreateSheetService()
         {
-            ServiceAccountCredential credential = new ServiceAccountCredential(
-               new ServiceAccountCredential.Initializer(submitOptions.Value.ClientEmail)
-               {
-                   Scopes = new[] { SheetsService.Scope.Spreadsheets }
-               }.FromPrivateKey(submitOptions.Value.PrivateKey));
-
-            return new SheetsService(new BaseClientService.Initializer()
-            {
-                HttpClientInitializer = credential,
-                ApplicationName = "FWA Stats",
-            });
+            return new SheetsService(
+                new BaseClientService.Initializer()
+                {
+                    ApplicationName = "FWA Stats",
+                    HttpClientInitializer = new ServiceAccountCredential(
+                        new ServiceAccountCredential.Initializer(submitOptions.Value.ClientEmail)
+                        {
+                            Scopes = new[] { SheetsService.Scope.Spreadsheets }
+                        }.FromPrivateKey(submitOptions.Value.PrivateKey))
+                });
         }
 
-        private UpdateValuesResponse UpdateSheet(SheetsService service, string sheetID, string tabName, string range, IList<object> values)
+        private UpdateValuesResponse UpdateSheet(
+            SheetsService service, string sheetID, string tabName, string range, IList<object> values)
         {
-            var valueRange = new ValueRange();
-            valueRange.MajorDimension = "COLUMNS";
-            valueRange.Values = new List<IList<object>> { values };
+            var valueRange = new ValueRange
+            {
+                MajorDimension = "COLUMNS",
+                Values = new List<IList<object>> { values }
+            };
 
             var update = service.Spreadsheets.Values.Update(valueRange, sheetID, string.Format("{0}!{1}", tabName, range));
             update.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.RAW;
