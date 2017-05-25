@@ -14,6 +14,7 @@ namespace LWFStatsWeb.Models.ClanViewModels
         public string LatestClan { get; set; }
         public string LatestTag { get; set; }
         public DateTime LatestDate { get; set; }
+        public bool Blacklisted { get; set; }
 
         public string LinkID
         {

@@ -47,7 +47,7 @@ namespace LWFStatsWeb.Controllers
         {
             var model = new IndexViewModel();
 
-            var loadedClans = await loader.Load();
+            var loadedClans = await loader.Load("FWA");
 
             model.Errors = loader.Errors;
 
@@ -64,7 +64,7 @@ namespace LWFStatsWeb.Controllers
             return model;
         }
 
-        protected async void DeleteTasks()
+        protected async Task DeleteTasks()
         {
             foreach(var task in db.UpdateTasks)
             {
@@ -72,6 +72,35 @@ namespace LWFStatsWeb.Controllers
             }
 
             await db.SaveChangesAsync();
+        }
+
+        protected async Task UpdateBlacklisted()
+        {
+            var loadedClans = await loader.Load("Blacklisted");
+
+            var newClans = loadedClans.ToDictionary(c => c.Tag, c => c.Name);
+
+            var existingClans = db.BlacklistedClans.ToDictionary(c => c.Tag);
+
+            foreach (var clan in existingClans.Values)
+            {
+                if(!newClans.ContainsKey(clan.Tag))
+                {
+                    db.BlacklistedClans.Remove(clan);
+                }
+            }
+
+            foreach(var clan in newClans)
+            {
+                if(!existingClans.ContainsKey(clan.Key))
+                {
+                    var newClan = new BlacklistedClan { Tag = clan.Key, Name = clan.Value };
+                    db.BlacklistedClans.Add(newClan);
+                    existingClans.Add(clan.Key, newClan);
+                }
+            }
+
+            db.SaveChanges();
         }
 
         protected async Task<UpdateTaskResponse> UpdatePlayer(string playerTag)
@@ -535,10 +564,10 @@ namespace LWFStatsWeb.Controllers
             }
         }
 
-        protected void PerformFinished()
+        protected async Task PerformFinished()
         {
             logger.LogInformation("PerformFinished.DeleteTasks");
-            this.DeleteTasks();
+            await this.DeleteTasks();
 
             logger.LogInformation("PerformFinished.DeleteHistory");
             statistics.DeleteHistory();
@@ -561,6 +590,9 @@ namespace LWFStatsWeb.Controllers
             memoryCache.Remove(Constants.CACHE_CLANS_DEPARTED);
             memoryCache.Remove(Constants.CACHE_SYNCS_ALL);
             memoryCache.Remove(Constants.CACHE_DATA_CLANS);
+
+            logger.LogInformation("PerformFinished.Blacklisted");
+            await this.UpdateBlacklisted();
 
             logger.LogInformation("PerformFinished.Done");
         }
@@ -612,7 +644,7 @@ namespace LWFStatsWeb.Controllers
             return View("Index", model);
         }
 
-        public IActionResult UpdateFinished()
+        public async Task<IActionResult> UpdateFinished()
         {
             logger.LogInformation("UpdateFinished.Begin");
 
@@ -620,7 +652,7 @@ namespace LWFStatsWeb.Controllers
 
             try
             {
-                this.PerformFinished();
+                await this.PerformFinished();
             }
             catch(Exception e)
             {

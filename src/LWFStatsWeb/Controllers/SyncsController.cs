@@ -37,6 +37,8 @@ namespace LWFStatsWeb.Controllers
             if (count != null && count.HasValue)
                 warsToTake = count.Value;
 
+            var blacklisted = db.BlacklistedClans.Select(c => c.Tag).ToDictionary(c => c);
+
             var recentSyncs = db.WarSyncs.Where(w => w.Start < Constants.MaxVisibleEndTime).OrderByDescending(w => w.Start).Take(warsToTake).ToList();
 
             var earliestWar = DateTime.MaxValue;
@@ -119,6 +121,7 @@ namespace LWFStatsWeb.Controllers
                             OpponentTag = r.OpponentTag,
                             OpponentName = r.OpponentName,
                             OpponentBadgeURL = r.OpponentBadge,
+                            OpponentIsBlacklisted = blacklisted.ContainsKey(r.OpponentTag),
                             IsAlliance = isAlliance
                         });
                     }
@@ -169,6 +172,8 @@ namespace LWFStatsWeb.Controllers
 
             model.Sync = db.WarSyncs.Where(s => s.Name == id).FirstOrDefault();
 
+            var blacklisted = db.BlacklistedClans.Select(c => c.Tag).ToList();
+
             var searchTime = model.Sync.SearchTime;
 
             var validClans = new HashSet<string>();
@@ -190,6 +195,8 @@ namespace LWFStatsWeb.Controllers
                         model.Wars.Add(war);
                         if (war.EndTime < syncStart)
                             syncStart = war.EndTime;
+                        if (blacklisted.Contains(war.OpponentTag))
+                            war.Blacklisted = true;
                     }
                 }
             }

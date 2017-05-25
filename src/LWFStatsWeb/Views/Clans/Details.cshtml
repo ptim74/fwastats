@@ -158,7 +158,7 @@
                 <td>
                     <a asp-route-id="@member.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@member.Name</a>
                     @if (member_role != "")
-            {
+                    {
                         <span class="text-right label @member_class">@member_role<span class="hidden-xs">@member_role2</span></span>
                     }
                 </td>
@@ -172,7 +172,7 @@
                     @member.Trophies
                 </td>
             </tr>
-                    }
+        }
                 </tbody>
             </table>
         }
@@ -249,7 +249,14 @@
                                 <a class="@opp_class" asp-route-id="@war.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.OpponentName</a>
                                 @if (!war.Matched && valid_alliance_clan)
                                 {
-                                    <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
+                                    if (war.Blacklisted)
+                                    {
+                                        <small class="label label-default">B<span class="hidden-xs">lack </span>L<span class="hidden-xs">isted</span></small>
+                                    }
+                                    else
+                                    {
+                                        <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
+                                    }
                                 }
                                 <br />
                                 <small class="text-warning" style="font-weight:bold">@war.OpponentStars <span class="glyphicon glyphicon-star" /></small>
@@ -261,7 +268,7 @@
                                 <br />
                                 @if (Model.WarsWithDetails.Contains(war.ID))
                                 {
-                                    <a class="label label-default" asp-route-id="@war.ClanLinkID" asp-route-warid="@war.WarLinkID" asp-area="" asp-controller="Clans" asp-action="WarDetails">Details</a>
+                                    <a class="label label-info" asp-route-id="@war.ClanLinkID" asp-route-warid="@war.WarLinkID" asp-area="" asp-controller="Clans" asp-action="WarDetails">Details</a>
                                 }
                                 @if (valid_alliance_clan && !war.Synced)
                                 {

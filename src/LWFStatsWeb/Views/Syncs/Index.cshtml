@@ -72,7 +72,14 @@
                         <a class="@result_class" asp-route-id="@warResult.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@warResult.OpponentName</a>
                         @if (!string.IsNullOrEmpty(warResult.OpponentTag) && !warResult.IsAlliance)
                         {
-                            <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
+                            if (warResult.OpponentIsBlacklisted)
+                            {
+                                <small class="label label-default">B<span class="hidden-xs">lack </span>L<span class="hidden-xs">isted</span></small>
+                            }
+                            else
+                            {
+                                <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
+                            }
                         }
                     </td>
                 }

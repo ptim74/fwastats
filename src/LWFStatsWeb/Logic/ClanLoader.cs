@@ -25,7 +25,7 @@ namespace LWFStatsWeb.Logic
     {
         List<string> Errors { get; set; }
 
-        Task<List<ClanObject>> Load();
+        Task<List<ClanObject>> Load(string listName);
     }
 
     public class ClanLoader : IClanLoader
@@ -51,14 +51,14 @@ namespace LWFStatsWeb.Logic
             }
         }
 
-        public async Task<List<ClanObject>> Load()
+        public async Task<List<ClanObject>> Load(string listName)
         {
             Errors = new List<string>();
             Objects = new List<ClanObject>();
 
             var tagDict = new Dictionary<string, string>();
 
-            foreach(var listOptions in options.Value)
+            foreach(var listOptions in options.Value.Where(l => l.Code == listName))
             {
                 var data = await LoadUrl(listOptions.Url);
 

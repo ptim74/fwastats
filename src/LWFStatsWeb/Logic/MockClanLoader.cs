@@ -9,7 +9,7 @@ namespace LWFStatsWeb.Logic
     {
         public List<string> Errors { get; set; }
 
-        public Task<List<ClanObject>> Load()
+        public Task<List<ClanObject>> Load(string listName)
         {
             Errors = new List<string>();
 
@@ -37,7 +37,7 @@ namespace LWFStatsWeb.Logic
             list.Add(new ClanObject { Tag = "#LLPCJRYP", Name = "War Farmers 27" });
 
             foreach (var clan in list)
-                clan.Group = "MOCK";
+                clan.Group = listName;
 
             return Task.FromResult(list);
         }

@@ -251,6 +251,17 @@ namespace LWFStatsWeb.Controllers
                 details.Validity = this.db.ClanValidities.SingleOrDefault(c => c.Tag == tag);
                 details.Events = new List<ClanDetailsEvent>();
 
+                var blacklisted = db.BlacklistedClans.Select(c => c.Tag).ToList();
+
+                if (details.Clan.Wars != null)
+                {
+                    foreach (var war in details.Clan.Wars)
+                    {
+                        if (blacklisted.Contains(war.OpponentTag))
+                            war.Blacklisted = true;
+                    }
+                }
+
                 var thlevels = (from p in db.Players join m in db.Members on p.Tag equals m.Tag where m.ClanTag == tag select new { p.Tag, p.TownHallLevel });
                 foreach(var thlevel in thlevels.ToList())
                 {
@@ -300,6 +311,8 @@ namespace LWFStatsWeb.Controllers
 
                 var clans = new Dictionary<string, FollowingClan>();
 
+                var blacklisted = db.BlacklistedClans.Select(c => c.Tag).ToDictionary(c => c);
+
                 var mismatches = from w in db.Wars where w.Synced == true && w.Matched == false && w.EndTime < Constants.MaxVisibleEndTime orderby w.ID select w;
 
                 foreach (var mismatch in mismatches)
@@ -308,6 +321,10 @@ namespace LWFStatsWeb.Controllers
                     if (!clans.TryGetValue(mismatch.OpponentTag, out followingClan))
                     {
                         followingClan = new FollowingClan { Tag = mismatch.OpponentTag };
+                        if (blacklisted.ContainsKey(followingClan.Tag))
+                        {
+                            followingClan.Blacklisted = true;
+                        }
                         clans.Add(mismatch.OpponentTag, followingClan);
                     }
 

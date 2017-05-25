@@ -51,6 +51,10 @@
                 </td>
                 <td class="search">
                     <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
+                    @if (clan.Blacklisted)
+                    {
+                        <small class="label label-default">B<span class="hidden-xs">lack </span>L<span class="hidden-xs">isted</span></small>
+                    }
                 </td>
                 <td>
                     @Html.DisplayFor(modelItem => clan.Wars)

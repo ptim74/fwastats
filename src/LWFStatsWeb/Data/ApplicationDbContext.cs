@@ -56,7 +56,7 @@ namespace LWFStatsWeb.Data
         public virtual DbSet<ClanEvent> ClanEvents { get; set; }
         public virtual DbSet<WarMember> WarMembers { get; set; }
         public virtual DbSet<WarAttack> WarAttacks { get; set; }
-
+        public virtual DbSet<BlacklistedClan> BlacklistedClans { get; set; }
 
         // Add Migration:
         // CMD> dotnet ef migrations {MigrationName}

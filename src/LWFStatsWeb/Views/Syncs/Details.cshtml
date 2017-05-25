@@ -77,7 +77,14 @@
                     <a class="@opp_class" asp-route-id="@war.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.OpponentName</a>
                     @if (!war.Matched)
                     {
-                        <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
+                        if (war.Blacklisted)
+                        {
+                            <small class="label label-default">B<span class="hidden-xs">lack </span>L<span class="hidden-xs">isted</span></small>
+                        }
+                        else
+                        {
+                            <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
+                        }
                     }
                     <br />
                     <small class="text-warning" style="font-weight:bold">@war.OpponentStars <span class="glyphicon glyphicon-star" /></small>

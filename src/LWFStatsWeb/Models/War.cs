@@ -64,6 +64,9 @@ namespace LWFStatsWeb.Models
         public bool Friendly { get; set; }
 
         [NotMapped]
+        public bool Blacklisted { get; set; }
+
+        [NotMapped]
         [DataMember]
         public string State { get; set; }
 

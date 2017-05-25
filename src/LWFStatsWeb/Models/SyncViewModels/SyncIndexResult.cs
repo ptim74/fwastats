@@ -12,6 +12,7 @@ namespace LWFStatsWeb.Models.SyncViewModels
         public string OpponentName { get; set; }
         public string OpponentTag { get; set; }
         public string OpponentBadgeURL { get; set; }
+        public bool OpponentIsBlacklisted { get; set; }
 
         public string OpponentLinkID
         {
