@@ -52,6 +52,9 @@
         <thead>
             <tr>
                 <th>
+                    #
+                </th>
+                <th>
                     Name
                 </th>
                 <th>
@@ -67,7 +70,9 @@
             {
                 var member_class = member.InWar ? "success" : "danger";
                 var member_checked = member.InWar ? "checked" : "";
+                var member_pos = member_id + 1;
                 <tr class="@member_class">
+                    <td>@member_pos</td>
                     <td>
                         <input type="hidden" name="Members[@member_id].Tag" value="@member.Tag" />
                         @if (member.TownHallLevel == 11)

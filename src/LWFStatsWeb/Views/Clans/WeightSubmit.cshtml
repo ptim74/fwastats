@@ -4,7 +4,6 @@
     ViewBag.Title = Model.ClanName + " Weight Submit";
     ViewBag.MetaImage = Model.ClanBadge;
     ViewBag.MetaRobots = "noindex, nofollow";
-    //int member_id = 0;
 }
 
 <ol class="breadcrumb">
@@ -29,61 +28,19 @@
     </div>
 </div>
 
-@if(Model.Status == false)
+@if (Model.Status)
 {
-    <div class="alert alert-danger"><b>Error: </b>@Model.Message</div>
+    <div class="alert alert-success"><strong>Success!</strong> @Model.Message</div>
 }
 else
 {
-    <div id="div-wait" class="alert alert-info"></div>
-    <h4>Weight Sheet Response</h4>
-    <div id="div-result" class="alert alert-warning"></div>
+    <div class="alert alert-danger"><strong>Error!</strong> @Model.Message</div>
 }
 
 <div>
     <a class="btn btn-default" asp-area="" asp-controller="Clans" asp-action="Weight" asp-route-id="@Model.ClanLink">Back to Clan Weight</a>
-    <a class="btn btn-default" href="@Model.SheetUrl">View Weight Sheet</a>
-</div>
-
-@section scripts {
-
-    @if(Model.Status == true)
+    @if (Model.Status)
     {
-        <script>
-
-            $(function () {
-
-                var seconds_to_poll = 60;
-
-                function dataCallback(data, responseText, jqXHR) {
-                    $('#div-result').text(data);
-                }
-
-                function failCallback(data, responseText, jqXHR) {
-                    seconds_to_poll = 0;
-                    $('#div-result').text("Unknown error");
-                    $('#div-wait').hide();
-                }
-
-                function timerCallback()
-                {
-                    if (seconds_to_poll > 0)
-                    {
-                        $('#div-wait').text("It can take up to 60 seconds before weight gets submitted. Wait " + seconds_to_poll + " seconds.");
-                        $.getJSON('/Clan/@Model.ClanLink/WeightSubmitResult?counter=' + seconds_to_poll, dataCallback).fail(failCallback);
-                        seconds_to_poll--;
-                        setTimeout(timerCallback, 1000);
-                     }
-                    else
-                    {
-                        $('#div-wait').hide();
-                    }
-                }
-
-                timerCallback();
-
-            });
-
-        </script>
+        <a class="btn btn-default" href="@Model.SheetUrl">View Weight Sheet</a>
     }
-}
+</div>

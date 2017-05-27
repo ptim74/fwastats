@@ -17,6 +17,8 @@ using Google.Apis.Sheets.v4.Data;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
+using System.Net;
+using Newtonsoft.Json;
 
 namespace LWFStatsWeb.Controllers
 {
@@ -27,13 +29,15 @@ namespace LWFStatsWeb.Controllers
         private IMemoryCache memoryCache;
         ILogger<ClansController> logger;
         IOptions<WeightSubmitOptions> submitOptions;
+        IOptions<GoogleServiceOptions> googleService;
 
         public ClansController(
             ApplicationDbContext db,
             IClashApi api,
             IMemoryCache memoryCache,
             ILogger<ClansController> logger,
-            IOptions<WeightSubmitOptions> submitOptions
+            IOptions<WeightSubmitOptions> submitOptions,
+            IOptions<GoogleServiceOptions> googleService
             )
         {
             this.db = db;
@@ -41,6 +45,7 @@ namespace LWFStatsWeb.Controllers
             this.memoryCache = memoryCache;
             this.logger = logger;
             this.submitOptions = submitOptions;
+            this.googleService = googleService;
         }
 
         protected IndexViewModel GetClanList()
@@ -718,35 +723,16 @@ namespace LWFStatsWeb.Controllers
             }
         }
 
-        [Route("Clan/{id}/WeightSubmitResult")]
-        public IActionResult WeightSubmitResult(string id)
-        {
-            var service = CreateSheetService();
-
-            var check = service.Spreadsheets.Values.Get(submitOptions.Value.SheetId, submitOptions.Value.ResultRange);
-            check.MajorDimension = SpreadsheetsResource.ValuesResource.GetRequest.MajorDimensionEnum.COLUMNS;
-            check.ValueRenderOption = SpreadsheetsResource.ValuesResource.GetRequest.ValueRenderOptionEnum.UNFORMATTEDVALUE;
-            var result = check.Execute();
-
-            var resultText = string.Empty;
-
-            if (result.Values != null)
-                foreach (var i in result.Values)
-                    foreach (var j in i)
-                        resultText = j.ToString();
-
-            return Json(resultText);
-        }
-
-        protected IActionResult WeightSubmit(WeightViewModel weight)
+        protected async Task<IActionResult> WeightSubmit(WeightViewModel weight)
         {
             var model = new WeightSubmitModel()
             {
+                Status = false,
                 ClanTag = weight.ClanTag,
                 ClanName = weight.ClanName,
                 ClanLink = weight.ClanLink,
-                ClanBadge = weight.ClanBadge, 
-                SheetUrl = "http://tinyurl.com/FWABaseWeightResponse"
+                ClanBadge = weight.ClanBadge,
+                SheetUrl = submitOptions.Value.ResponseURL
             };
 
             try
@@ -754,21 +740,6 @@ namespace LWFStatsWeb.Controllers
                 logger.LogInformation("Weight.Submit {0}", weight.ClanLink);
 
                 var service = CreateSheetService();
-
-                var lastSubmitDate = DateTime.MinValue;
-
-                var check = service.Spreadsheets.Values.Get(submitOptions.Value.SheetId, submitOptions.Value.CheckRange);
-                check.MajorDimension = SpreadsheetsResource.ValuesResource.GetRequest.MajorDimensionEnum.COLUMNS;
-                check.ValueRenderOption = SpreadsheetsResource.ValuesResource.GetRequest.ValueRenderOptionEnum.UNFORMATTEDVALUE;
-                var result = check.Execute();
-
-                if (result.Values != null)
-                    foreach(var i in result.Values)
-                        foreach (var j in i)
-                            DateTime.TryParse(j.ToString(), out lastSubmitDate);
-
-                if (lastSubmitDate > DateTime.UtcNow.AddMinutes(-1))
-                    throw new Exception("Someone else is using weight sheet right now, please try again later");
 
                 var nameSection = new List<object>();
                 nameSection.Add(weight.ClanName);
@@ -799,9 +770,6 @@ namespace LWFStatsWeb.Controllers
                 compositionSection.Add(compositions[8]);
                 compositionSection.Add(compositions[7] + compositions[6] + compositions[5] + compositions[4] + compositions[3]);
 
-                var submitSection = new List<object>();
-                submitSection.Add("SubmitDataAuto");
-
                 var updateRequestBody = new BatchUpdateValuesRequest();
                 updateRequestBody.Data = new List<ValueRange>();
 
@@ -815,19 +783,33 @@ namespace LWFStatsWeb.Controllers
 
                 updateRequestBody.Data.Add(new ValueRange { MajorDimension = "COLUMNS", Range = submitOptions.Value.THRange, Values = new List<IList<object>> { thSection } });
 
-                updateRequestBody.Data.Add(new ValueRange { MajorDimension = "COLUMNS", Range = submitOptions.Value.AutoSubmitRange, Values = new List<IList<object>> { submitSection } });
-
-                updateRequestBody.Data.Add(new ValueRange { MajorDimension = "COLUMNS", Range = submitOptions.Value.CheckRange, Values = new List<IList<object>> { new List<object> { DateTime.UtcNow.ToString("s") } } });
-
                 updateRequestBody.ValueInputOption = "RAW";
                 updateRequestBody.IncludeValuesInResponse = false;
 
                 var updateRequest = service.Spreadsheets.Values.BatchUpdate(updateRequestBody, submitOptions.Value.SheetId);
 
-                var updateResponse = updateRequest.Execute();
+                var updateResponse = await updateRequest.ExecuteAsync();
 
-                model.Message = "Redirecting to Weight Sheet...";
-                model.Status = true;
+                var submitRequest = WebRequest.Create(submitOptions.Value.SubmitURL);
+                var submitResponse = await submitRequest.GetResponseAsync();
+
+                using (var reader = new StreamReader(submitResponse.GetResponseStream()))
+                {
+                    var data = await reader.ReadToEndAsync();
+                    model.Message = JsonConvert.DeserializeObject<string>(data);
+                }
+
+                if (string.IsNullOrEmpty(model.Message))
+                {
+                    model.Message ="Unknown error";
+                }
+                else
+                {
+                    if (model.Message.StartsWith("Submitted", StringComparison.OrdinalIgnoreCase))
+                    {
+                        model.Status = true;
+                    }
+                }
             }
             catch(Exception e)
             {
@@ -841,18 +823,18 @@ namespace LWFStatsWeb.Controllers
             return new SheetsService(
                 new BaseClientService.Initializer()
                 {
-                    ApplicationName = "FWA Stats",
+                    ApplicationName = googleService.Value.ApplicationName,
                     HttpClientInitializer = new ServiceAccountCredential(
-                        new ServiceAccountCredential.Initializer(submitOptions.Value.ClientEmail)
+                        new ServiceAccountCredential.Initializer(googleService.Value.ClientEmail)
                         {
                             Scopes = new[] { SheetsService.Scope.Spreadsheets }
-                        }.FromPrivateKey(submitOptions.Value.PrivateKey))
+                        }.FromPrivateKey(googleService.Value.PrivateKey))
                 });
         }
 
         [HttpPost]
         [Route("Clan/{id}/Weight")]
-        public IActionResult Weight(string id, WeightViewModel model)
+        public async Task<IActionResult> Weight(string id, WeightViewModel model)
         {
             logger.LogInformation("Weight.Post {0}", id);
 
@@ -865,7 +847,7 @@ namespace LWFStatsWeb.Controllers
 
                 if ( model.Command.Equals("submit", StringComparison.OrdinalIgnoreCase))
                 {
-                    return WeightSubmit(WeightData(id,model.WarID));
+                    return await WeightSubmit(WeightData(id,model.WarID));
                 }
             }
 

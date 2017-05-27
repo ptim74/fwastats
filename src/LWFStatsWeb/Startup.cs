@@ -66,6 +66,8 @@ namespace LWFStatsWeb
             services.Configure<StatisicsHistory>(Configuration.GetSection("History"));
             services.Configure<WeightSubmitOptions>(Configuration.GetSection("WeightSubmit"));
 
+            services.Configure<GoogleServiceOptions>(Configuration.GetSection("GoogleService"));
+
             //services.Configure<GoogleOptions>(Configuration.GetSection("GoogleAuth"));
 
             var csvFormatterOptions = new CsvFormatterOptions();
