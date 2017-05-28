@@ -808,6 +808,7 @@ namespace LWFStatsWeb.Controllers
                     if (model.Message.StartsWith("Submitted", StringComparison.OrdinalIgnoreCase))
                     {
                         model.Status = true;
+                        model.SheetUrl = "http://tinyurl.com/FWABaseWeightResponse";
                     }
                 }
             }

@@ -31,16 +31,16 @@
 @if (Model.Status)
 {
     <div class="alert alert-success"><strong>Success!</strong> @Model.Message</div>
+    <div>
+        <a class="btn btn-default" asp-area="" asp-controller="Clans" asp-action="Weight" asp-route-id="@Model.ClanLink">Back to Clan Weight</a>
+        <a class="btn btn-default" href="@Model.SheetUrl">View Result Sheet</a>
+    </div>
 }
 else
 {
     <div class="alert alert-danger"><strong>Error!</strong> @Model.Message</div>
+    <div>
+        <a class="btn btn-default" asp-area="" asp-controller="Clans" asp-action="Weight" asp-route-id="@Model.ClanLink">Back to Clan Weight</a>
+        <a class="btn btn-default" href="@Model.SheetUrl">View Submit Sheet</a>
+    </div>
 }
-
-<div>
-    <a class="btn btn-default" asp-area="" asp-controller="Clans" asp-action="Weight" asp-route-id="@Model.ClanLink">Back to Clan Weight</a>
-    @if (Model.Status)
-    {
-        <a class="btn btn-default" href="@Model.SheetUrl">View Weight Sheet</a>
-    }
-</div>
