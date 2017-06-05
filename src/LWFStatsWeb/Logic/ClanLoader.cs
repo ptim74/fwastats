@@ -15,7 +15,8 @@ namespace LWFStatsWeb.Logic
 
     public class ClanListDetails
     {
-        public string Url { get; set; }
+        public string SheetId { get; set; }
+        public string Range { get; set; }
         public string Code { get; set; }
         public int TagColumn { get; set; }
         public int NameColumn { get; set; }
@@ -31,10 +32,14 @@ namespace LWFStatsWeb.Logic
     public class ClanLoader : IClanLoader
     {
         IOptions<ClanListOptions> options;
+        IGoogleSheetsService googleSheets;
 
-        public ClanLoader(IOptions<ClanListOptions> options)
+        public ClanLoader(
+            IOptions<ClanListOptions> options,
+            IGoogleSheetsService googleSheets)
         {
             this.options = options;
+            this.googleSheets = googleSheets;
         }
 
         public List<string> Errors { get; set; }
@@ -60,49 +65,42 @@ namespace LWFStatsWeb.Logic
 
             foreach(var listOptions in options.Value.Where(l => l.Code == listName))
             {
-                var data = await LoadUrl(listOptions.Url);
+                var data = await googleSheets.Get(listOptions.SheetId, "ROWS", listOptions.Range);
 
-                var countBefore = Objects.Count();
-
-                foreach (var row in data.Split('\n'))
+                if(data != null)
                 {
-                    var cells = row.Replace("\r", "").Split(',');
-
-                    string tag = null;
-                    string name = null;
-
-                    if (cells.Count() >= listOptions.TagColumn && listOptions.TagColumn > 0)
-                        tag = cells[listOptions.TagColumn - 1];
-                    if (cells.Count() >= listOptions.NameColumn && listOptions.NameColumn > 0)
-                        name = cells[listOptions.NameColumn - 1];
-
-                    if(tag != null && tag.StartsWith("\"") && tag.EndsWith("\""))
+                    foreach(var row in data)
                     {
-                        tag = tag.Substring(1, tag.Length -2);
-                        tag = tag.Replace("\"\"", "\"");
-                    }
+                        string tag = null;
+                        string name = null;
 
-                    if (tag != null && tag.StartsWith("#"))
-                    {
-                        tag = tag.ToUpperInvariant();
-                        tag = tag.Replace("O", "0");
-                        string existingName;
-                        if(tagDict.TryGetValue(tag,out existingName))
+                        if (row.Count > listOptions.TagColumn && listOptions.TagColumn >= 0)
+                            tag = (string)row[listOptions.TagColumn];
+                        if (row.Count > listOptions.NameColumn && listOptions.NameColumn >= 0)
+                            name = (string)row[listOptions.NameColumn];
+
+                        if (tag != null && tag.StartsWith("#"))
                         {
-                            Errors.Add(string.Format("Duplicate tag {0} for {1} ({2}) and {3}", tag, name, listOptions.Code, existingName));
-                        }
-                        else
-                        {
-                            tagDict.Add(tag, string.Format("{0} ({1})", name, listOptions.Code));
-                            Objects.Add(new ClanObject { Tag = tag, Name = name, Group = listOptions.Code });
+                            tag = tag.ToUpperInvariant();
+                            tag = tag.Replace("O", "0");
+                            if (tagDict.TryGetValue(tag, out string existingName))
+                            {
+                                Errors.Add(string.Format("Duplicate tag {0} for {1} ({2}) and {3}", tag, name, listOptions.Code, existingName));
+                            }
+                            else
+                            {
+                                tagDict.Add(tag, string.Format("{0} ({1})", name, listOptions.Code));
+                                Objects.Add(new ClanObject { Tag = tag, Name = name, Group = listOptions.Code });
+                            }
                         }
                     }
                 }
 
-                if(Objects.Count() == countBefore)
+                if (Objects.Count == 0)
                 {
-                    Errors.Add(string.Format("{0}-list is empty",listOptions.Code));
+                    Errors.Add(string.Format("{0}-list is empty", listOptions.Code));
                 }
+
             }
 
             return Objects;

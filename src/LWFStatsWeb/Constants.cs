@@ -37,5 +37,8 @@ namespace LWFStatsWeb
         public const string CACHE_SYNCS_ALL = "Syncs.All";
         public const string CACHE_SYNC_DETAILS_ = "Sync.Details.";
 
+        public const string LIST_FWA = "FWA";
+        public const string LIST_BLACKLISTED = "Blacklisted";
+
     }
 }

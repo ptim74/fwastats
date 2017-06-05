@@ -65,6 +65,7 @@ namespace LWFStatsWeb
             services.Configure<ClashApiOptions>(Configuration.GetSection("ClashApi"));
             services.Configure<StatisicsHistory>(Configuration.GetSection("History"));
             services.Configure<WeightSubmitOptions>(Configuration.GetSection("WeightSubmit"));
+            services.Configure<WeightDatabaseOptions>(Configuration.GetSection("WeightDatabase"));
 
             services.Configure<GoogleServiceOptions>(Configuration.GetSection("GoogleService"));
 
@@ -96,6 +97,7 @@ namespace LWFStatsWeb
             services.AddTransient<IClanUpdater, ClanUpdater>();
             services.AddTransient<IClanStatistics, ClanStatistics>();
             services.AddTransient<IClashApi, ClashApi>();
+            services.AddTransient<IGoogleSheetsService, GoogleSheetsService>();
 
             // Caching
             services.AddMemoryCache();

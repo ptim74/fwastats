@@ -10,6 +10,7 @@ using LWFStatsWeb.Logic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
 
 namespace LWFStatsWeb.Controllers
 {
@@ -22,6 +23,8 @@ namespace LWFStatsWeb.Controllers
         private readonly IClanStatistics statistics;
         ILogger<UpdateController> logger;
         private IMemoryCache memoryCache;
+        IGoogleSheetsService googleSheets;
+        IOptions<WeightDatabaseOptions> weightDatabase;
 
         private static object lockObject = new object();
 
@@ -32,7 +35,9 @@ namespace LWFStatsWeb.Controllers
             IClashApi api,
             IClanStatistics statistics,
             IMemoryCache memoryCache,
-            ILogger<UpdateController> logger)
+            ILogger<UpdateController> logger,
+            IGoogleSheetsService googleSheets,
+            IOptions<WeightDatabaseOptions> weightDatabase)
         {
             this.db = context;
             this.loader = loader;
@@ -41,13 +46,15 @@ namespace LWFStatsWeb.Controllers
             this.statistics = statistics;
             this.memoryCache = memoryCache;
             this.logger = logger;
+            this.googleSheets = googleSheets;
+            this.weightDatabase = weightDatabase;
         }
 
         protected async Task<IndexViewModel> GetUpdates()
         {
             var model = new IndexViewModel();
 
-            var loadedClans = await loader.Load("FWA");
+            var loadedClans = await loader.Load(Constants.LIST_FWA);
 
             model.Errors = loader.Errors;
 
@@ -76,7 +83,7 @@ namespace LWFStatsWeb.Controllers
 
         protected async Task UpdateBlacklisted()
         {
-            var loadedClans = await loader.Load("Blacklisted");
+            var loadedClans = await loader.Load(Constants.LIST_BLACKLISTED);
 
             var newClans = loadedClans.ToDictionary(c => c.Tag, c => c.Name);
 
@@ -101,6 +108,62 @@ namespace LWFStatsWeb.Controllers
             }
 
             db.SaveChanges();
+        }
+
+        protected async Task UpdateWeights()
+        {
+            var data = await googleSheets.Get(weightDatabase.Value.SheetId, "ROWS", weightDatabase.Value.Range);
+
+            if(data != null)
+            {
+                var weights = db.Weights.ToDictionary(w => w.Tag);
+                var updates = 0;
+
+                foreach(var row in data)
+                {
+                    var tag = "";
+                    var weight = 0;
+
+                    if (row.Count > weightDatabase.Value.TagColumn && row[weightDatabase.Value.TagColumn] != null)
+                        tag = row[weightDatabase.Value.TagColumn].ToString();
+                    if (row.Count > weightDatabase.Value.WeightColumn && row[weightDatabase.Value.WeightColumn] != null)
+                        int.TryParse(row[weightDatabase.Value.WeightColumn].ToString(), out weight);
+
+                    tag = Utils.LinkIdToTag(tag);
+
+                    if (!string.IsNullOrEmpty(tag))
+                    {
+                        if (weights.TryGetValue(tag, out var w))
+                        {
+                            if(weight <= 110)
+                                weight *= 1000;
+
+                            if (weight > w.WarWeight && weight <= 110000)
+                            {
+                                w.WarWeight = weight;
+                                w.LastModified = DateTime.UtcNow;
+                                updates++;
+                            }
+                        }
+                        else
+                        {
+                            var newWeight = new Weight { Tag = tag, WarWeight = weight, LastModified = DateTime.UtcNow };
+                            db.Weights.Add(newWeight);
+                            weights.Add(tag, newWeight);
+                            updates++;
+                        }
+                    }
+
+                    if(updates > 100)
+                    {
+                        db.SaveChanges();
+                        updates = 0;
+                    }
+                }
+
+                db.SaveChanges();
+            }
+
         }
 
         protected async Task<UpdateTaskResponse> UpdatePlayer(string playerTag)
@@ -593,6 +656,9 @@ namespace LWFStatsWeb.Controllers
 
             logger.LogInformation("PerformFinished.Blacklisted");
             await this.UpdateBlacklisted();
+
+            logger.LogInformation("PerformFinished.Weights");
+            await this.UpdateWeights();
 
             logger.LogInformation("PerformFinished.Done");
         }

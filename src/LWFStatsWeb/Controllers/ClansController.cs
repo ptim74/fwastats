@@ -13,10 +13,6 @@ using System.IO;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Google.Apis.Sheets.v4.Data;
-using Google.Apis.Sheets.v4;
-using Google.Apis.Auth.OAuth2;
-using Google.Apis.Services;
 using System.Net;
 using Newtonsoft.Json;
 
@@ -29,7 +25,8 @@ namespace LWFStatsWeb.Controllers
         private IMemoryCache memoryCache;
         ILogger<ClansController> logger;
         IOptions<WeightSubmitOptions> submitOptions;
-        IOptions<GoogleServiceOptions> googleService;
+        IGoogleSheetsService googleSheets;
+        IClanLoader clanLoader;
 
         public ClansController(
             ApplicationDbContext db,
@@ -37,7 +34,8 @@ namespace LWFStatsWeb.Controllers
             IMemoryCache memoryCache,
             ILogger<ClansController> logger,
             IOptions<WeightSubmitOptions> submitOptions,
-            IOptions<GoogleServiceOptions> googleService
+            IGoogleSheetsService googleSheets,
+            IClanLoader clanLoader
             )
         {
             this.db = db;
@@ -45,7 +43,8 @@ namespace LWFStatsWeb.Controllers
             this.memoryCache = memoryCache;
             this.logger = logger;
             this.submitOptions = submitOptions;
-            this.googleService = googleService;
+            this.googleSheets = googleSheets;
+            this.clanLoader = clanLoader;
         }
 
         protected IndexViewModel GetClanList()
@@ -739,13 +738,18 @@ namespace LWFStatsWeb.Controllers
             {
                 logger.LogInformation("Weight.Submit {0}", weight.ClanLink);
 
-                var service = CreateSheetService();
+                var clanName = weight.ClanName;
+                var clans = await clanLoader.Load(Constants.LIST_FWA);
+                if(clans != null)
+                {
+                    var clan = clans.Where(c => c.Tag == weight.ClanTag).SingleOrDefault();
+                    if(clan != null)
+                    {
+                        clanName = clan.Name;
+                    }
+                }
 
-                var nameSection = new List<object>();
-                nameSection.Add(weight.ClanName);
-                nameSection.Add("");
-                nameSection.Add("");
-                nameSection.Add(weight.ClanTag);
+                var nameSection = new List<object> { clanName, "", "", weight.ClanTag };
 
                 var compositions = new Dictionary<int, int>();
                 var weightSection = new List<object>();
@@ -770,25 +774,14 @@ namespace LWFStatsWeb.Controllers
                 compositionSection.Add(compositions[8]);
                 compositionSection.Add(compositions[7] + compositions[6] + compositions[5] + compositions[4] + compositions[3]);
 
-                var updateRequestBody = new BatchUpdateValuesRequest();
-                updateRequestBody.Data = new List<ValueRange>();
+                var updateData = new Dictionary<string, IList<IList<object>>>();
+                updateData.Add(submitOptions.Value.ClanNameRange, new List<IList<object>> { nameSection });
+                updateData.Add(submitOptions.Value.CompositionRange, new List<IList<object>> { compositionSection });
+                updateData.Add(submitOptions.Value.WeightRange, new List<IList<object>> { weightSection });
+                updateData.Add(submitOptions.Value.TagRange, new List<IList<object>> { tagSection });
+                updateData.Add(submitOptions.Value.THRange, new List<IList<object>> { thSection });
 
-                updateRequestBody.Data.Add(new ValueRange { MajorDimension = "COLUMNS", Range = submitOptions.Value.ClanNameRange, Values = new List<IList<object>> { nameSection } });
-
-                updateRequestBody.Data.Add(new ValueRange { MajorDimension = "COLUMNS", Range = submitOptions.Value.CompositionRange, Values = new List<IList<object>> { compositionSection } });
-
-                updateRequestBody.Data.Add(new ValueRange { MajorDimension = "COLUMNS", Range = submitOptions.Value.WeightRange, Values = new List<IList<object>> { weightSection } });
-
-                updateRequestBody.Data.Add(new ValueRange { MajorDimension = "COLUMNS", Range = submitOptions.Value.TagRange, Values = new List<IList<object>> { tagSection } });
-
-                updateRequestBody.Data.Add(new ValueRange { MajorDimension = "COLUMNS", Range = submitOptions.Value.THRange, Values = new List<IList<object>> { thSection } });
-
-                updateRequestBody.ValueInputOption = "RAW";
-                updateRequestBody.IncludeValuesInResponse = false;
-
-                var updateRequest = service.Spreadsheets.Values.BatchUpdate(updateRequestBody, submitOptions.Value.SheetId);
-
-                var updateResponse = await updateRequest.ExecuteAsync();
+                await googleSheets.BatchUpdate(submitOptions.Value.SheetId, "COLUMNS", updateData);
 
                 var submitRequest = WebRequest.Create(submitOptions.Value.SubmitURL);
                 var submitResponse = await submitRequest.GetResponseAsync();
@@ -798,6 +791,8 @@ namespace LWFStatsWeb.Controllers
                     var data = await reader.ReadToEndAsync();
                     model.Message = JsonConvert.DeserializeObject<string>(data);
                 }
+
+                logger.LogInformation("Weight.SubmitResponse {0}", model.Message);
 
                 if (string.IsNullOrEmpty(model.Message))
                 {
@@ -817,20 +812,6 @@ namespace LWFStatsWeb.Controllers
                 model.Message = e.Message;
             }
             return View("WeightSubmit", model);
-        }
-
-        private SheetsService CreateSheetService()
-        {
-            return new SheetsService(
-                new BaseClientService.Initializer()
-                {
-                    ApplicationName = googleService.Value.ApplicationName,
-                    HttpClientInitializer = new ServiceAccountCredential(
-                        new ServiceAccountCredential.Initializer(googleService.Value.ClientEmail)
-                        {
-                            Scopes = new[] { SheetsService.Scope.Spreadsheets }
-                        }.FromPrivateKey(googleService.Value.PrivateKey))
-                });
         }
 
         [HttpPost]
