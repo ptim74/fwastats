@@ -34,7 +34,7 @@
                     @if (!string.IsNullOrEmpty(Model.Player.ClanTag)) {
                         <a asp-area="" asp-route-id="@Model.Player.ClanLinkID" asp-controller="Clans" asp-action="Details">@Model.Player.ClanName</a>
                     }
-                    <a class="text-muted" href="http://kuilin.net/cc/member.php?tag=@Model.Player.LinkID"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">hocolate</span>C<span class="hidden-xs">lash</span></a>
+                    <a class="text-muted" href="@Constants.KUILIN_NET/member.php?tag=@Model.Player.LinkID"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">hocolate</span>C<span class="hidden-xs">lash</span></a>
                     <a class="text-muted" href="https://www.clashofstats.com/players/@Model.Player.LinkID"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">lash </span>o<span class="hidden-xs">f </span>S<span class="hidden-xs">tats</span></a>
                 </div>
             </div>
