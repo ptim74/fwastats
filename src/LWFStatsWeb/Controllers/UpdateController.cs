@@ -129,15 +129,15 @@ namespace LWFStatsWeb.Controllers
                     if (row.Count > weightDatabase.Value.WeightColumn && row[weightDatabase.Value.WeightColumn] != null)
                         int.TryParse(row[weightDatabase.Value.WeightColumn].ToString(), out weight);
 
+                    if (weight <= 110)
+                        weight *= 1000;
+
                     tag = Utils.LinkIdToTag(tag);
 
                     if (!string.IsNullOrEmpty(tag))
                     {
                         if (weights.TryGetValue(tag, out var w))
                         {
-                            if(weight <= 110)
-                                weight *= 1000;
-
                             if (weight > w.WarWeight && weight <= 110000)
                             {
                                 w.WarWeight = weight;
