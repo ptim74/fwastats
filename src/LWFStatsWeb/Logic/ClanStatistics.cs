@@ -100,7 +100,7 @@ namespace LWFStatsWeb.Logic
                 var warQ = from w in db.Wars
                            where w.EndTime >= s.Start && w.EndTime <= s.Finish && w.Friendly == false
                            select new { EndTime = w.EndTime, ClanTag = w.ClanTag, OpponentTag = w.OpponentTag };
-
+                 
                 s.MissedStarts = 0;
                 foreach (var clan in clanList.Values)
                 {
