@@ -143,6 +143,10 @@
                     {
                         <input type="submit" class="btn btn-primary" name="command" id="command-submit" value="Submit">
                     }
+                    else
+                    {
+                        <input type="submit" class="btn btn-primary" name="command" id="command-submit-disabled" value="Submit">
+                    }
                     <input type="submit" class="btn btn-save" name="command" id="command-save" value="Save">
                 </div>
             </div>
@@ -241,6 +245,11 @@
 
             $('#command-submit').click(function () {
                 return confirm("Submit weights to FWA Weight Sheet?");
+            });
+
+            $('#command-submit-disabled').click(function () {
+                alert("Please select war roster from top of the page.")
+                return false;
             });
 
         });

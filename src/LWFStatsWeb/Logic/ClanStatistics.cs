@@ -1,19 +1,23 @@
-﻿using LWFStatsWeb.Data;
+﻿using Ical.Net;
+using LWFStatsWeb.Data;
 using LWFStatsWeb.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace LWFStatsWeb.Logic
 {
-    public class StatisicsHistory
+    public class StatisicsOptions
     {
         public int Wars { get; set; }
         public int Members { get; set; }
+        public string SyncURL { get; set; }
     }
 
     public interface IClanStatistics
@@ -23,20 +27,24 @@ namespace LWFStatsWeb.Logic
         void CalculateSyncs();
         void UpdateSyncMatch();
         void UpdateClanStats();
+        Task UpdateSyncCalendar();
     }
 
     public class ClanStatistics : IClanStatistics
     {
         private readonly ApplicationDbContext db;
-        private readonly IOptions<StatisicsHistory> history;
+        private readonly IOptions<StatisicsOptions> options;
+        ILogger<ClanStatistics> logger;
 
         public ClanStatistics(
             ApplicationDbContext db,
-            IOptions<StatisicsHistory> history
+            IOptions<StatisicsOptions> options,
+            ILogger<ClanStatistics> logger
             )
         {
             this.db = db;
-            this.history = history;
+            this.options = options;
+            this.logger = logger;
         }
 
         public void CalculateSyncs()
@@ -363,9 +371,9 @@ namespace LWFStatsWeb.Logic
 
             db.Database.ExecuteSqlCommand("DELETE FROM WarAttacks WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} )", keepAttacksSince);
 
-            if (history.Value.Members > 0)
+            if (options.Value.Members > 0)
             {
-                var keepMembersSince = DateTime.UtcNow.AddDays(-1.0 * history.Value.Members);
+                var keepMembersSince = DateTime.UtcNow.AddDays(-1.0 * options.Value.Members);
 
                 db.Database.ExecuteSqlCommand("DELETE FROM PlayerEvents WHERE EventDate < {0}", keepMembersSince);
 
@@ -374,9 +382,9 @@ namespace LWFStatsWeb.Logic
                 db.Database.ExecuteSqlCommand("DELETE FROM Players WHERE LastUpdated < {0}", keepPlayersSince);
             }
 
-            if(history.Value.Wars > 0)
+            if(options.Value.Wars > 0)
             {
-                var keepWarsSince = DateTime.UtcNow.AddDays(-1.0 * history.Value.Wars);
+                var keepWarsSince = DateTime.UtcNow.AddDays(-1.0 * options.Value.Wars);
 
                 //Don't remove half sync
                 var isInMiddleSync = db.WarSyncs.Where(s => s.Start >= keepWarsSince && s.Finish <= keepWarsSince).FirstOrDefault();
@@ -388,6 +396,56 @@ namespace LWFStatsWeb.Logic
                 db.Database.ExecuteSqlCommand("DELETE FROM Wars WHERE EndTime < {0}", keepWarsSince);
 
                 db.Database.ExecuteSqlCommand("DELETE FROM ClanValidities WHERE ValidTo < {0}", keepWarsSince);
+            }
+        }
+
+        public async Task UpdateSyncCalendar()
+        {
+            var request = WebRequest.Create(options.Value.SyncURL);
+            var response = await request.GetResponseAsync();
+            var data = string.Empty;
+            using (var reader = new StreamReader(response.GetResponseStream()))
+            {
+                data = await reader.ReadToEndAsync();
+            }
+
+            var syncs = db.WarSyncs.ToList();
+
+            var syncDuration = new TimeSpan(2, 0, 0);
+
+            var cals = Calendar.Load(data);
+            foreach(var cal in cals)
+            {
+                foreach(var syncEvent in cal.Events.Where(a => a.Duration == syncDuration))
+                {
+                    var eventStart = syncEvent.Start.Value.AddHours(47);
+                    var eventEnd = syncEvent.End.Value.AddHours(47);
+                    var sync = syncs.Where(s => s.Start < eventEnd && s.Finish > eventStart).FirstOrDefault();
+                    if(sync != null)
+                    {
+                        var diff = sync.Start.Subtract(eventStart);
+                        logger.LogTrace("Sync at {0}, diff {1}", eventStart, diff);
+                        //sync.Start = eventStart;
+                        //sync.Finish = eventEnd;
+                    }
+                    else
+                    {
+                        //var s = new WarSync { Start = eventStart, Finish = eventEnd };
+                        //db.WarSyncs.Add(s);
+                        //syncs.Add(s);
+                    }
+                    //db.SaveChanges();
+                    //BEGIN:VEVENT
+                    //DTSTAMP:20170722T095611Z
+                    //UID:52209313@band.us
+                    //DTSTART:20170601T154700Z
+                    //DTEND:20170601T174700Z
+                    //SUMMARY:⚀⚀Tie Breaker Low Sync ⬅️Closest to 0 wins 
+                    //DESCRIPTION:\n1st time listed means START SEARCHING 🔎\n2nd time listed means STOP SEARCHING 🚫 \n🔔Set your own reminders as BAND no longer sends them🔔\n\nYou can see the RSVP status of this event in BAND.\n(FWA ADMN added)
+                    //CREATED:20170531T104049Z
+                    //LAST-MODIFIED:20170531T104049Z
+                    //END:VEVENT
+                }
             }
         }
     }

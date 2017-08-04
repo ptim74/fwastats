@@ -641,6 +641,9 @@ namespace LWFStatsWeb.Controllers
             logger.LogInformation("PerformFinished.CalculateSyncs");
             statistics.CalculateSyncs();
 
+            logger.LogInformation("PerformFinished.UpdateSyncCalendar");
+            await statistics.UpdateSyncCalendar();
+
             logger.LogInformation("PerformFinished.UpdateSyncMatch");
             statistics.UpdateSyncMatch();
 
