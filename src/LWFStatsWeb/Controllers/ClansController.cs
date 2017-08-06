@@ -657,8 +657,7 @@ namespace LWFStatsWeb.Controllers
                         memberWeight.InWar = weight.InWar;
                         memberWeight.Weight = weight.WarWeight;
                     }
-                    int thlevel = 0;
-                    if (thlevels.TryGetValue(member.Tag, out thlevel))
+                    if (thlevels.TryGetValue(member.Tag, out int thlevel))
                         memberWeight.TownHallLevel = thlevel;
                     memberWeights.Add(memberWeight);
                 }
@@ -685,6 +684,63 @@ namespace LWFStatsWeb.Controllers
                 }
 
                 model.Members = memberWeights.ToList();
+            }
+
+            var clanWeight = 0;
+            var memberCount = 0;
+            var thCount = 0;
+            var comparisons = new Dictionary<int, WeightComparison>();
+            foreach (var member in model.Members.OrderByDescending(m => m.Weight))
+            {
+                if (member.Weight > 0 && member.InWar == true)
+                {
+                    memberCount++;
+                    clanWeight += member.Weight;
+                    thCount += member.TownHallLevel;
+                    comparisons.Add(memberCount, new WeightComparison { Position = memberCount, Weight = member.Weight, Max = int.MinValue, Min = int.MaxValue });
+                }
+            }
+
+            if(memberCount == 40)
+            {
+                var maxWeight = clanWeight + 30000;
+                var minWeight = clanWeight - 30000;
+                var results = db.WeightResults.Where(w => w.Weight >= minWeight && w.Weight <= maxWeight).ToList();
+                
+                if(results.Count > 0)
+                {
+                    foreach (var res in results)
+                    {
+                        for (var i = 1; i <= 40; i++)
+                        {
+                            if (comparisons.TryGetValue(i, out WeightComparison comparison))
+                            {
+                                var weight = res.GetBase(i);
+                                comparison.Average += weight;
+                                if (weight > comparison.Max)
+                                    comparison.Max = weight;
+                                if (weight < comparison.Min)
+                                    comparison.Min = weight;
+                            }
+                        }
+                    }
+
+                    model.Comparisons = new List<WeightComparison>();
+
+                    for (var i = 1; i <= 40; i++)
+                    {
+                        if (comparisons.TryGetValue(i, out WeightComparison comparison))
+                        {
+                            comparison.Average /= results.Count;
+                            comparison.Average /= 1000;
+                            comparison.Average = Math.Round(comparison.Average, 1);
+                            comparison.Weight /= 1000;
+                            comparison.Min /= 1000;
+                            comparison.Max /= 1000;
+                            model.Comparisons.Add(comparison);
+                        }
+                    }
+                }
             }
 
             return model;

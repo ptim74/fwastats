@@ -19,11 +19,22 @@ namespace LWFStatsWeb.Models.ClanViewModels
         public virtual ICollection<MemberWeightModel> Members { get; set; }
 
         public virtual ICollection<WeightWarModel> Wars { get; set; }
+
+        public virtual ICollection<WeightComparison> Comparisons { get; set; }
     }
 
     public class WeightWarModel
     {
         public long ID { get; set; }
         public string OpponentName { get; set; }
+    }
+
+    public class WeightComparison
+    {
+        public int Position { get; set; }
+        public int Weight { get; set; }
+        public int Max { get; set; }
+        public int Min { get; set; }
+        public double Average { get; set; }
     }
 }

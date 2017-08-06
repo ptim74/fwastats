@@ -15,7 +15,7 @@
     else
     {
         resultMessage = string.Format("Clan weight submitted {0}.", LWFStatsWeb.Logic.Utils.TimeSpanToString(DateTime.UtcNow.Subtract(Model.WeightSubmitDate)));
-        if(Model.WeightSubmitDate == DateTime.MinValue)
+        if (Model.WeightSubmitDate == DateTime.MinValue)
         {
             resultMessage = "Weight submit results not found.";
         }
@@ -75,6 +75,10 @@
         </select>
     </div>
 </form>
+
+<div class="container">
+    <div class="col" id="chart"></div>
+</div>
 
 <form id="form2" asp-action="Weight">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -188,6 +192,9 @@
 </form>
 
 @section scripts {
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
     <script type="text/javascript">
 
         //plugin bootstrap minus and plus
@@ -334,6 +341,44 @@
 
         $(function () {
             calculateWarWeight();
+        });
+
+        google.charts.load('current', { 'packages': ['corechart'] });
+        google.charts.setOnLoadCallback(function () {
+            @if (Model.Comparisons != null)
+            {
+                var comma = '[';
+                <text>
+
+                var data = new google.visualization.DataTable();
+                data.addColumn('number', 'Pos');
+                data.addColumn('number', 'Weight');
+                data.addColumn('number', 'Average');
+                data.addRows(
+                </text>
+                @foreach(var c in Model.Comparisons)
+                {
+                    @:@comma [@c.Position, @c.Weight, @c.Average.ToString().Replace(",",".")]
+                    comma = ',';
+                }
+                <text>
+                ]);
+
+                var width = $('#chart').width();
+                var height = Math.round(width * 0.5);
+                if (height > 400) height = 400;
+                $('#chart').css('height', height + 'px');
+
+                var options = {
+                    theme: 'maximized',
+                    series: {
+                        3: { color: 'black' }
+                    }
+                };
+
+                new google.visualization.LineChart(document.getElementById('chart')).draw(data, options);
+                </text>
+            }
         });
 
     </script>
