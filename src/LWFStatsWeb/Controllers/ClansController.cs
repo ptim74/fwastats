@@ -623,6 +623,13 @@ namespace LWFStatsWeb.Controllers
 
             var model = new WeightViewModel { ClanTag = clan.Tag, ClanLink = clan.LinkID, ClanName = clan.Name, ClanBadge = clan.BadgeUrl, WarID = WarID };
 
+            var result = db.WeightResults.SingleOrDefault(r => r.Tag == tag);
+            if(result != null)
+            {
+                model.WeightSubmitDate = result.Timestamp;
+                model.PendingWeightSubmit = result.PendingResult;
+            }
+
             model.Wars = new List<WeightWarModel>();
 
             foreach (var war1 in this.GetDetailedWars(tag).Reverse())

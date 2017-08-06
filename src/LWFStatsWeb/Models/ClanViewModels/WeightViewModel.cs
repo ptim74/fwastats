@@ -13,6 +13,8 @@ namespace LWFStatsWeb.Models.ClanViewModels
         public string ClanName { get; set; }
         public string ClanBadge { get; set; }
         public string Command { get; set; }
+        public DateTime WeightSubmitDate { get; set; }
+        public bool PendingWeightSubmit { get; set; }
 
         public virtual ICollection<MemberWeightModel> Members { get; set; }
 

@@ -25,6 +25,7 @@ namespace LWFStatsWeb.Controllers
         private IMemoryCache memoryCache;
         IGoogleSheetsService googleSheets;
         IOptions<WeightDatabaseOptions> weightDatabase;
+        IOptions<WeightResultOptions> resultDatabase;
 
         private static object lockObject = new object();
 
@@ -37,7 +38,8 @@ namespace LWFStatsWeb.Controllers
             IMemoryCache memoryCache,
             ILogger<UpdateController> logger,
             IGoogleSheetsService googleSheets,
-            IOptions<WeightDatabaseOptions> weightDatabase)
+            IOptions<WeightDatabaseOptions> weightDatabase,
+            IOptions<WeightResultOptions> resultDatabase)
         {
             this.db = context;
             this.loader = loader;
@@ -48,6 +50,7 @@ namespace LWFStatsWeb.Controllers
             this.logger = logger;
             this.googleSheets = googleSheets;
             this.weightDatabase = weightDatabase;
+            this.resultDatabase = resultDatabase;
         }
 
         protected async Task<IndexViewModel> GetUpdates()
@@ -164,6 +167,103 @@ namespace LWFStatsWeb.Controllers
                 db.SaveChanges();
             }
 
+        }
+
+        protected async Task UpdateResults()
+        {
+            var results = db.WeightResults.ToDictionary(r => r.Tag);
+
+            var resultSet = new HashSet<string>();
+
+            var dateZero = new DateTime(1899, 12, 30, 0, 0, 0);
+            var sheetTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+
+            var resultData = await googleSheets.Get(resultDatabase.Value.SheetId, "ROWS", resultDatabase.Value.ResultRange);
+            if(resultData != null)
+            {
+                foreach (var row in resultData)
+                {
+                    if (row.Count > 52)
+                    {
+                        var clanTag = Utils.LinkIdToTag((string)row[4]);
+                        if (!string.IsNullOrEmpty(clanTag))
+                        {
+                            if (!resultSet.Contains(clanTag))
+                                resultSet.Add(clanTag);
+
+                            if (!results.TryGetValue(clanTag, out WeightResult result))
+                            {
+                                result = new WeightResult { Tag = clanTag };
+                                db.WeightResults.Add(result);
+                                results.Add(clanTag, result);
+                            }
+
+                            var timestamp = dateZero.AddDays((double)row[0]);
+                            
+                            //round to second to eliminate unnecessary updates
+                            result.Timestamp = new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second);
+
+                            result.Timestamp = result.Timestamp.Subtract(sheetTimeZone.GetUtcOffset(result.Timestamp));
+
+                            result.TH11Count = Convert.ToInt32(row[6]);
+                            result.TH10Count = Convert.ToInt32(row[7]);
+                            result.TH9Count = Convert.ToInt32(row[8]);
+                            result.TH8Count = Convert.ToInt32(row[9]);
+                            result.TH7Count = Convert.ToInt32(row[10]);
+
+                            result.THSum = result.TH11Count * 11 + result.TH10Count * 10 + result.TH9Count * 9 + result.TH8Count * 8 + result.TH7Count * 7;
+
+                            for(int i = 11; i <= 50; i++)
+                            {
+                                result.SetBase(i - 10, Convert.ToInt32(row[i]));
+                            }
+
+                            result.Weight = Convert.ToInt32(row[51]);
+                        }
+                    }
+                }
+            }
+
+            var pendingSet = new HashSet<string>();
+            var pendingData = await googleSheets.Get(resultDatabase.Value.SheetId, "ROWS", resultDatabase.Value.PendingRange);
+            if (pendingData != null)
+            {
+                foreach (var row in pendingData)
+                {
+                    if (row.Count > 0)
+                    {
+                        var clanTag = Utils.LinkIdToTag((string)row[0]);
+                        if (!string.IsNullOrEmpty(clanTag) && !pendingSet.Contains(clanTag))
+                        {
+                            pendingSet.Add(clanTag);
+                            if (!results.ContainsKey(clanTag))
+                            {
+                                var result = new WeightResult { Tag = clanTag, Timestamp = DateTime.MinValue };
+                                db.WeightResults.Add(result);
+                                results.Add(clanTag, result);
+                                if (!resultSet.Contains(clanTag))
+                                {
+                                    resultSet.Add(clanTag);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach (var result in results)
+            {
+                if(!resultSet.Contains(result.Key))
+                {
+                    db.WeightResults.Remove(result.Value);
+                }
+                else
+                {
+                    result.Value.PendingResult = pendingSet.Contains(result.Key);
+                }
+            }
+
+            await db.SaveChangesAsync();
         }
 
         protected async Task<UpdateTaskResponse> UpdatePlayer(string playerTag)
@@ -662,6 +762,9 @@ namespace LWFStatsWeb.Controllers
 
             logger.LogInformation("PerformFinished.Weights");
             await this.UpdateWeights();
+
+            logger.LogInformation("PerformFinished.UpdateResults");
+            await this.UpdateResults();
 
             logger.LogInformation("PerformFinished.Done");
         }

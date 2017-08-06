@@ -54,6 +54,7 @@ namespace LWFStatsWeb.Logic
         {
             var getRequest = Service.Spreadsheets.Values.Get(sheetId, range);
             getRequest.ValueRenderOption = SpreadsheetsResource.ValuesResource.GetRequest.ValueRenderOptionEnum.UNFORMATTEDVALUE;
+            getRequest.DateTimeRenderOption = SpreadsheetsResource.ValuesResource.GetRequest.DateTimeRenderOptionEnum.SERIALNUMBER;
             getRequest.MajorDimension = (SpreadsheetsResource.ValuesResource.GetRequest.MajorDimensionEnum)Enum.Parse(
                 typeof(SpreadsheetsResource.ValuesResource.GetRequest.MajorDimensionEnum), majorDimension);
             var getResponse = await getRequest.ExecuteAsync();

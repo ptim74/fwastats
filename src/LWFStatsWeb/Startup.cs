@@ -66,6 +66,7 @@ namespace LWFStatsWeb
             services.Configure<StatisicsOptions>(Configuration.GetSection("Statistics"));
             services.Configure<WeightSubmitOptions>(Configuration.GetSection("WeightSubmit"));
             services.Configure<WeightDatabaseOptions>(Configuration.GetSection("WeightDatabase"));
+            services.Configure<WeightResultOptions>(Configuration.GetSection("ResultDatabase"));
 
             services.Configure<GoogleServiceOptions>(Configuration.GetSection("GoogleService"));
 

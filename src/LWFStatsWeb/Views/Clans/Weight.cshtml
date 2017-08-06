@@ -5,6 +5,33 @@
     ViewBag.MetaImage = Model.ClanBadge;
     ViewBag.MetaRobots = "noindex, nofollow";
     int member_id = 0;
+    string resultType = "alert-success";
+    string resultMessage = "";
+    if (Model.PendingWeightSubmit)
+    {
+        resultType = "alert-warning";
+        resultMessage = "Clan has pending weight submit response which has to be approved by FWA weight department.";
+    }
+    else
+    {
+        resultMessage = string.Format("Clan weight submitted {0}.", LWFStatsWeb.Logic.Utils.TimeSpanToString(DateTime.UtcNow.Subtract(Model.WeightSubmitDate)));
+        if(Model.WeightSubmitDate == DateTime.MinValue)
+        {
+            resultMessage = "Weight submit results not found.";
+        }
+        if (Model.WeightSubmitDate > DateTime.Now.AddDays(-28))
+        {
+            resultType = "alert-success";
+        }
+        else if (Model.WeightSubmitDate > DateTime.Now.AddDays(-42))
+        {
+            resultType = "alert-warning";
+        }
+        else
+        {
+            resultType = "alert-danger";
+        }
+    }
 }
 
 <ol class="breadcrumb">
@@ -29,6 +56,11 @@
 </div>
 
 <h4>Edit Clan Weight</h4>
+
+<div class="alert @resultType">
+    <strong>@resultMessage</strong><br />
+    If you want to submit weights to the official FWA weight sheet, first select war roster from below and then click submit from the bottom of the page.
+</div>
 
 <form id="form1" asp-action="Weight">
     <input type="hidden" asp-for="ClanTag" />
