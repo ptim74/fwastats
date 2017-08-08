@@ -39,6 +39,10 @@ namespace LWFStatsWeb.Controllers
                 model.Counters = new List<CounterStats>();
                 model.LastSyncs = new List<SyncStats>();
                 model.SyncHistories = new List<SyncHistory>();
+                model.TownhallCounters = new List<TownhallCounter>();
+                //model.TownhallCounters.Add(new TownhallCounter { Weight = 2500, TH11 = 5, TH10 = 15, TH9 = 15, TH8 = 5 });
+                //model.TownhallCounters.Add(new TownhallCounter { Weight = 3000, TH11 = 10, TH10 = 15, TH9 = 14, TH8 = 1 });
+                //model.TownhallCounters.Add(new TownhallCounter { Weight = 3500, TH11 = 15, TH10 = 15, TH9 = 10, TH8 = 0 });
 
                 try
                 {
@@ -145,6 +149,36 @@ namespace LWFStatsWeb.Controllers
                     }
 
                     model.Counters.Add(counters);
+
+                    var results = db.WeightResults.ToList();
+                    var divider = 25000;
+                    var thcounters = new Dictionary<int, TownhallCounter>();
+                    foreach(var result in results)
+                    {
+                        var weight = result.Weight / divider + 1;
+                        if(!thcounters.TryGetValue(weight,out TownhallCounter th))
+                        {
+                            th = new TownhallCounter { Weight = weight };
+                            thcounters.Add(weight, th);
+                        }
+                        th.Clans++;
+                        th.TH11 += result.TH11Count;
+                        th.TH10 += result.TH10Count;
+                        th.TH9 += result.TH9Count;
+                        th.TH8 += result.TH8Count;
+                        th.TH8 += result.TH7Count;
+                    }
+                    foreach(var th in thcounters.Values)
+                    {
+                        th.Weight = th.Weight * divider / 1000;
+                        
+                        th.TH10 = Math.Round(th.TH10 / th.Clans, 1);
+                        th.TH9 = Math.Round(th.TH9 /= th.Clans, 1);
+                        th.TH8 = Math.Round(th.TH8 /= th.Clans, 1);
+                        th.TH11 = 40.0 - th.TH10 - th.TH9 - th.TH8;
+                    }
+
+                    model.TownhallCounters = thcounters.Values.OrderBy(v => v.Weight).ToList();
 
                     memoryCache.Set<IndexViewModel>(Constants.CACHE_HOME_INDEX, model, 
                         new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(Constants.CACHE_TIME)));

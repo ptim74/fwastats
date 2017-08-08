@@ -7,15 +7,15 @@ namespace LWFStatsWeb.Models.HomeViewModels
 {
     public class IndexViewModel
     {
-        public List<SyncStats> LastSyncs { get; set; }
-        public List<SyncHistory> SyncHistories { get; set; }
-        public List<CounterStats> Counters { get; set; }
+        public ICollection<SyncStats> LastSyncs { get; set; }
+        public ICollection<SyncHistory> SyncHistories { get; set; }
+        public ICollection<CounterStats> Counters { get; set; }
+        public ICollection<TownhallCounter> TownhallCounters { get; set; }
     }
 
     public class SyncStats
     {
         public string Name { get; set; }
-        //public string LastSyncName { get; set; }
         public string Status { get; set; }
         public int AllianceMatches { get; set; }
         public int WarMatches { get; set; }
@@ -24,7 +24,7 @@ namespace LWFStatsWeb.Models.HomeViewModels
 
     public class SyncHistory
     {
-        public List <SyncStats> Syncs { get; set; }
+        public ICollection<SyncStats> Syncs { get; set; }
     }
 
     public class CounterStats
@@ -49,5 +49,15 @@ namespace LWFStatsWeb.Models.HomeViewModels
                 return Logic.Utils.TagToLinkId(Tag);
             }
         }
+    }
+
+    public class TownhallCounter
+    {
+        public int Clans { get; set; }
+        public int Weight { get; set; }
+        public double TH11 { get; set; }
+        public double TH10 { get; set; }
+        public double TH9 { get; set; }
+        public double TH8 { get; set; }
     }
 }
