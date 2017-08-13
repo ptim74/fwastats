@@ -40,9 +40,6 @@ namespace LWFStatsWeb.Controllers
                 model.LastSyncs = new List<SyncStats>();
                 model.SyncHistories = new List<SyncHistory>();
                 model.TownhallCounters = new List<TownhallCounter>();
-                //model.TownhallCounters.Add(new TownhallCounter { Weight = 2500, TH11 = 5, TH10 = 15, TH9 = 15, TH8 = 5 });
-                //model.TownhallCounters.Add(new TownhallCounter { Weight = 3000, TH11 = 10, TH10 = 15, TH9 = 14, TH8 = 1 });
-                //model.TownhallCounters.Add(new TownhallCounter { Weight = 3500, TH11 = 15, TH10 = 15, TH9 = 10, TH8 = 0 });
 
                 try
                 {
@@ -150,12 +147,13 @@ namespace LWFStatsWeb.Controllers
 
                     model.Counters.Add(counters);
 
-                    var results = db.WeightResults.ToList();
+                    var results = db.WeightResults.Where(r => r.Weight > 2000000).ToList();
                     var divider = 25000;
                     var thcounters = new Dictionary<int, TownhallCounter>();
                     foreach(var result in results)
                     {
-                        var weight = result.Weight / divider + 1;
+                        //rounding +/- 12500
+                        var weight = (result.Weight + divider / 2 ) / divider;
                         if(!thcounters.TryGetValue(weight,out TownhallCounter th))
                         {
                             th = new TownhallCounter { Weight = weight };

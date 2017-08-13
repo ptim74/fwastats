@@ -76,9 +76,28 @@
     </div>
 </form>
 
-<div class="container">
-    <div class="col" id="chart"></div>
-</div>
+@if (Model.Comparisons != null)
+{
+    <div id="chart"></div>
+    <div class="caption">
+        <p class="small">Weight of selected roster compared against average of weight submit results close to selected weight (+/- 25000).</p>
+    </div>
+}
+else
+{
+    if (Model.WarID == 0)
+    {
+        <div class="caption">
+            <p class="small">To see the weight chart please fill weights for 40 selected members.</p>
+        </div>
+    }
+    else
+    {
+        <div class="caption">
+            <p class="small">To see the weight chart please fill weights for all war members.</p>
+        </div>
+    }
+}
 
 <form id="form2" asp-action="Weight">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -339,8 +358,17 @@
             $('.btn-save').removeClass(members_in_war == 40 ? 'btn-danger' : 'btn-success');
         }
 
+        function resizeChart()
+        {
+            var width = $('#chart').width();
+            var height = Math.round(width * 0.5);
+            if (height > 400) height = 400;
+            $('#chart').css('height', height + 'px');
+        }
+
         $(function () {
             calculateWarWeight();
+            resizeChart();
         });
 
         google.charts.load('current', { 'packages': ['corechart'] });
@@ -364,10 +392,7 @@
                 <text>
                 ]);
 
-                var width = $('#chart').width();
-                var height = Math.round(width * 0.5);
-                if (height > 400) height = 400;
-                $('#chart').css('height', height + 'px');
+                resizeChart();
 
                 var options = {
                     theme: 'maximized',
