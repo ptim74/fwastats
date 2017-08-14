@@ -98,7 +98,9 @@ namespace LWFStatsWeb.Controllers
 
                 var clans = new List<FormerClan>();
 
-                var clanQ = from c in db.ClanValidities where c.ValidTo < DateTime.Now orderby c.ValidTo descending select c;
+                var validTo = DateTime.UtcNow.AddMonths(-1); // 1 month delay requested by fwa admins
+
+                var clanQ = from c in db.ClanValidities where c.ValidTo < validTo orderby c.ValidTo descending select c;
 
                 var clanBadges = (from w in db.Wars group w by w.OpponentTag into g select new { Tag = g.Key, BadgeUrl = g.Max(w => w.OpponentBadgeUrl) }).ToDictionary(w => w.Tag, w => w.BadgeUrl);
 
