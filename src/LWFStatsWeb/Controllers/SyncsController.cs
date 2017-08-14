@@ -68,6 +68,7 @@ namespace LWFStatsWeb.Controllers
 
             var formerClans = formerClanQ.ToDictionary(f => f.Tag);
 
+            /*
             foreach(var formerClan in formerClans.Values)
             {
                 if (!clans.ContainsKey(formerClan.Tag))
@@ -85,6 +86,7 @@ namespace LWFStatsWeb.Controllers
                     clans.Add(formerClan.Tag, syncClan);
                 }
             }
+            */
 
             foreach (var newClan in newClanQ)
             {
