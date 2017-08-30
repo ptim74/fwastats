@@ -208,8 +208,7 @@ namespace LWFStatsWeb.Controllers
 
                 foreach (var row in badges)
                 {
-                    WeightCalculator.Results weight = null;
-                    if (weights.TryGetValue(row.Tag, out weight))
+                    if (weights.TryGetValue(row.Tag, out WeightCalculator.Results weight))
                     {
                         row.Th11Count = weight.Th11Count;
                         row.Th10Count = weight.Th10Count;

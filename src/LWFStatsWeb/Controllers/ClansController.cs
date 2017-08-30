@@ -106,16 +106,16 @@ namespace LWFStatsWeb.Controllers
 
                 foreach (var clan in clanQ)
                 {
-                    var clanDetail = new FormerClan();
-                    clanDetail.Tag = clan.Tag;
-                    clanDetail.Name = clan.Name;
-                    clanDetail.Group = clan.Group;
-                    clanDetail.ValidFrom = clan.ValidFrom;
-                    clanDetail.ValidTo = clan.ValidTo;
+                    var clanDetail = new FormerClan
+                    {
+                        Tag = clan.Tag,
+                        Name = clan.Name,
+                        Group = clan.Group,
+                        ValidFrom = clan.ValidFrom,
+                        ValidTo = clan.ValidTo
+                    };
 
-                    string badgeUrl;
-
-                    if (clanBadges.TryGetValue(clan.Tag, out badgeUrl))
+                    if (clanBadges.TryGetValue(clan.Tag, out string badgeUrl))
                         clanDetail.BadgeURL = badgeUrl;
 
                     clans.Add(clanDetail);
@@ -135,28 +135,28 @@ namespace LWFStatsWeb.Controllers
             {
                 foreach (var o in opponentsWars)
                 {
-                    var w = new War();
-                    w.ID = o.ID.Replace(o.ClanTag, o.OpponentTag);
-                    w.EndTime = o.EndTime;
-                    w.TeamSize = o.TeamSize;
-                    w.Matched = o.Matched;
-                    w.Synced = o.Synced;
-
-                    w.ClanTag = o.OpponentTag;
-                    w.ClanAttacks = 0;
-                    w.ClanBadgeUrl = o.OpponentBadgeUrl;
-                    w.ClanDestructionPercentage = o.OpponentDestructionPercentage;
-                    w.ClanExpEarned = 0;
-                    w.ClanLevel = o.OpponentLevel;
-                    w.ClanName = o.OpponentName;
-                    w.ClanStars = o.OpponentStars;
-
-                    w.OpponentBadgeUrl = o.ClanBadgeUrl;
-                    w.OpponentDestructionPercentage = o.ClanDestructionPercentage;
-                    w.OpponentLevel = o.ClanLevel;
-                    w.OpponentName = o.ClanName;
-                    w.OpponentStars = o.ClanStars;
-                    w.OpponentTag = o.ClanTag;
+                    var w = new War
+                    {
+                        ID = o.ID.Replace(o.ClanTag, o.OpponentTag),
+                        EndTime = o.EndTime,
+                        TeamSize = o.TeamSize,
+                        Matched = o.Matched,
+                        Synced = o.Synced,
+                        ClanTag = o.OpponentTag,
+                        ClanAttacks = 0,
+                        ClanBadgeUrl = o.OpponentBadgeUrl,
+                        ClanDestructionPercentage = o.OpponentDestructionPercentage,
+                        ClanExpEarned = 0,
+                        ClanLevel = o.OpponentLevel,
+                        ClanName = o.OpponentName,
+                        ClanStars = o.OpponentStars,
+                        OpponentBadgeUrl = o.ClanBadgeUrl,
+                        OpponentDestructionPercentage = o.ClanDestructionPercentage,
+                        OpponentLevel = o.ClanLevel,
+                        OpponentName = o.ClanName,
+                        OpponentStars = o.ClanStars,
+                        OpponentTag = o.ClanTag
+                    };
 
                     if (o.Result == "win")
                         w.Result = "lose";
@@ -173,10 +173,13 @@ namespace LWFStatsWeb.Controllers
 
         protected async Task<Clan> GetDetails(string tag)
         {
-            var clan = new Clan();
-            clan.Tag = tag;
-            clan.Name = "Clan not found";
-            clan.MemberList = new List<Member>();
+            var clan = new Clan
+            {
+                Tag = tag,
+                Name = "Clan not found",
+                MemberList = new List<Member>()
+            };
+
             try
             {
                 var clans = db.Clans.Where(c => c.Tag == tag).ToList();
@@ -205,8 +208,7 @@ namespace LWFStatsWeb.Controllers
                             foreach (var war in clan.Wars)
                             {
                                 var warKey = string.Format("{0}{1}", war.OpponentTag, war.EndTime.Date);
-                                War clanWar = null;
-                                if(!warLookup.TryGetValue(warKey, out clanWar))
+                                if(!warLookup.TryGetValue(warKey, out War clanWar))
                                 {
                                     var synced = syncTimes.Where(s => s.Start <= war.EndTime && s.Finish >= war.EndTime).FirstOrDefault();
                                     if (synced != null && war.TeamSize == 40)
@@ -251,11 +253,13 @@ namespace LWFStatsWeb.Controllers
             var model = await memoryCache.GetOrCreateAsync(Constants.CACHE_CLANS_DETAILS_ + tag, async entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
 
-                var details = new DetailsViewModel();
-                details.InAlliance = db.Clans.Any(c => c.Tag == tag);
-                details.Clan = await this.GetDetails(tag);
-                details.Validity = this.db.ClanValidities.SingleOrDefault(c => c.Tag == tag);
-                details.Events = new List<ClanDetailsEvent>();
+                var details = new DetailsViewModel
+                {
+                    InAlliance = db.Clans.Any(c => c.Tag == tag),
+                    Clan = await this.GetDetails(tag),
+                    Validity = this.db.ClanValidities.SingleOrDefault(c => c.Tag == tag),
+                    Events = new List<ClanDetailsEvent>()
+                };
 
                 var blacklisted = db.BlacklistedClans.Select(c => c.Tag).ToList();
 
@@ -323,8 +327,7 @@ namespace LWFStatsWeb.Controllers
 
                 foreach (var mismatch in mismatches)
                 {
-                    FollowingClan followingClan = null;
-                    if (!clans.TryGetValue(mismatch.OpponentTag, out followingClan))
+                    if (!clans.TryGetValue(mismatch.OpponentTag, out FollowingClan followingClan))
                     {
                         followingClan = new FollowingClan { Tag = mismatch.OpponentTag };
                         if (blacklisted.ContainsKey(followingClan.Tag))
@@ -832,19 +835,23 @@ namespace LWFStatsWeb.Controllers
                     thSection.Add(member.TownHallLevel);
                 }
 
-                var compositionSection = new List<object>();
-                compositionSection.Add(compositions[11]);
-                compositionSection.Add(compositions[10]);
-                compositionSection.Add(compositions[9]);
-                compositionSection.Add(compositions[8]);
-                compositionSection.Add(compositions[7] + compositions[6] + compositions[5] + compositions[4] + compositions[3]);
+                var compositionSection = new List<object>
+                {
+                    compositions[11],
+                    compositions[10],
+                    compositions[9],
+                    compositions[8],
+                    compositions[7] + compositions[6] + compositions[5] + compositions[4] + compositions[3]
+                };
 
-                var updateData = new Dictionary<string, IList<IList<object>>>();
-                updateData.Add(submitOptions.Value.ClanNameRange, new List<IList<object>> { nameSection });
-                updateData.Add(submitOptions.Value.CompositionRange, new List<IList<object>> { compositionSection });
-                updateData.Add(submitOptions.Value.WeightRange, new List<IList<object>> { weightSection });
-                updateData.Add(submitOptions.Value.TagRange, new List<IList<object>> { tagSection });
-                updateData.Add(submitOptions.Value.THRange, new List<IList<object>> { thSection });
+                var updateData = new Dictionary<string, IList<IList<object>>>
+                {
+                    { submitOptions.Value.ClanNameRange, new List<IList<object>> { nameSection } },
+                    { submitOptions.Value.CompositionRange, new List<IList<object>> { compositionSection } },
+                    { submitOptions.Value.WeightRange, new List<IList<object>> { weightSection } },
+                    { submitOptions.Value.TagRange, new List<IList<object>> { tagSection } },
+                    { submitOptions.Value.THRange, new List<IList<object>> { thSection } }
+                };
 
                 await googleSheets.BatchUpdate(submitOptions.Value.SheetId, "COLUMNS", updateData);
 
