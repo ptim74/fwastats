@@ -291,8 +291,8 @@ namespace LWFStatsWeb.Controllers
             ViewData["ShowRemoveButton"] = user.PasswordHash != null || userLogins.Count > 1;
             return View(new ManageLoginsViewModel
             {
-                CurrentLogins = userLogins/*,
-                OtherLogins = otherLogins*/
+                CurrentLogins = userLogins,
+                OtherLogins = otherLogins
             });
         }
 
