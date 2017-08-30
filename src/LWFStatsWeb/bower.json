@@ -5,8 +5,7 @@
     "bootstrap": "v3.3.7",
     "jquery": "2.2.4",
     "jquery-validation": "1.17.0",
-    "jquery-validation-unobtrusive": "3.2.6",
-    "tablesorter": "jquery.tablesorter#v2.28.15"
+    "jquery-validation-unobtrusive": "3.2.6"
   },
   "resolutions": {
     "jquery": ">=1.8",
