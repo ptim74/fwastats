@@ -15,11 +15,11 @@
         </div>
         <div class="panel-body">
 
-            @foreach (var provider in SignInManager.GetExternalAuthenticationSchemes().ToList())
+            @foreach (var provider in (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList())
             {
-                <form asp-controller="Account" asp-action="ExternalLogin" id="login-@provider.AuthenticationScheme">
+                <form asp-controller="Account" asp-action="ExternalLogin" id="login-@provider.Name">
                     <input type="hidden" name="returnurl" value="@ViewData["ReturnUrl"]" />
-                    <input type="hidden" name="provider" value="@provider.AuthenticationScheme" />
+                    <input type="hidden" name="provider" value="@provider.Name" />
                 </form>
             }
 
@@ -53,7 +53,7 @@
                     <div class="col-md-offset-3 col-md-9">
                         <button type="submit" class="btn btn-success">Create account</button>
                         @{
-                            var providers = SignInManager.GetExternalAuthenticationSchemes().ToList();
+                            var providers = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
                             if (providers.Count > 0)
                             {
                                 <text>or</text>
@@ -66,7 +66,7 @@
                     <div class="col-md-offset-3 col-md-9">
                         @foreach (var provider in providers)
                         {
-                            <a href="#" onClick="$('#login-@provider.AuthenticationScheme').submit()" class="btn btn-primary">Register using @provider.DisplayName account</a>
+                            <a href="#" onClick="$('#login-@provider.Name').submit()" class="btn btn-primary">Register using @provider.DisplayName account</a>
                         }
                     </div>
                 </div>

@@ -16,11 +16,11 @@
             </div>
             <div style="padding-top:30px" class="panel-body">
 
-                @foreach (var provider in SignInManager.GetExternalAuthenticationSchemes().ToList())
+                @foreach (var provider in (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList())
                 {
-                    <form asp-controller="Account" asp-action="ExternalLogin" id="login-@provider.AuthenticationScheme">
+                    <form asp-controller="Account" asp-action="ExternalLogin" id="login-@provider.Name">
                         <input type="hidden" name="returnurl" value="@ViewData["ReturnUrl"]" />
-                        <input type="hidden" name="provider" value="@provider.AuthenticationScheme" />
+                        <input type="hidden" name="provider" value="@provider.Name" />
                     </form>
                 }
 
@@ -52,10 +52,10 @@
                         <div class="col-sm-12 controls">
                             <a href="#" onClick="$('#login-Local').submit()" class="btn btn-success">Login</a>
                             @{
-                                var providers = SignInManager.GetExternalAuthenticationSchemes().ToList();
+                                var providers = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
                                 @foreach (var provider in providers)
                                 {
-                                    <a href="#" onClick="$('#login-@provider.AuthenticationScheme').submit()" class="btn btn-primary">Login with @provider.DisplayName</a>
+                                    <a href="#" onClick="$('#login-@provider.Name').submit()" class="btn btn-primary">Login with @provider.DisplayName</a>
                                 }
                             }
                         </div>
