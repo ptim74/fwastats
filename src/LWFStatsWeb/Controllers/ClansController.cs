@@ -27,6 +27,7 @@ namespace LWFStatsWeb.Controllers
         IOptions<WeightSubmitOptions> submitOptions;
         IGoogleSheetsService googleSheets;
         IClanLoader clanLoader;
+        IOptions<WeightResultOptions> resultDatabase;
 
         public ClansController(
             ApplicationDbContext db,
@@ -35,7 +36,8 @@ namespace LWFStatsWeb.Controllers
             ILogger<ClansController> logger,
             IOptions<WeightSubmitOptions> submitOptions,
             IGoogleSheetsService googleSheets,
-            IClanLoader clanLoader
+            IClanLoader clanLoader,
+            IOptions<WeightResultOptions> resultDatabase
             )
         {
             this.db = db;
@@ -45,6 +47,7 @@ namespace LWFStatsWeb.Controllers
             this.submitOptions = submitOptions;
             this.googleSheets = googleSheets;
             this.clanLoader = clanLoader;
+            this.resultDatabase = resultDatabase;
         }
 
         protected IndexViewModel GetClanList()
@@ -876,6 +879,7 @@ namespace LWFStatsWeb.Controllers
                     {
                         model.Status = true;
                         model.SheetUrl = "http://tinyurl.com/FWABaseWeightResponse";
+                        await this.UpdatePendingSubmit(weight.ClanTag);
                     }
                 }
             }
@@ -884,6 +888,40 @@ namespace LWFStatsWeb.Controllers
                 model.Message = e.Message;
             }
             return View("WeightSubmit", model);
+        }
+
+        protected async Task UpdatePendingSubmit(string id)
+        {
+            var tag = Utils.LinkIdToTag(id);
+            try
+            {
+                var pendingData = await googleSheets.Get(resultDatabase.Value.SheetId, "ROWS", resultDatabase.Value.PendingRange);
+                if (pendingData != null)
+                {
+                    foreach (var row in pendingData)
+                    {
+                        if (row.Count > 0)
+                        {
+                            var clanTag = Utils.LinkIdToTag((string)row[0]);
+                            if(tag.Equals(clanTag,StringComparison.OrdinalIgnoreCase))
+                            {
+                                var result = db.WeightResults.SingleOrDefault(r => r.Tag == tag);
+                                if (result == null)
+                                {
+                                    result = new WeightResult { Tag = clanTag, Timestamp = DateTime.MinValue };
+                                    db.WeightResults.Add(result);
+                                }
+                                result.PendingResult = true;
+                                db.SaveChanges();
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                logger.LogWarning("Weight.UpdatePendingSubmit");
+            }
         }
 
         [HttpPost]
