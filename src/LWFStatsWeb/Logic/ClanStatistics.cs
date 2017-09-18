@@ -283,7 +283,7 @@ namespace LWFStatsWeb.Logic
                     currentSync = syncs[syncId++];
                 }
 
-                if(war.EndTime >= currentSync.Start && war.EndTime <= currentSync.Finish && war.TeamSize == 40 && clanIsValid)
+                if(war.EndTime >= currentSync.Start && war.EndTime <= currentSync.Finish && (war.TeamSize == Constants.WAR_SIZE1 || war.TeamSize == Constants.WAR_SIZE2) && clanIsValid)
                 {
                     war.Synced = true;
                 }

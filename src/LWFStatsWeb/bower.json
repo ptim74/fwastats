@@ -2,11 +2,11 @@
   "name": "asp.net",
   "private": true,
   "dependencies": {
-    "bootstrap": "v4.0.0-beta",
     "jquery": "3.2.1",
     "jquery-validation": "1.17.0",
     "jquery-validation-unobtrusive": "3.2.6",
-    "tablesorter": "jquery.tablesorter#v2.28.15"
+    "tablesorter": "jquery.tablesorter#v2.28.15",
+    "bootstrap": "v3.3.7"
   },
   "resolutions": {
     "jquery": "3.2.1"

@@ -60,7 +60,7 @@ namespace LWFStatsWeb.Logic
                 }
 
                 //Calculate estimated max weight
-                var availableMembers = 40;
+                var availableMembers = Constants.WAR_SIZE1; //TODO
                 var thLevelMembers = ret.Th11Count < availableMembers ? ret.Th11Count : availableMembers;
                 var maxWeight = thLevelMembers * 105;
                 availableMembers -= thLevelMembers;
@@ -79,7 +79,7 @@ namespace LWFStatsWeb.Logic
 
 
                 //Calculate estimated min weight
-                availableMembers = 40;
+                availableMembers = Constants.WAR_SIZE1; //TODO
                 thLevelMembers = ret.Th8Count < availableMembers ? ret.Th8Count : availableMembers;
 
                 //TH8 count has limits

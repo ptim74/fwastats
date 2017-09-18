@@ -214,7 +214,7 @@ namespace LWFStatsWeb.Controllers
                                 if(!warLookup.TryGetValue(warKey, out War clanWar))
                                 {
                                     var synced = syncTimes.Where(s => s.Start <= war.EndTime && s.Finish >= war.EndTime).FirstOrDefault();
-                                    if (synced != null && war.TeamSize == 40)
+                                    if (synced != null && (war.TeamSize == Constants.WAR_SIZE1 || war.TeamSize == Constants.WAR_SIZE2))
                                         war.Synced = true;
 
                                     wars.Add(war);
@@ -709,7 +709,7 @@ namespace LWFStatsWeb.Controllers
                 }
             }
 
-            if(memberCount == 40)
+            if(memberCount == Constants.WAR_SIZE1 || memberCount == Constants.WAR_SIZE2)
             {
                 var maxWeight = clanWeight + 30000;
                 var minWeight = clanWeight - 30000;
@@ -719,7 +719,7 @@ namespace LWFStatsWeb.Controllers
                 {
                     foreach (var res in results)
                     {
-                        for (var i = 1; i <= 40; i++)
+                        for (var i = 1; i <= memberCount; i++)
                         {
                             if (comparisons.TryGetValue(i, out WeightComparison comparison))
                             {
@@ -735,7 +735,7 @@ namespace LWFStatsWeb.Controllers
 
                     model.Comparisons = new List<WeightComparison>();
 
-                    for (var i = 1; i <= 40; i++)
+                    for (var i = 1; i <= memberCount; i++)
                     {
                         if (comparisons.TryGetValue(i, out WeightComparison comparison))
                         {

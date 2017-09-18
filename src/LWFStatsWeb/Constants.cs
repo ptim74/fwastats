@@ -7,6 +7,8 @@ namespace LWFStatsWeb
 {
     public sealed class Constants
     {
+        public const int WAR_SIZE1 = 40;
+        public const int WAR_SIZE2 = 50;
         public const int CACHE_TIME = 15;
         public const double HIDE_TIME = 2.25;
         public const int PLAYER_BATCH = 200;

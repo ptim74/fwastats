@@ -67,6 +67,17 @@ namespace LWFStatsWeb.Models
         public int Base39 { get; set; }
         public int Base40 { get; set; }
 
+        public int Base41 { get; set; }
+        public int Base42 { get; set; }
+        public int Base43 { get; set; }
+        public int Base44 { get; set; }
+        public int Base45 { get; set; }
+        public int Base46 { get; set; }
+        public int Base47 { get; set; }
+        public int Base48 { get; set; }
+        public int Base49 { get; set; }
+        public int Base50 { get; set; }
+
         public int Weight { get; set; }
 
         public void SetBase(int n, int weight)
@@ -193,6 +204,36 @@ namespace LWFStatsWeb.Models
                 case 40:
                     Base40 = weight;
                     break;
+                case 41:
+                    Base41 = weight;
+                    break;
+                case 42:
+                    Base42 = weight;
+                    break;
+                case 43:
+                    Base43 = weight;
+                    break;
+                case 44:
+                    Base44 = weight;
+                    break;
+                case 45:
+                    Base45 = weight;
+                    break;
+                case 46:
+                    Base46 = weight;
+                    break;
+                case 47:
+                    Base47 = weight;
+                    break;
+                case 48:
+                    Base48 = weight;
+                    break;
+                case 49:
+                    Base49 = weight;
+                    break;
+                case 50:
+                    Base50 = weight;
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException("n");
             }
@@ -282,6 +323,26 @@ namespace LWFStatsWeb.Models
                     return Base39;
                 case 40:
                     return Base40;
+                case 41:
+                    return Base41;
+                case 42:
+                    return Base42;
+                case 43:
+                    return Base43;
+                case 44:
+                    return Base44;
+                case 45:
+                    return Base45;
+                case 46:
+                    return Base46;
+                case 47:
+                    return Base47;
+                case 48:
+                    return Base48;
+                case 49:
+                    return Base49;
+                case 50:
+                    return Base50;
                 default:
                     throw new ArgumentOutOfRangeException("n");
             }
