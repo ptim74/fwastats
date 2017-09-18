@@ -222,9 +222,8 @@ namespace LWFStatsWeb.Logic
             foreach(var clan in currentClans)
             {
                 var currentClan = clan.Value;
-                ClanValidity validClan;
                 DateTime firstMatch;
-                if (validClans.TryGetValue(clan.Key, out validClan))
+                if (validClans.TryGetValue(clan.Key, out ClanValidity validClan))
                 {
                     if (validClan.ValidTo < DateTime.UtcNow)
                     {

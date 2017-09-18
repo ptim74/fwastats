@@ -29,17 +29,17 @@ namespace LWFStatsWeb.Controllers
 
         public IActionResult Index()
         {
-            IndexViewModel model;
-
             logger.LogInformation("Index");
 
-            if (!memoryCache.TryGetValue<IndexViewModel>(Constants.CACHE_HOME_INDEX, out model))
+            if (!memoryCache.TryGetValue<IndexViewModel>(Constants.CACHE_HOME_INDEX, out IndexViewModel model))
             {
-                model = new IndexViewModel();
-                model.Counters = new List<CounterStats>();
-                model.LastSyncs = new List<SyncStats>();
-                model.SyncHistories = new List<SyncHistory>();
-                model.TownhallCounters = new List<TownhallCounter>();
+                model = new IndexViewModel
+                {
+                    Counters = new List<CounterStats>(),
+                    LastSyncs = new List<SyncStats>(),
+                    SyncHistories = new List<SyncHistory>(),
+                    TownhallCounters = new List<TownhallCounter>()
+                };
 
                 try
                 {
@@ -77,8 +77,10 @@ namespace LWFStatsWeb.Controllers
                                             where w.EndTime >= latestSync.Start && w.EndTime <= latestSync.Finish
                                             select new { Result = w.Result, ClanTag = w.ClanTag, OpponentTag = w.OpponentTag }).ToList();
 
-                        var stats = new SyncStats();
-                        stats.Name = latestSync.Name;
+                        var stats = new SyncStats
+                        {
+                            Name = latestSync.Name
+                        };
                         var syncWins = 0;
 
                         if(latestSync.Finish > DateTime.UtcNow)

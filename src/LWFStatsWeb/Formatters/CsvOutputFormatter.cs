@@ -26,13 +26,7 @@ namespace LWFStatsWeb.Formatters
         {
             ContentType = "text/csv";
             SupportedMediaTypes.Add(Microsoft.Net.Http.Headers.MediaTypeHeaderValue.Parse("text/csv"));
-
-            if (csvFormatterOptions == null)
-            {
-                throw new ArgumentNullException(nameof(csvFormatterOptions));
-            }
-
-            _options = csvFormatterOptions;
+            _options = csvFormatterOptions ?? throw new ArgumentNullException(nameof(csvFormatterOptions));
 
             //SupportedEncodings.Add(Encoding.GetEncoding("utf-8"));
         }
@@ -43,10 +37,10 @@ namespace LWFStatsWeb.Formatters
             if (type == null)
                 throw new ArgumentNullException("type");
 
-            return isTypeOfIEnumerable(type);
+            return IsTypeOfIEnumerable(type);
         }
 
-        private bool isTypeOfIEnumerable(Type type)
+        private bool IsTypeOfIEnumerable(Type type)
         {
 
             foreach (Type interfaceType in type.GetInterfaces())

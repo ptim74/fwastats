@@ -31,12 +31,13 @@ namespace LWFStatsWeb.Logic
 
             foreach (var oldItem in oldList)
             {
-                var task = new UpdateTask();
-                task.ID = Guid.NewGuid();
-                task.ClanTag = oldItem.Key;
-                task.ClanName = oldItem.Value.Name;
-                ClanObject newItem;
-                if (newList.TryGetValue(oldItem.Key, out newItem))
+                var task = new UpdateTask
+                {
+                    ID = Guid.NewGuid(),
+                    ClanTag = oldItem.Key,
+                    ClanName = oldItem.Value.Name
+                };
+                if (newList.TryGetValue(oldItem.Key, out ClanObject newItem))
                 {
                     task.Mode = UpdateTaskMode.Update;
                     task.ClanGroup = newItem.Group;
@@ -52,12 +53,14 @@ namespace LWFStatsWeb.Logic
             {
                 if (!oldList.ContainsKey(newItem.Key))
                 {
-                    var task = new UpdateTask();
-                    task.ID = Guid.NewGuid();
-                    task.ClanTag = newItem.Key;
-                    task.ClanName = newItem.Value.Name;
-                    task.ClanGroup = newItem.Value.Group;
-                    task.Mode = UpdateTaskMode.Insert;
+                    var task = new UpdateTask
+                    {
+                        ID = Guid.NewGuid(),
+                        ClanTag = newItem.Key,
+                        ClanName = newItem.Value.Name,
+                        ClanGroup = newItem.Value.Group,
+                        Mode = UpdateTaskMode.Insert
+                    };
                     tasks.Add(task);
                 }
             }

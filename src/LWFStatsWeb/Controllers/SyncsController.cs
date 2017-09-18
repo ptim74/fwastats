@@ -57,12 +57,14 @@ namespace LWFStatsWeb.Controllers
 
             foreach (var clan in clanQ)
             {
-                var clanDetail = new SyncIndexClan();
-                clanDetail.Tag = clan.Tag;
-                clanDetail.Name = clan.Name;
-                clanDetail.BadgeUrl = clan.BadgeUrl;
-                clanDetail.Results = new List<SyncIndexResult>();
-                clanDetail.HiddenLog = !clan.IsWarLogPublic;
+                var clanDetail = new SyncIndexClan
+                {
+                    Tag = clan.Tag,
+                    Name = clan.Name,
+                    BadgeUrl = clan.BadgeUrl,
+                    Results = new List<SyncIndexResult>(),
+                    HiddenLog = !clan.IsWarLogPublic
+                };
                 clans.Add(clan.Tag, clanDetail);
             }
 
@@ -90,8 +92,7 @@ namespace LWFStatsWeb.Controllers
 
             foreach (var newClan in newClanQ)
             {
-                SyncIndexClan syncClan;
-                if (clans.TryGetValue(newClan.Tag,out syncClan))
+                if (clans.TryGetValue(newClan.Tag, out SyncIndexClan syncClan))
                 {
                     syncClan.New = true;
                 }
@@ -107,12 +108,10 @@ namespace LWFStatsWeb.Controllers
 
                 foreach (var r in q)
                 {
-                    SyncIndexClan clan;
-                    if(clans.TryGetValue(r.ClanTag, out clan))
+                    if (clans.TryGetValue(r.ClanTag, out SyncIndexClan clan))
                     {
                         var isAlliance = false;
-                        ClanValidity opponentClan;
-                        if (formerClans.TryGetValue(r.OpponentTag, out opponentClan))
+                        if (formerClans.TryGetValue(r.OpponentTag, out ClanValidity opponentClan))
                         {
                             if (opponentClan.ValidFrom < s.Start && opponentClan.ValidTo > s.Start)
                                 isAlliance = true;
@@ -146,11 +145,11 @@ namespace LWFStatsWeb.Controllers
 
             }
 
-            var data = new IndexViewModel();
-
-            data.Syncs = recentSyncs;
-
-            data.Clans = clans.Values.OrderBy(c => c.Name).ToList();
+            var data = new IndexViewModel
+            {
+                Syncs = recentSyncs,
+                Clans = clans.Values.OrderBy(c => c.Name).ToList()
+            };
 
             return data;
         }
@@ -170,9 +169,10 @@ namespace LWFStatsWeb.Controllers
 
         protected DetailsViewModel GetWars(string id)
         {
-            var model = new DetailsViewModel();
-
-            model.Sync = db.WarSyncs.Where(s => s.Name == id).FirstOrDefault();
+            var model = new DetailsViewModel
+            {
+                Sync = db.WarSyncs.Where(s => s.Name == id).FirstOrDefault()
+            };
 
             var blacklisted = db.BlacklistedClans.Select(c => c.Tag).ToList();
 

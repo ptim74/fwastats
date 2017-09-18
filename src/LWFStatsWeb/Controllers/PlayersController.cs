@@ -103,9 +103,11 @@ namespace LWFStatsWeb.Controllers
 
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
 
-                var ret = new DetailsViewModel();
-                ret.Events = new List<PlayerDetailsEvent>();
-                ret.Player = await api.GetPlayer(tag);
+                var ret = new DetailsViewModel
+                {
+                    Events = new List<PlayerDetailsEvent>(),
+                    Player = await api.GetPlayer(tag)
+                };
 
                 var events = from e in db.PlayerEvents
                                  join v in db.ClanValidities on e.ClanTag equals v.Tag

@@ -18,23 +18,16 @@ namespace LWFStatsWeb.Formatters
 
         public CsvInputFormatter(CsvFormatterOptions csvFormatterOptions)
         {
-            if (csvFormatterOptions == null)
-            {
-                throw new ArgumentNullException(nameof(csvFormatterOptions));
-            }
-
-            _options = csvFormatterOptions;
+            _options = csvFormatterOptions ?? throw new ArgumentNullException(nameof(csvFormatterOptions));
         }
 
         public override Task<InputFormatterResult> ReadRequestBodyAsync(InputFormatterContext context)
         {
             var type = context.ModelType;
             var request = context.HttpContext.Request;
-            MediaTypeHeaderValue requestContentType = null;
-            MediaTypeHeaderValue.TryParse(request.ContentType, out requestContentType);
+            MediaTypeHeaderValue.TryParse(request.ContentType, out MediaTypeHeaderValue requestContentType);
 
-
-            var result = readStream(type, request.Body);
+            var result = ReadStream(type, request.Body);
             return InputFormatterResult.SuccessAsync(result);
         }
 
@@ -44,10 +37,10 @@ namespace LWFStatsWeb.Formatters
             if (type == null)
                 throw new ArgumentNullException("type");
 
-            return isTypeOfIEnumerable(type);
+            return IsTypeOfIEnumerable(type);
         }
 
-        private bool isTypeOfIEnumerable(Type type)
+        private bool IsTypeOfIEnumerable(Type type)
         {
 
             foreach (Type interfaceType in type.GetInterfaces())
@@ -60,7 +53,7 @@ namespace LWFStatsWeb.Formatters
             return false;
         }
 
-        private object readStream(Type type, Stream stream)
+        private object ReadStream(Type type, Stream stream)
         {
             Type itemType;
             var typeIsArray = false;

@@ -268,8 +268,10 @@ namespace LWFStatsWeb.Controllers
 
         protected async Task<UpdateTaskResponse> UpdatePlayer(string playerTag)
         {
-            var status = new UpdateTaskResponse();
-            status.ID = playerTag;
+            var status = new UpdateTaskResponse
+            {
+                ID = playerTag
+            };
             var playerName = playerTag;
 
             try
@@ -772,8 +774,10 @@ namespace LWFStatsWeb.Controllers
         public IActionResult Friendly()
         {
             logger.LogInformation("Friendly");
-            var model = new IndexViewModel();
-            model.Errors = new List<string>();
+            var model = new IndexViewModel
+            {
+                Errors = new List<string>()
+            };
             var updates = 0;
 
             var prevEndTimes = new Dictionary<string, DateTime>();
@@ -810,9 +814,11 @@ namespace LWFStatsWeb.Controllers
         public IActionResult Finish()
         {
             logger.LogInformation("Finish");
-            var model = new IndexViewModel();
-            model.Errors = new List<string>();
-            model.Tasks = new List<UpdateTask>();
+            var model = new IndexViewModel
+            {
+                Errors = new List<string>(),
+                Tasks = new List<UpdateTask>()
+            };
             return View("Index", model);
         }
 
@@ -877,9 +883,11 @@ namespace LWFStatsWeb.Controllers
         {
             logger.LogInformation("Players");
 
-            var model = new PlayersViewModel();
-            model.Errors = new List<string>();
-            model.Tasks = new List<PlayerUpdateTask>();
+            var model = new PlayersViewModel
+            {
+                Errors = new List<string>(),
+                Tasks = new List<PlayerUpdateTask>()
+            };
 
             /*
             var playerEvent = db.PlayerEvents.FirstOrDefault();
@@ -899,7 +907,7 @@ namespace LWFStatsWeb.Controllers
                 db.SaveChanges();
             }*/
 
-            foreach(var member in db.Members.Select(m => new { Tag = m.Tag, Name = m.Name }))
+            foreach (var member in db.Members.Select(m => new { Tag = m.Tag, Name = m.Name }))
             {
                 var task = new PlayerUpdateTask
                 {
