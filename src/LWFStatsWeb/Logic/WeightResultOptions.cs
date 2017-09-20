@@ -5,8 +5,17 @@ using System.Threading.Tasks;
 
 namespace LWFStatsWeb.Logic
 {
-    public class WeightResultOptions
+    public class WeightResultOptions : List<WeightResultDetails>
     {
+        public WeightResultDetails SelectTeamSize(int teamSize)
+        {
+            return this.Single(i => i.TeamSize == teamSize);
+        }
+    }
+
+    public class WeightResultDetails
+    {
+        public int TeamSize { get; set; }
         public string SheetId { get; set; }
         public string ResultRange { get; set; }
         public string PendingRange { get; set; }

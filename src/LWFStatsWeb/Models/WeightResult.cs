@@ -16,6 +16,7 @@ namespace LWFStatsWeb.Models
         public DateTime Timestamp { get; set; }
         public bool PendingResult { get; set; }
 
+        public int TeamSize { get; set; }
         public int TH11Count { get; set; }
         public int TH10Count { get; set; }
         public int TH9Count { get; set; }

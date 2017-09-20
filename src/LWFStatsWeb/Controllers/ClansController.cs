@@ -795,6 +795,8 @@ namespace LWFStatsWeb.Controllers
 
         protected async Task<IActionResult> WeightSubmit(WeightViewModel weight)
         {
+            var options = submitOptions.Value.SelectTeamSize(weight.Members.Count);
+
             var model = new WeightSubmitModel()
             {
                 Status = false,
@@ -802,12 +804,12 @@ namespace LWFStatsWeb.Controllers
                 ClanName = weight.ClanName,
                 ClanLink = weight.ClanLink,
                 ClanBadge = weight.ClanBadge,
-                SheetUrl = submitOptions.Value.ResponseURL
+                SheetUrl = options.ResponseURL
             };
 
             try
             {
-                logger.LogInformation("Weight.Submit {0}", weight.ClanLink);
+                logger.LogInformation("Weight.Submit[{0}] {1}", options.TeamSize, weight.ClanLink);
 
                 var clanName = weight.ClanName;
                 var clans = await clanLoader.Load(Constants.LIST_FWA);
@@ -849,16 +851,16 @@ namespace LWFStatsWeb.Controllers
 
                 var updateData = new Dictionary<string, IList<IList<object>>>
                 {
-                    { submitOptions.Value.ClanNameRange, new List<IList<object>> { nameSection } },
-                    { submitOptions.Value.CompositionRange, new List<IList<object>> { compositionSection } },
-                    { submitOptions.Value.WeightRange, new List<IList<object>> { weightSection } },
-                    { submitOptions.Value.TagRange, new List<IList<object>> { tagSection } },
-                    { submitOptions.Value.THRange, new List<IList<object>> { thSection } }
+                    { options.ClanNameRange, new List<IList<object>> { nameSection } },
+                    { options.CompositionRange, new List<IList<object>> { compositionSection } },
+                    { options.WeightRange, new List<IList<object>> { weightSection } },
+                    { options.TagRange, new List<IList<object>> { tagSection } },
+                    { options.THRange, new List<IList<object>> { thSection } }
                 };
 
-                await googleSheets.BatchUpdate(submitOptions.Value.SheetId, "COLUMNS", updateData);
+                await googleSheets.BatchUpdate(options.SheetId, "COLUMNS", updateData);
 
-                var submitRequest = WebRequest.Create(submitOptions.Value.SubmitURL);
+                var submitRequest = WebRequest.Create(options.SubmitURL);
                 var submitResponse = await submitRequest.GetResponseAsync();
 
                 using (var reader = new StreamReader(submitResponse.GetResponseStream()))
@@ -879,7 +881,7 @@ namespace LWFStatsWeb.Controllers
                     {
                         model.Status = true;
                         model.SheetUrl = "http://tinyurl.com/FWABaseWeightResponse";
-                        await this.UpdatePendingSubmit(weight.ClanTag);
+                        await this.UpdatePendingSubmit(weight.Members.Count, weight.ClanTag);
                     }
                 }
             }
@@ -890,12 +892,13 @@ namespace LWFStatsWeb.Controllers
             return View("WeightSubmit", model);
         }
 
-        protected async Task UpdatePendingSubmit(string id)
+        protected async Task UpdatePendingSubmit(int teamSize, string id)
         {
+            var results = resultDatabase.Value.SelectTeamSize(teamSize);
             var tag = Utils.LinkIdToTag(id);
             try
             {
-                var pendingData = await googleSheets.Get(resultDatabase.Value.SheetId, "ROWS", resultDatabase.Value.PendingRange);
+                var pendingData = await googleSheets.Get(results.SheetId, "ROWS", results.PendingRange);
                 if (pendingData != null)
                 {
                     foreach (var row in pendingData)
