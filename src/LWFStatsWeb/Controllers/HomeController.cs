@@ -35,26 +35,24 @@ namespace LWFStatsWeb.Controllers
             {
                 model = new IndexViewModel
                 {
-                    Counters = new List<CounterStats>(),
-                    LastSyncs = new List<SyncStats>(),
-                    SyncHistories = new List<SyncHistory>(),
-                    TownhallCounters = new List<TownhallCounter>()
+                    Counters = new CounterStats(),
+                    LastStats = new Dictionary<int, SyncStats>(),
+                    SyncHistory = new List<SyncStats>(),
+                    TownhallCounters = new Dictionary<int, ICollection<TownhallCounter>>()
                 };
 
                 try
                 {
                     var validClans = db.Clans.Select(c => new { c.Tag, c.Group, c.Members }).ToList();
 
-                    var recentSyncs = db.WarSyncs.Where(w => w.Start < Constants.MaxVisibleEndTime).OrderByDescending(w => w.Start).Take(10).ToList();
+                    var recentSyncs = db.WarSyncs.Where(w => w.Start < Constants.MaxVisibleEndTime && w.Verified == true).OrderByDescending(w => w.Start).Take(10).ToList();
 
                     var fromDate = recentSyncs.Last().Start;
                     var loadedWars = (from w in db.Wars
                                       where w.EndTime >= fromDate
-                                      select new { Result = w.Result, EndTime = w.EndTime, ClanTag = w.ClanTag, OpponentTag = w.OpponentTag }).ToList();
+                                      select new { Result = w.Result, EndTime = w.EndTime, ClanTag = w.ClanTag, OpponentTag = w.OpponentTag, TeamSize = w.TeamSize }).ToList();
 
                     var loadedValidities = db.ClanValidities.ToList();
-
-                    var counters = new CounterStats();
 
                     var totalWins = 0;
                     var totalMatches = 0;
@@ -63,30 +61,35 @@ namespace LWFStatsWeb.Controllers
 
                     foreach (var clan in validClans)
                     {
-                        counters.ClanCount++;
-                        counters.MemberCount += clan.Members;
+                        model.Counters.ClanCount++;
+                        model.Counters.MemberCount += clan.Members;
                     }
 
-                    var syncHistory = new SyncHistory { Syncs = new List<SyncStats>() };
+                    var lastSync = recentSyncs.FirstOrDefault();
 
-                    foreach (var latestSync in recentSyncs.OrderBy(w => w.Start))
+                    if (lastSync != null)
+                        foreach (var teamSize in new int[] { Constants.WAR_SIZE1, Constants.WAR_SIZE2 })
+                            model.LastStats.Add(teamSize, new SyncStats { ID = lastSync.ID, DisplayName = lastSync.DisplayName });
+
+                    foreach (var currentSync in recentSyncs.OrderBy(w => w.Start))
                     {
-                        var syncDate = latestSync.SearchTime;
+                        var syncDate = currentSync.SearchTime;
 
                         var lastSyncWars = (from w in loadedWars
-                                            where w.EndTime >= latestSync.Start && w.EndTime <= latestSync.Finish
-                                            select new { Result = w.Result, ClanTag = w.ClanTag, OpponentTag = w.OpponentTag }).ToList();
+                                            where w.EndTime >= currentSync.Start && w.EndTime <= currentSync.Finish
+                                            select new { Result = w.Result, ClanTag = w.ClanTag, OpponentTag = w.OpponentTag, TeamSize = w.TeamSize }).ToList();
 
                         var stats = new SyncStats
                         {
-                            Name = latestSync.Name
+                            ID = currentSync.ID,
+                            DisplayName = currentSync.DisplayName
                         };
                         var syncWins = 0;
 
-                        if(latestSync.Finish > DateTime.UtcNow)
+                        if(currentSync.Finish > DateTime.UtcNow)
                         {
                             var tomorrow = DateTime.UtcNow.AddDays(1);
-                            if (latestSync.Start > tomorrow)
+                            if (currentSync.Start > tomorrow)
                                 stats.Status = "preparation day";
                             else
                                 stats.Status = "battle day";
@@ -108,6 +111,11 @@ namespace LWFStatsWeb.Controllers
 
                         foreach (var war in lastSyncWars)
                         {
+                            if (!model.LastStats.TryGetValue(war.TeamSize, out SyncStats lastStat))
+                                lastStat = new SyncStats();
+
+                            lastStat.Status = stats.Status;
+
                             if (validClanTags.Contains(war.ClanTag))
                             {
                                 if (war.Result == "win")
@@ -116,9 +124,17 @@ namespace LWFStatsWeb.Controllers
                                 }
                                 stats.NotStarted--;
                                 if (validOpponentTags.Contains(war.OpponentTag))
+                                {
                                     stats.AllianceMatches++;
+                                    if(lastSync.ID == currentSync.ID)
+                                        lastStat.AllianceMatches++;
+                                }
                                 else
+                                {
                                     stats.WarMatches++;
+                                    if (lastSync.ID == currentSync.ID)
+                                        lastStat.WarMatches++;
+                                }
                             }
                         }
 
@@ -130,55 +146,50 @@ namespace LWFStatsWeb.Controllers
                             totalMismatches += stats.WarMatches;
                         }
 
-                        syncHistory.Syncs.Add(stats);
-                    }
-
-                    if (syncHistory.Syncs.Count > 0)
-                    {
-                        model.SyncHistories.Add(syncHistory);
-                        var lastSync = syncHistory.Syncs.Last();
-                        model.LastSyncs.Add(lastSync);
+                        model.SyncHistory.Add(stats);
                     }
 
                     var totalWars = totalMatches + totalMismatches;
                     if (totalWars > 0)
                     {
-                        counters.MatchPercentage = Math.Round(totalMatches * 100.0 / totalWars, 1);
-                        counters.WinPercentage = Math.Round(totalWins * 100.0 / totalWars, 1);
+                        model.Counters.MatchPercentage = Math.Round(totalMatches * 100.0 / totalWars, 1);
+                        model.Counters.WinPercentage = Math.Round(totalWins * 100.0 / totalWars, 1);
                     }
 
-                    model.Counters.Add(counters);
-
-                    var results = db.WeightResults.Where(r => r.Weight > 2000000).ToList();
-                    var divider = 25000;
-                    var thcounters = new Dictionary<int, TownhallCounter>();
-                    foreach(var result in results)
+                    foreach (var teamSize in new int[] { Constants.WAR_SIZE1, Constants.WAR_SIZE2 })
                     {
-                        //rounding +/- 12500
-                        var weight = (result.Weight + divider / 2 ) / divider;
-                        if(!thcounters.TryGetValue(weight,out TownhallCounter th))
+                        var results = db.WeightResults.Where(r => r.Weight > 2000000 && r.TeamSize == teamSize).ToList();
+                        var divider = 25000;
+                        var thcounters = new Dictionary<int, TownhallCounter>();
+                        foreach (var result in results)
                         {
-                            th = new TownhallCounter { Weight = weight };
-                            thcounters.Add(weight, th);
+                            //rounding +/- 12500
+                            var weight = (result.Weight + divider / 2) / divider;
+                            if (!thcounters.TryGetValue(weight, out TownhallCounter th))
+                            {
+                                th = new TownhallCounter { Weight = weight };
+                                thcounters.Add(weight, th);
+                            }
+                            th.Clans++;
+                            th.TH11 += result.TH11Count;
+                            th.TH10 += result.TH10Count;
+                            th.TH9 += result.TH9Count;
+                            th.TH8 += result.TH8Count;
+                            th.TH8 += result.TH7Count;
                         }
-                        th.Clans++;
-                        th.TH11 += result.TH11Count;
-                        th.TH10 += result.TH10Count;
-                        th.TH9 += result.TH9Count;
-                        th.TH8 += result.TH8Count;
-                        th.TH8 += result.TH7Count;
-                    }
-                    foreach(var th in thcounters.Values)
-                    {
-                        th.Weight = th.Weight * divider / 1000;
-                        
-                        th.TH10 = Math.Round(th.TH10 / th.Clans, 1);
-                        th.TH9 = Math.Round(th.TH9 /= th.Clans, 1);
-                        th.TH8 = Math.Round(th.TH8 /= th.Clans, 1);
-                        th.TH11 = 40.0 - th.TH10 - th.TH9 - th.TH8;
-                    }
+                        foreach (var th in thcounters.Values)
+                        {
+                            th.Weight = th.Weight * divider / 1000;
 
-                    model.TownhallCounters = thcounters.Values.OrderBy(v => v.Weight).ToList();
+                            th.TH10 = Math.Round(th.TH10 / th.Clans, 1);
+                            th.TH9 = Math.Round(th.TH9 /= th.Clans, 1);
+                            th.TH8 = Math.Round(th.TH8 /= th.Clans, 1);
+                            th.TH11 = teamSize - th.TH10 - th.TH9 - th.TH8;
+                        }
+
+                        if(thcounters.Values.Count() > 0)
+                            model.TownhallCounters.Add(teamSize, thcounters.Values.OrderBy(v => v.Weight).ToList());
+                    }
 
                     memoryCache.Set<IndexViewModel>(Constants.CACHE_HOME_INDEX, model, 
                         new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(Constants.CACHE_TIME)));

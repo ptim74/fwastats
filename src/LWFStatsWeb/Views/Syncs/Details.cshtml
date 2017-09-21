@@ -1,13 +1,13 @@
 ﻿@model LWFStatsWeb.Models.SyncViewModels.DetailsViewModel
 
 @{
-    ViewBag.Title = "Sync " + Model.Sync.Name;
+    ViewBag.Title = "Sync " + Model.Sync.DisplayName;
 }
 
 <ol class="breadcrumb">
     <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
     <li><a asp-area="" asp-controller="Syncs" asp-action="Index">Syncs</a></li>
-    <li class="active">@Model.Sync.Name</li>
+    <li class="active">@Model.Sync.DisplayName</li>
 </ol>
 
 <h2>@ViewBag.Title</h2>

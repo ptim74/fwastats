@@ -167,11 +167,11 @@ namespace LWFStatsWeb.Controllers
             return View(model);
         }
 
-        protected DetailsViewModel GetWars(string id)
+        protected DetailsViewModel GetWars(int id)
         {
             var model = new DetailsViewModel
             {
-                Sync = db.WarSyncs.Where(s => s.Name == id).FirstOrDefault()
+                Sync = db.WarSyncs.Where(s => s.ID == id && s.Verified == true && s.Start < Constants.MaxVisibleEndTime).FirstOrDefault()
             };
 
             var blacklisted = db.BlacklistedClans.Select(c => c.Tag).ToList();
@@ -212,7 +212,7 @@ namespace LWFStatsWeb.Controllers
         }
 
         [Route("Sync/{id}")]
-        public ActionResult Details(string id)
+        public ActionResult Details(int id)
         {
             logger.LogInformation("Details {0}", id);
 

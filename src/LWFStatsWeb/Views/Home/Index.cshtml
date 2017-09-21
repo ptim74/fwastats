@@ -17,53 +17,63 @@
 </div>
 
 <div class="row">
-    @foreach (var stats in Model.LastSyncs)
+    @foreach (var stats in Model.LastStats)
     {
+        var chart = "piechart" + stats.Key;
         <div class="col-sm-6">
-            <h3>Current war <small>@stats.Status</small></h3>
-            <div id="piechart" style="width:300px;height:200px"><p><span class="glyphicon glyphicon-hourglass"></span> Loading...</p></div>
-            <div style="margin-top:10px;"><a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@stats.Name" class="btn btn-default">More details</a></div>
+            <h3>Current war <small>@stats.Key members, @stats.Value.Status</small></h3>
+            <div id="@chart" style="width:300px;height:200px"><p><span class="glyphicon glyphicon-hourglass"></span> Loading...</p></div>
+            <div style="margin-top:10px;"><a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@stats.Value.ID" class="btn btn-default">More details</a></div>
         </div>
     }
-    @foreach (var history in Model.SyncHistories)
+    @if (@Model.SyncHistory.Count > 0)
     {
         <div class="col-sm-6">
-            <h3>Last @history.Syncs.Count wars</h3>
+            <h3>Last @Model.SyncHistory.Count wars</h3>
             <div id="areachart" style="width:300px;height:200px"><p><span class="glyphicon glyphicon-hourglass"></span> Loading...</p></div>
             <div style="margin-top:10px;"><a asp-area="" asp-controller="Syncs" asp-action="Index" class="btn btn-default">More details</a></div>
         </div>
     }
-    @if (Model.TownhallCounters != null && Model.TownhallCounters.Count > 0)
-    {
-        <div class="col-sm-6">
-            <h3>TH composition</h3>
-            <div id="thchart" style="width:300px;height:200px"><p><span class="glyphicon glyphicon-hourglass"></span> Loading...</p></div>
-            <div style="margin-top:10px;"><a href="https://docs.google.com/spreadsheets/d/1QPyciESc0AifmKgUDV5bua0LDI_hUqSRHXi6_TwCtLM/edit#gid=587579726" class="btn btn-default">More details</a></div>
-        </div>
-    }
-    @foreach (var counters in Model.Counters)
-    {
-        <div class="col-sm-6">
-            <h3>Key numbers</h3>
+    <div class="col-sm-6">
+        <h3>Key numbers</h3>
+        <div style="height:200px">
             <table>
                 <tr>
-                    <td style="padding:5px;"><b>@counters.ClanCount</b></td>
+                    <td style="padding:5px;"><b>@Model.Counters.ClanCount</b></td>
                     <td style="padding:5px;">clans</td>
                 </tr>
                 <tr>
-                    <td style="padding:5px;"><b>@counters.MemberCount</b></td>
+                    <td style="padding:5px;"><b>@Model.Counters.MemberCount</b></td>
                     <td style="padding:5px;">members</td>
                 </tr>
                 <tr>
-                    <td style="padding:5px;"><b>@counters.WinPercentage%</b></td>
+                    <td style="padding:5px;"><b>@Model.Counters.WinPercentage%</b></td>
                     <td style="padding:5px;">win ratio</td>
                 </tr>
                 <tr>
-                    <td style="padding:5px;"><b>@counters.MatchPercentage%</b></td>
+                    <td style="padding:5px;"><b>@Model.Counters.MatchPercentage%</b></td>
                     <td style="padding:5px;">match ratio</td>
                 </tr>
             </table>
-            <p style="margin-top:20px;"><a asp-area="" asp-controller="Clans" asp-action="Index" class="btn btn-default">View all clans</a></p>
+        </div>
+        <p style="margin-top:10px;"><a asp-area="" asp-controller="Clans" asp-action="Index" class="btn btn-default">View all clans</a></p>
+    </div>
+    @foreach (var townhallCounters in Model.TownhallCounters)
+    {
+        var chart = "thchart" + townhallCounters.Key;
+        <div class="col-sm-6">
+            <h3>TH composition <small>@townhallCounters.Key members</small></h3>
+            <div id="@chart" style="width:300px;height:200px"><p><span class="glyphicon glyphicon-hourglass"></span> Loading...</p></div>
+            <div style="margin-top:10px;"><a href="https://docs.google.com/spreadsheets/d/1QPyciESc0AifmKgUDV5bua0LDI_hUqSRHXi6_TwCtLM/edit#gid=587579726" class="btn btn-default">More details</a></div>
+        </div>
+    }
+    @foreach (var townhallCounters in Model.TownhallCounters)
+    {
+        var chart = "histogram" + townhallCounters.Key;
+        <div class="col-sm-6">
+            <h3>Weight distribution <small>@townhallCounters.Key members</small></h3>
+            <div id="@chart" style="width:300px;height:200px"><p><span class="glyphicon glyphicon-hourglass"></span> Loading...</p></div>
+            <div style="margin-top:10px;"><a href="https://docs.google.com/spreadsheets/d/1QPyciESc0AifmKgUDV5bua0LDI_hUqSRHXi6_TwCtLM/edit#gid=587579726" class="btn btn-default">More details</a></div>
         </div>
     }
 </div>
@@ -76,17 +86,17 @@
         google.charts.load('current', {'packages':['corechart']});
         google.charts.setOnLoadCallback(function() {
 
-            @foreach (var group in Model.LastSyncs)
+            @foreach (var group in Model.LastStats)
             {
-                var data = "piedata";
-                var options = "pieoptions";
-                var chart = "piechart";
+                var data = "piedata" + group.Key;
+                var options = "pieoptions" + group.Key;
+                var chart = "piechart" + group.Key;
+                var value = group.Value;
                 <text>
                 var @data = google.visualization.arrayToDataTable([
                     ['Wars', 'Count'],
-                    ['Matches', @group.AllianceMatches],
-                    ['Mismatches', @group.WarMatches],
-                    ['Didn\'t start', @group.NotStarted]
+                    ['Matches', @value.AllianceMatches],
+                    ['Mismatches', @value.WarMatches]
                 ]);
 
                 var @options = {
@@ -97,7 +107,7 @@
                 new google.visualization.PieChart(document.getElementById('@chart')).draw(@data, @options);
                 </text>
             }
-            @foreach(var history in Model.SyncHistories)
+            @if (@Model.SyncHistory.Count > 0)
             {
                 var data = "areadata";
                 var options = "areaoptions";
@@ -106,9 +116,9 @@
                 var @data = google.visualization.arrayToDataTable([
                     ['Date', 'Matches', 'Mismatches', 'Didn\'t start']
                 </text>
-                @foreach(var sync in history.Syncs)
+                @foreach(var sync in Model.SyncHistory)
                 {
-                    @: ,['@sync.Name', @sync.AllianceMatches, @sync.WarMatches, @sync.NotStarted]
+                    @: ,['@sync.DisplayName', @sync.AllianceMatches, @sync.WarMatches, @sync.NotStarted]
                 }
                 <text>
                 ]);
@@ -123,16 +133,19 @@
                 new google.visualization.AreaChart(document.getElementById('@chart')).draw(@data, @options);
                 </text>
             }
-            @if(Model.TownhallCounters != null && Model.TownhallCounters.Count > 0)
+            @foreach(var townhallCounters in Model.TownhallCounters)
             {
-                var data = "thdata";
-                var options = "thoptions";
-                var chart = "thchart";
+                var teamSize = townhallCounters.Key;
+                int gridlines = teamSize / 10 + 1;
+                var data = "thdata" + teamSize;
+                var options = "thoptions" + teamSize;
+                var chart = "thchart" + teamSize;
+
                 <text>
                 var @data = google.visualization.arrayToDataTable([
                     ['Weight', 'TH11', 'TH10', 'TH9', 'TH8']
                 </text>
-                @foreach(var th in Model.TownhallCounters)
+                @foreach(var th in townhallCounters.Value)
                 {
                     @: ,[@th.Weight.ToString().Replace(",","."), @th.TH11.ToString().Replace(",","."), @th.TH10.ToString().Replace(",", "."), @th.TH9.ToString().Replace(",", "."), @th.TH8.ToString().Replace(",", ".")]
                 }
@@ -142,10 +155,38 @@
                 var @options = {
                     isStacked: 'absolute',
                     legend: {position: 'top', maxLines: 3},
-                    chartArea: { left: 35, top: 15, width: '250', height: '170' }
+                    chartArea: { left: 35, top: 15, width: '250', height: '170' },
+                    vAxis: { maxValue: @teamSize, gridlines: { count: @gridlines } }
                 };
 
                 new google.visualization.AreaChart(document.getElementById('@chart')).draw(@data, @options);
+                </text>
+            }
+
+            @foreach (var townhallCounters in Model.TownhallCounters)
+            {
+                var teamSize = townhallCounters.Key;
+                int gridlines = teamSize / 10 + 1;
+                var data = "hdata" + teamSize;
+                var options = "hoptions" + teamSize;
+                var chart = "histogram" + teamSize;
+
+                <text>
+                var @data = google.visualization.arrayToDataTable([
+                    ['Weight', 'Count']
+                </text>
+                @foreach(var th in townhallCounters.Value)
+                {
+                    @: ,[@th.Weight.ToString().Replace(",","."), @th.Clans.ToString().Replace(",", ".")]
+                }
+                <text>
+                ]);
+
+                var @options = {
+                    chartArea: { left: 35, top: 15, width: '250', height: '170' }
+                };
+
+                new google.visualization.ColumnChart(document.getElementById('@chart')).draw(@data, @options);
                 </text>
             }
 

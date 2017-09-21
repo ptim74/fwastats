@@ -80,7 +80,7 @@
 {
     <div id="chart"></div>
     <div class="caption">
-        <p class="small">Weight of selected roster compared against average of weight submit results close to selected weight (+/- 25000).</p>
+        <p class="small">Weight of selected roster compared against average of weight submit results close to selected weight (+/- 30000).</p>
     </div>
 }
 else
@@ -194,7 +194,7 @@ else
                     <div class="text-nowrap">TH<span class="hidden-xs"> Comp</span>: <span id="war-composition"></span></div>
                 </div>
                 <div class="col-xs-6 text-nowrap text-right">
-                    @if (Model.WarID != 0 || Model.Members.Count == Constants.WAR_SIZE2)
+                    @if (Model.WarID != 0)
                     {
                         <input type="submit" class="btn btn-primary" name="command" id="command-submit" value="Submit">
                     }

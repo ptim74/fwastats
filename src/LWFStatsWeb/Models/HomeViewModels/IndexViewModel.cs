@@ -7,25 +7,26 @@ namespace LWFStatsWeb.Models.HomeViewModels
 {
     public class IndexViewModel
     {
-        public ICollection<SyncStats> LastSyncs { get; set; }
-        public ICollection<SyncHistory> SyncHistories { get; set; }
-        public ICollection<CounterStats> Counters { get; set; }
-        public ICollection<TownhallCounter> TownhallCounters { get; set; }
+        public IDictionary<int, SyncStats> LastStats { get; set; }
+        public ICollection<SyncStats> SyncHistory { get; set; }
+        public CounterStats Counters { get; set; }
+        public IDictionary<int, ICollection<TownhallCounter>> TownhallCounters { get; set; }
     }
 
     public class SyncStats
     {
-        public string Name { get; set; }
+        public int ID { get; set; }
+        public string DisplayName { get; set; }
         public string Status { get; set; }
         public int AllianceMatches { get; set; }
         public int WarMatches { get; set; }
         public int NotStarted { get; set; }
     }
 
-    public class SyncHistory
-    {
-        public ICollection<SyncStats> Syncs { get; set; }
-    }
+    //public class SyncHistory
+    //{
+    //    public ICollection<SyncStats> Syncs { get; set; }
+    //}
 
     public class CounterStats
     {

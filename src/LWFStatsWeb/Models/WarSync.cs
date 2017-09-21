@@ -13,8 +13,9 @@ namespace LWFStatsWeb.Models
         public int AllianceMatches { get; set; }
         public int WarMatches { get; set; }
         public int MissedStarts { get; set; }
+        public bool Verified { get; set; }
 
-        public string Name
+        public string DisplayName
         {
             get
             {

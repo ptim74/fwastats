@@ -17,7 +17,6 @@ namespace LWFStatsWeb.Logic
     {
         public int TeamSize { get; set; }
         public string SubmitURL { get; set; }
-        public string ResponseURL { get; set; }
         public string SheetId { get; set; }
         public string TabName { get; set; }
         public string ClanNameRange { get; set; }

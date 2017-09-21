@@ -26,7 +26,7 @@
             @foreach (var warSync in Model.Syncs)
             {
                 <th>
-                    <a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@warSync.Name">@warSync.Name</a>
+                    <a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@warSync.ID">@warSync.DisplayName</a>
                 </th>
             }
         </tr>

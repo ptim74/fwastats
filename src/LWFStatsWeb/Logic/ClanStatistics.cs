@@ -424,6 +424,7 @@ namespace LWFStatsWeb.Logic
                     {
                         var diff = sync.Start.Subtract(eventStart);
                         logger.LogTrace("Sync at {0}, diff {1}", eventStart, diff);
+                        sync.Verified = true;
                         //sync.Start = eventStart;
                         //sync.Finish = eventEnd;
                     }
@@ -446,6 +447,8 @@ namespace LWFStatsWeb.Logic
                     //END:VEVENT
                 }
             }
+
+            db.SaveChanges();
         }
     }
 }

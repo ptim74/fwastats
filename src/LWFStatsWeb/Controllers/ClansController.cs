@@ -713,7 +713,7 @@ namespace LWFStatsWeb.Controllers
             {
                 var maxWeight = clanWeight + 30000;
                 var minWeight = clanWeight - 30000;
-                var results = db.WeightResults.Where(w => w.Weight >= minWeight && w.Weight <= maxWeight).ToList();
+                var results = db.WeightResults.Where(w => w.Weight >= minWeight && w.Weight <= maxWeight && w.TeamSize == memberCount && w.Tag != tag).ToList();
                 
                 if(results.Count > 0)
                 {
@@ -796,6 +796,9 @@ namespace LWFStatsWeb.Controllers
         protected async Task<IActionResult> WeightSubmit(WeightViewModel weight)
         {
             var options = submitOptions.Value.SelectTeamSize(weight.Members.Count);
+            var results = resultDatabase.Value.SelectTeamSize(weight.Members.Count);
+
+            var responseSheetId = options.SheetId;
 
             var model = new WeightSubmitModel()
             {
@@ -803,8 +806,7 @@ namespace LWFStatsWeb.Controllers
                 ClanTag = weight.ClanTag,
                 ClanName = weight.ClanName,
                 ClanLink = weight.ClanLink,
-                ClanBadge = weight.ClanBadge,
-                SheetUrl = options.ResponseURL
+                ClanBadge = weight.ClanBadge
             };
 
             try
@@ -880,7 +882,7 @@ namespace LWFStatsWeb.Controllers
                     if (model.Message.StartsWith("Submitted", StringComparison.OrdinalIgnoreCase))
                     {
                         model.Status = true;
-                        model.SheetUrl = "http://tinyurl.com/FWABaseWeightResponse";
+                        responseSheetId = results.SheetId;
                         await this.UpdatePendingSubmit(weight.Members.Count, weight.ClanTag);
                     }
                 }
@@ -889,6 +891,7 @@ namespace LWFStatsWeb.Controllers
             {
                 model.Message = e.Message;
             }
+            model.SheetUrl = $"https://docs.google.com/spreadsheets/d/${responseSheetId}";
             return View("WeightSubmit", model);
         }
 
