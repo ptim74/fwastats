@@ -891,7 +891,7 @@ namespace LWFStatsWeb.Controllers
             {
                 model.Message = e.Message;
             }
-            model.SheetUrl = $"https://docs.google.com/spreadsheets/d/${responseSheetId}";
+            model.SheetUrl = $"https://docs.google.com/spreadsheets/d/{responseSheetId}";
             return View("WeightSubmit", model);
         }
 

@@ -39,7 +39,7 @@ namespace LWFStatsWeb.Controllers
 
             var blacklisted = db.BlacklistedClans.Select(c => c.Tag).ToDictionary(c => c);
 
-            var recentSyncs = db.WarSyncs.Where(w => w.Start < Constants.MaxVisibleEndTime).OrderByDescending(w => w.Start).Take(warsToTake).ToList();
+            var recentSyncs = db.WarSyncs.Where(w => w.Start < Constants.MaxVisibleEndTime && w.Verified == true).OrderByDescending(w => w.Start).Take(warsToTake).ToList();
 
             var earliestWar = DateTime.MaxValue;
 
