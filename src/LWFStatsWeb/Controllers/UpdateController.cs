@@ -751,7 +751,14 @@ namespace LWFStatsWeb.Controllers
             statistics.CalculateSyncs();
 
             logger.LogInformation("PerformFinished.UpdateSyncCalendar");
-            await statistics.UpdateSyncCalendar();
+            try
+            {
+                await statistics.UpdateSyncCalendar();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.ToString());
+            }
 
             logger.LogInformation("PerformFinished.UpdateSyncMatch");
             statistics.UpdateSyncMatch();
@@ -767,13 +774,34 @@ namespace LWFStatsWeb.Controllers
             memoryCache.Remove(Constants.CACHE_DATA_CLANS);
 
             logger.LogInformation("PerformFinished.Blacklisted");
-            await this.UpdateBlacklisted();
+            try
+            {
+                await this.UpdateBlacklisted();
+            }
+            catch(Exception e)
+            {
+                logger.LogError(e.ToString());
+            }
 
             logger.LogInformation("PerformFinished.Weights");
-            await this.UpdateWeights();
+            try
+            {
+                await this.UpdateWeights();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.ToString());
+            }
 
             logger.LogInformation("PerformFinished.UpdateResults");
-            await this.UpdateResults();
+            try
+            {
+                await this.UpdateResults();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.ToString());
+            }
 
             logger.LogInformation("PerformFinished.Done");
         }

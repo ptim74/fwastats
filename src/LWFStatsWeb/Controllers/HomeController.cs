@@ -149,6 +149,14 @@ namespace LWFStatsWeb.Controllers
                         model.SyncHistory.Add(stats);
                     }
 
+                    foreach(var lastStat in model.LastStats)
+                    {
+                        if (lastStat.Key == Constants.WAR_SIZE1)
+                            model.Counters.TeamSize40Wars = lastStat.Value.AllianceMatches + lastStat.Value.WarMatches;
+                        else
+                            model.Counters.TeamSize50Wars = lastStat.Value.AllianceMatches + lastStat.Value.WarMatches;
+                    }
+
                     var totalWars = totalMatches + totalMismatches;
                     if (totalWars > 0)
                     {
