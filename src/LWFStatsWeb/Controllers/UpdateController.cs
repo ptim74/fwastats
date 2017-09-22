@@ -189,7 +189,7 @@ namespace LWFStatsWeb.Controllers
                     {
                         if (row.Count > (resultDb.TeamSize + 12))
                         {
-                            var clanTag = Utils.LinkIdToTag((string)row[4]);
+                            var clanTag = Utils.LinkIdToTag(Convert.ToString(row[4]));
                             if (!string.IsNullOrEmpty(clanTag))
                             {
                                 if (!resultSet.Contains(clanTag))
@@ -202,7 +202,7 @@ namespace LWFStatsWeb.Controllers
                                     results.Add(clanTag, result);
                                 }
 
-                                var timestamp = dateZero.AddDays((double)row[0]);
+                                var timestamp = dateZero.AddDays(Convert.ToDouble(row[0]));
 
                                 result.TeamSize = resultDb.TeamSize;
 
@@ -738,21 +738,49 @@ namespace LWFStatsWeb.Controllers
 
         protected async Task PerformFinished()
         {
-            logger.LogInformation("PerformFinished.DeleteTasks");
-            await this.DeleteTasks();
-
-            logger.LogInformation("PerformFinished.DeleteHistory");
-            statistics.DeleteHistory();
-
-            logger.LogInformation("PerformFinished.UpdateValidities");
-            statistics.UpdateValidities();
-
-            logger.LogInformation("PerformFinished.CalculateSyncs");
-            statistics.CalculateSyncs();
-
-            logger.LogInformation("PerformFinished.UpdateSyncCalendar");
             try
             {
+                logger.LogInformation("PerformFinished.DeleteTasks");
+                await this.DeleteTasks();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.ToString());
+            }
+
+            try
+            {
+                logger.LogInformation("PerformFinished.DeleteHistory");
+                statistics.DeleteHistory();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.ToString());
+            }
+
+            try
+            {
+                logger.LogInformation("PerformFinished.UpdateValidities");
+                statistics.UpdateValidities();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.ToString());
+            }
+
+            try
+            {
+                logger.LogInformation("PerformFinished.CalculateSyncs");
+                statistics.CalculateSyncs();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.ToString());
+            }
+
+            try
+            {
+                logger.LogInformation("PerformFinished.UpdateSyncCalendar");
                 await statistics.UpdateSyncCalendar();
             }
             catch (Exception e)
@@ -760,22 +788,30 @@ namespace LWFStatsWeb.Controllers
                 logger.LogError(e.ToString());
             }
 
-            logger.LogInformation("PerformFinished.UpdateSyncMatch");
-            statistics.UpdateSyncMatch();
-
-            logger.LogInformation("PerformFinished.UpdateClanStats");
-            statistics.UpdateClanStats();
-
-            memoryCache.Remove(Constants.CACHE_HOME_INDEX);
-            memoryCache.Remove(Constants.CACHE_CLANS_ALL);
-            memoryCache.Remove(Constants.CACHE_CLANS_FOLLOWING);
-            memoryCache.Remove(Constants.CACHE_CLANS_DEPARTED);
-            memoryCache.Remove(Constants.CACHE_SYNCS_ALL);
-            memoryCache.Remove(Constants.CACHE_DATA_CLANS);
-
-            logger.LogInformation("PerformFinished.Blacklisted");
             try
             {
+                logger.LogInformation("PerformFinished.UpdateSyncMatch");
+                statistics.UpdateSyncMatch();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.ToString());
+            }
+
+            try
+            {
+                logger.LogInformation("PerformFinished.UpdateClanStats");
+                statistics.UpdateClanStats();
+            }
+            catch (Exception e)
+            {
+
+                logger.LogError(e.ToString());
+            }
+
+            try
+            {
+                logger.LogInformation("PerformFinished.Blacklisted");
                 await this.UpdateBlacklisted();
             }
             catch(Exception e)
@@ -783,9 +819,9 @@ namespace LWFStatsWeb.Controllers
                 logger.LogError(e.ToString());
             }
 
-            logger.LogInformation("PerformFinished.Weights");
             try
             {
+                logger.LogInformation("PerformFinished.Weights");
                 await this.UpdateWeights();
             }
             catch (Exception e)
@@ -793,10 +829,25 @@ namespace LWFStatsWeb.Controllers
                 logger.LogError(e.ToString());
             }
 
-            logger.LogInformation("PerformFinished.UpdateResults");
             try
             {
+                logger.LogInformation("PerformFinished.UpdateResults");
                 await this.UpdateResults();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e.ToString());
+            }
+
+            try
+            {
+                logger.LogInformation("PerformFinished.ClearCache");
+                memoryCache.Remove(Constants.CACHE_HOME_INDEX);
+                memoryCache.Remove(Constants.CACHE_CLANS_ALL);
+                memoryCache.Remove(Constants.CACHE_CLANS_FOLLOWING);
+                memoryCache.Remove(Constants.CACHE_CLANS_DEPARTED);
+                memoryCache.Remove(Constants.CACHE_SYNCS_ALL);
+                memoryCache.Remove(Constants.CACHE_DATA_CLANS);
             }
             catch (Exception e)
             {

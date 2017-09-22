@@ -467,6 +467,16 @@ namespace LWFStatsWeb.Controllers
                         }
                     }
 
+                    foreach(var war in db.Wars.Where( w => w.ClanTag == tag || w.OpponentTag == w.ClanTag))
+                    {
+                        if(war.SearchTime < clanValidity.ValidFrom || war.SearchTime > clanValidity.ValidTo)
+                        {
+                            war.Synced = false; // this is fixed in next sync
+                            war.Matched = false;
+                        }
+                    }
+
+                    /*
                     var clan = await api.GetClan(tag, true, false);
 
                     if (!clan.IsWarLogPublic)
@@ -508,7 +518,7 @@ namespace LWFStatsWeb.Controllers
                                     {
                                         existingWar.Matched = clanWar.Matched;
                                         existingWar.Synced = clanWar.Synced;
-                                        db.Entry(existingWar).State = EntityState.Modified;
+                                        //db.Entry(existingWar).State = EntityState.Modified;
                                     }
                                 }
                             }
@@ -533,7 +543,7 @@ namespace LWFStatsWeb.Controllers
                             war.Matched = matched;
                             db.Entry(war).State = EntityState.Modified;
                         }
-                    }
+                    }*/
 
                     memoryCache.Remove(Constants.CACHE_CLANS_DETAILS_ + tag);
                     memoryCache.Remove(Constants.CACHE_DATA_MEMBERS_ + tag);
