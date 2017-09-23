@@ -23,7 +23,7 @@
         <div class="col-sm-6">
             <h3>Current war <small>@stats.Key members, @stats.Value.Status</small></h3>
             <div id="@chart" style="width:300px;height:200px"><p><span class="glyphicon glyphicon-hourglass"></span> Loading...</p></div>
-            <div style="margin-top:10px;"><a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@stats.Value.ID" class="btn btn-default">More details</a></div>
+            <div style="margin-top:10px;"><a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@stats.Value.ID" asp-route-teamSize="@stats.Key" class="btn btn-default">More details</a></div>
         </div>
     }
     @if (@Model.SyncHistory.Count > 0)

@@ -167,10 +167,11 @@ namespace LWFStatsWeb.Controllers
             return View(model);
         }
 
-        protected DetailsViewModel GetWars(int id)
+        protected DetailsViewModel GetWars(int id, int teamSize)
         {
             var model = new DetailsViewModel
             {
+                TeamSize = teamSize,
                 Sync = db.WarSyncs.Where(s => s.ID == id && s.Verified == true && s.Start < Constants.MaxVisibleEndTime).FirstOrDefault()
             };
 
@@ -190,7 +191,12 @@ namespace LWFStatsWeb.Controllers
 
             if (model.Sync.Start < Constants.MaxVisibleEndTime)
             {
-                foreach (var war in db.Wars.Where(w => w.EndTime >= model.Sync.Start && w.EndTime <= model.Sync.Finish && w.Synced == true))
+                var wars = db.Wars.Where(w => w.EndTime >= model.Sync.Start && w.EndTime <= model.Sync.Finish && w.Synced == true);
+
+                if (teamSize == Constants.WAR_SIZE1 || teamSize == Constants.WAR_SIZE2)
+                    wars = wars.Where(w => w.TeamSize == teamSize);
+
+                foreach (var war in wars)
                 {
                     if (validClans.Contains(war.ClanTag))
                     {
@@ -211,14 +217,14 @@ namespace LWFStatsWeb.Controllers
             return model;
         }
 
-        [Route("Sync/{id}")]
-        public ActionResult Details(int id)
+        [Route("Sync/{id}/{teamSize?}")]
+        public ActionResult Details(int id, int teamSize)
         {
-            logger.LogInformation("Details {0}", id);
+            logger.LogInformation("Details {0} {1}", id, teamSize);
 
-            var model = memoryCache.GetOrCreate(Constants.CACHE_SYNC_DETAILS_ + id, entry => {
+            var model = memoryCache.GetOrCreate(Constants.CACHE_SYNC_DETAILS_ + id + "." + teamSize, entry => {
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
-                return GetWars(id);
+                return GetWars(id,teamSize);
             });
 
             return View(model);
