@@ -202,7 +202,16 @@ namespace LWFStatsWeb.Controllers
                                     results.Add(clanTag, result);
                                 }
 
-                                var timestamp = dateZero.AddDays(Convert.ToDouble(row[0]));
+                                DateTime timestamp;
+                                try
+                                {
+                                    timestamp = dateZero.AddDays(Convert.ToDouble(row[0]));
+                                }
+                                catch(Exception)
+                                {
+                                    logger.LogError("Unable to convert to double: '{0}'", row[0]);
+                                    timestamp = new DateTime(1900, 1, 1);
+                                }
 
                                 result.TeamSize = resultDb.TeamSize;
 

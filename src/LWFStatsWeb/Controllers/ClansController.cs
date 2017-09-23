@@ -872,6 +872,8 @@ namespace LWFStatsWeb.Controllers
 
                 await googleSheets.BatchUpdate(options.SheetId, "COLUMNS", updateData);
 
+                logger.LogInformation("Weight.SubmitRequest {0}", weight.ClanLink);
+
                 var submitRequest = WebRequest.Create(options.SubmitURL);
                 var submitResponse = await submitRequest.GetResponseAsync();
 
@@ -900,6 +902,7 @@ namespace LWFStatsWeb.Controllers
             catch(Exception e)
             {
                 model.Message = e.Message;
+                logger.LogError("Weight.SubmitError {0}", e.ToString());
             }
             model.SheetUrl = $"https://docs.google.com/spreadsheets/d/{responseSheetId}";
             return View("WeightSubmit", model);
@@ -907,10 +910,11 @@ namespace LWFStatsWeb.Controllers
 
         protected async Task UpdatePendingSubmit(int teamSize, string id)
         {
-            var results = resultDatabase.Value.SelectTeamSize(teamSize);
-            var tag = Utils.LinkIdToTag(id);
             try
             {
+                var results = resultDatabase.Value.SelectTeamSize(teamSize);
+                var tag = Utils.LinkIdToTag(id);
+
                 var pendingData = await googleSheets.Get(results.SheetId, "ROWS", results.PendingRange);
                 if (pendingData != null)
                 {
@@ -934,9 +938,9 @@ namespace LWFStatsWeb.Controllers
                     }
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                logger.LogWarning("Weight.UpdatePendingSubmit");
+                logger.LogWarning("Weight.UpdatePendingSubmit: {0}",e.ToString());
             }
         }
 
