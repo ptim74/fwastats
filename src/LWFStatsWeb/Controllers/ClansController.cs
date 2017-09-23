@@ -875,6 +875,7 @@ namespace LWFStatsWeb.Controllers
                 logger.LogInformation("Weight.SubmitRequest {0}", weight.ClanLink);
 
                 var submitRequest = WebRequest.Create(options.SubmitURL);
+                submitRequest.Timeout = 300000;
                 var submitResponse = await submitRequest.GetResponseAsync();
 
                 using (var reader = new StreamReader(submitResponse.GetResponseStream()))
