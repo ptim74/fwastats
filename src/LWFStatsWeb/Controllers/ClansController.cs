@@ -275,12 +275,70 @@ namespace LWFStatsWeb.Controllers
                     }
                 }
 
-                var thlevels = (from p in db.Players join m in db.Members on p.Tag equals m.Tag where m.ClanTag == tag select new { p.Tag, p.TownHallLevel });
-                foreach(var thlevel in thlevels.ToList())
+                details.Clan.Th11Count = 0;
+                details.Clan.Th10Count = 0;
+                details.Clan.Th9Count = 0;
+                details.Clan.Th8Count = 0;
+                details.Clan.ThLowCount = 0;
+
+                var thlevels = (from p in db.Players join m in db.Members on p.Tag equals m.Tag where m.ClanTag == tag select new { p.Tag, p.TownHallLevel }).ToList();
+                foreach(var thlevel in thlevels)
                 {
                     var member = details.Clan.MemberList.SingleOrDefault(m => m.Tag == thlevel.Tag);
-                    if(member != null)
+                    if (member != null)
+                    {
                         member.TownHallLevel = thlevel.TownHallLevel;
+                        if (member.TownHallLevel == 11)
+                            details.Clan.Th11Count++;
+                        else if (member.TownHallLevel == 10)
+                            details.Clan.Th10Count++;
+                        else if (member.TownHallLevel == 9)
+                            details.Clan.Th9Count++;
+                        else if (member.TownHallLevel == 8)
+                            details.Clan.Th8Count++;
+                        else
+                            details.Clan.ThLowCount++;
+                    }
+                }
+
+                if (details.Clan.Members == Constants.WAR_SIZE2)
+                {
+                    var weights = (from w in db.Weights join m in db.Members on w.Tag equals m.Tag where m.ClanTag == tag select new { w.Tag, w.WarWeight }).ToList();
+
+                    details.Clan.EstimatedWeight = 0;
+
+                    foreach (var member in details.Clan.MemberList)
+                    {
+                        var weight = weights.SingleOrDefault(w => w.Tag == member.Tag);
+                        if (weight != null && weight.WarWeight > 0)
+                        {
+                            details.Clan.EstimatedWeight += weight.WarWeight / 1000;
+                        }
+                        else
+                        {
+                            if (member.TownHallLevel == 11)
+                                details.Clan.EstimatedWeight += 105;
+                            else if (member.TownHallLevel == 10)
+                                details.Clan.EstimatedWeight += 85;
+                            else if (member.TownHallLevel == 9)
+                                details.Clan.EstimatedWeight += 65;
+                            else if (member.TownHallLevel == 8)
+                                details.Clan.EstimatedWeight += 50;
+                            else if (member.TownHallLevel == 7)
+                                details.Clan.EstimatedWeight += 35;
+                            else if (member.TownHallLevel == 6)
+                                details.Clan.EstimatedWeight += 25;
+                            else if (member.TownHallLevel == 5)
+                                details.Clan.EstimatedWeight += 15;
+                            else if (member.TownHallLevel == 4)
+                                details.Clan.EstimatedWeight += 7;
+                            else if (member.TownHallLevel == 3)
+                                details.Clan.EstimatedWeight += 3;
+                            else if (member.TownHallLevel == 2)
+                                details.Clan.EstimatedWeight += 1;
+                        }
+
+                    }
                 }
 
                 var clanEvents = from e in db.PlayerEvents
@@ -872,7 +930,7 @@ namespace LWFStatsWeb.Controllers
 
                 await googleSheets.BatchUpdate(options.SheetId, "COLUMNS", updateData);
 
-                logger.LogInformation("Weight.SubmitRequest {0}", weight.ClanLink);
+                logger.LogInformation("Weight.SubmitRequest '{0}'", clanName);
 
                 var submitRequest = WebRequest.Create(options.SubmitURL);
                 submitRequest.Timeout = 300000;

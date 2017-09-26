@@ -9,6 +9,8 @@
     }
 
     ViewBag.MetaRobots = "noindex, nofollow";
+
+    var estimatedWeightMembers = Model.Clan.Members == Constants.WAR_SIZE2 ? Constants.WAR_SIZE2 : Constants.WAR_SIZE1;
 }
 
 <ol class="breadcrumb">
@@ -59,6 +61,14 @@
                 <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.WarWinStreak)</b></div>
                 <div class="col-xs-6 col-sm-3"><b>Trophies:</b></div>
                 <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.RequiredTrophies)</b></div>
+                @if (Model.InAlliance)
+                {
+                <div class="col-xs-6 col-sm-3"><b>TH Composition:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Model.Clan.Th11Count / @Model.Clan.Th10Count / @Model.Clan.Th9Count / @Model.Clan.Th8Count / @Model.Clan.ThLowCount</b></div>
+                <div class="col-xs-6 col-sm-3"><b>Est.Weight:</b></div>
+                <div class="col-xs-6 col-sm-3"><b>@Model.Clan.EstimatedWeight (@estimatedWeightMembers members)</b></div>
+
+                }
             </div>
         </div>
     </div>

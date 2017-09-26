@@ -416,7 +416,7 @@ namespace LWFStatsWeb.Logic
                     if(sync != null)
                     {
                         var diff = sync.Start.Subtract(eventStart);
-                        logger.LogTrace("Sync at {0}, diff {1}", eventStart, diff);
+                        logger.LogInformation("Sync at {0}, diff {1}", eventStart, diff);
                         sync.Verified = true;
                         //sync.Start = eventStart;
                         //sync.Finish = eventEnd;
