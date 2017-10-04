@@ -205,7 +205,7 @@ namespace LWFStatsWeb.Controllers
                 }
                 catch (Exception e)
                 {
-                    logger.LogError("Index.Error: {0}", e.Message);
+                    logger.LogError("Index.Error: {0}", e.ToString());
                 }
             }
 

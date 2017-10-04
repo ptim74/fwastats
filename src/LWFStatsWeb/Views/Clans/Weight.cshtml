@@ -219,6 +219,7 @@ else
         //plugin bootstrap minus and plus
         //http://jsfiddle.net/laelitenetwork/puJ6G/
         $(function () {
+
             $('.btn-number').click(function (e) {
                 e.preventDefault();
                 var fieldName = $(this).attr('data-field');
@@ -277,14 +278,32 @@ else
                 } else {
                     $(this).val(maxValue);
                 }
-
-
             });
 
             $('.member-in-war').change(function (e) {
                 $(this).parent().parent().addClass($(this).is(':checked') ? 'success' : 'danger');
                 $(this).parent().parent().removeClass($(this).is(':checked') ? 'danger' : 'success');
                 calculateWarWeight();
+            });
+
+            $('.member-weight').tooltip({
+                title: function () {
+                    var valueCurrent = parseInt($(this).val());
+                    if (valueCurrent > 22000)
+                    {
+                        var div5 = parseInt(valueCurrent / 5);
+                        var div4 = parseInt(valueCurrent / 4);
+                        return "5x" + div5 + ", 4x" + div4;
+                    }
+                    else if (valueCurrent > 0)
+                    {
+                        var mul5 = valueCurrent * 5;
+                        var mul4 = valueCurrent * 4;
+                        return mul5 + "/5, " + mul4 + "/4";
+                    }
+                    return "";
+                },
+                trigger: 'focus'
             });
 
             $('.member-weight').change(function (e) {
@@ -311,6 +330,10 @@ else
             });
 
         });
+
+        function weightTooltip(e) {
+            return "xx";
+        }
 
         function calculateWarWeight()
         {

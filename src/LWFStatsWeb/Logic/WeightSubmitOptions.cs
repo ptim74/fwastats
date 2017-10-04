@@ -24,5 +24,6 @@ namespace LWFStatsWeb.Logic
         public string WeightRange { get; set; }
         public string TagRange { get; set; }
         public string THRange { get; set; }
+        public string StatusRange { get; set; }
     }
 }

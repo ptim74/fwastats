@@ -932,21 +932,46 @@ namespace LWFStatsWeb.Controllers
 
                 logger.LogInformation("Weight.SubmitRequest '{0}'", clanName);
 
-                var submitRequest = WebRequest.Create(options.SubmitURL);
-                submitRequest.Timeout = 300000;
-                var submitResponse = await submitRequest.GetResponseAsync();
-
-                using (var reader = new StreamReader(submitResponse.GetResponseStream()))
+                try
                 {
-                    var data = await reader.ReadToEndAsync();
-                    model.Message = JsonConvert.DeserializeObject<string>(data);
-                }
+                    var submitRequest = WebRequest.Create(options.SubmitURL);
+                    submitRequest.Timeout = 15000;
+                    var submitResponse = await submitRequest.GetResponseAsync();
 
-                logger.LogInformation("Weight.SubmitResponse {0}", model.Message);
+                    using (var reader = new StreamReader(submitResponse.GetResponseStream()))
+                    {
+                        var data = await reader.ReadToEndAsync();
+                        model.Message = JsonConvert.DeserializeObject<string>(data);
+                    }
+
+                    logger.LogInformation("Weight.SubmitResponse {0}", model.Message);
+                }
+                catch (WebException we)
+                {
+                    logger.LogInformation("Weight.SubmitErrorHandler: {0}", we.Message);
+                    try
+                    {
+                        var statusData = await googleSheets.Get(options.SheetId, "ROWS", options.StatusRange);
+                        if (statusData.Count == 1 && statusData[0].Count == 1 && statusData[0][0] != null)
+                        {
+                            model.Message = statusData[0][0].ToString();
+                            logger.LogInformation("Weight.SubmitErrorHandlerResponse {0}", model.Message);
+                        }
+                    }
+                    catch (Exception e)
+                    {
+                        logger.LogError("Weight.SubmitErrorHandlerFailure: {0}", e.Message);
+                    }
+
+                    if (string.IsNullOrEmpty(model.Message))
+                    {
+                        throw we;
+                    }
+                }
 
                 if (string.IsNullOrEmpty(model.Message))
                 {
-                    model.Message ="Unknown error";
+                    model.Message = "Unknown error";
                 }
                 else
                 {
