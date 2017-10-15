@@ -1,0 +1,22 @@
+﻿{
+  "ConnectionStrings": {
+    "Default": "SQLite",
+    "MySQL": "Server=localhost;Port=3306;User Id=userid;Password=password;Database=database",
+    "SQLite": "Data Source=ClashDB.sqlite",
+    "SqlServer": "Server=.\\sqlexpress;Database=database;Integrated Security=True;MultipleActiveResultSets=true"
+  },
+  "ClashApi": {
+    "Url": "https://api.clashofclans.com/v1",
+    "Token": "--- GET YOUR OWN TOKEN FROM https://developer.clashofclans.com ---"
+  },
+  "Statistics": {
+    "Wars": 215,
+    "Members": 14,
+    "SyncURL": "--- GET YOUR OWN TOKEN FROM band.us (https://api.band.us/ical?token=XXXXX) ---"
+  },
+  "GoogleService": {
+    "ApplicationName": "My Application",
+    "ClientEmail": "xxx@yyy.iam.gserviceaccount.com",
+    "PrivateKey": "--- GET YOUR OWN KEY ---"
+  }
+}

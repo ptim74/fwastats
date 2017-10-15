@@ -11,7 +11,6 @@ namespace LWFStatsWeb.Data.Migrations
             migrationBuilder.AddColumn<bool>(
                 name: "Verified",
                 table: "WarSyncs",
-                type: "INTEGER",
                 nullable: false,
                 defaultValue: false);
         }

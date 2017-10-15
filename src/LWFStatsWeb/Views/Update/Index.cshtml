@@ -104,7 +104,7 @@
             {
                 update_finished = 1;
                 $(".progress-bar").text("Finishing up");
-                $.getJSON('/Update/UpdateFinished',updateFinishedCallback);
+                $.getJSON('@Url.Action("UpdateFinished", "Update")',updateFinishedCallback);
             }
         }
 

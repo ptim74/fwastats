@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace LWFStatsWeb.Data.Migrations
 {
@@ -100,7 +101,9 @@ namespace LWFStatsWeb.Data.Migrations
                 columns: table => new
                 {
                     ID = table.Column<int>(nullable: false)
-                        .Annotation("Autoincrement", true),
+                        .Annotation("Sqlite:Autoincrement", true)
+                        //.Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     AllianceMatches = table.Column<int>(nullable: false),
                     Finish = table.Column<DateTime>(nullable: false),
                     MissedStarts = table.Column<int>(nullable: false),

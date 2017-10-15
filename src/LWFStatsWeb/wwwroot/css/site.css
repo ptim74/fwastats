@@ -78,7 +78,6 @@ html, body {
 }
 
 .header-jumbo {
-    background-image: url("/images/balloon_parade.jpg");
     background-size: cover;
     background-position: top center;
 }

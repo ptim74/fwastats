@@ -29,13 +29,14 @@ namespace LWFStatsWeb
             var builder = new ConfigurationBuilder()
                 .SetBasePath(env.ContentRootPath)
                 .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
-                .AddJsonFile(@"d:\home\data\appsettings.json", optional: true, reloadOnChange: true);
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true)
+                .AddJsonFile("hosting.json", optional: true, reloadOnChange: true);
 
             if (env.IsDevelopment())
             {
                 // For more details on using the user secret store see http://go.microsoft.com/fwlink/?LinkID=532709
-                // builder.AddUserSecrets();
+                //builder.AddUserSecrets();
+                builder.AddJsonFile(@"D:\home\data\dev.json", optional: true, reloadOnChange: true);
             }
 
             builder.AddEnvironmentVariables();
@@ -44,17 +45,23 @@ namespace LWFStatsWeb
 
         public IConfigurationRoot Configuration { get; }
 
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            // Add framework services.
-            //services.AddDbContext<ApplicationDbContext>(options =>
-            //    options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-
-            //Server=(localdb)\\mssqllocaldb;Database=aspnet-LWFStatsWeb-38c3a7ca-3bf0-4276-9c1f-b74988336664;Trusted_Connection=True;MultipleActiveResultSets=true
-
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseSqlite(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddDbContext<ApplicationDbContext>(options => {
+                //options.EnableSensitiveDataLogging(true);
+                var connectionType = Configuration.GetConnectionString("Default");
+                var connectionString = Configuration.GetConnectionString(connectionType);
+                if (connectionType.Equals("SQLite"))
+                    options.UseSqlite(connectionString);
+                //else if (connectionType.Equals("MySQL"))
+                //    options.UseMySql(connectionString);
+                else if (connectionType.Equals("SqlServer"))
+                    options.UseSqlServer(connectionString);
+                else
+                    throw new Exception($"Invalid connection type ${connectionType}");
+            });
 
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()

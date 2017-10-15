@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace LWFStatsWeb.Data.Migrations
 {
@@ -13,7 +14,9 @@ namespace LWFStatsWeb.Data.Migrations
                 columns: table => new
                 {
                     ID = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                        .Annotation("Sqlite:Autoincrement", true)
+                        //.Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     AttackerTag = table.Column<string>(maxLength: 10, nullable: true),
                     DefenderMapPosition = table.Column<int>(nullable: false),
                     DefenderTag = table.Column<string>(maxLength: 10, nullable: true),
@@ -39,7 +42,9 @@ namespace LWFStatsWeb.Data.Migrations
                 columns: table => new
                 {
                     ID = table.Column<int>(nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
+                        .Annotation("Sqlite:Autoincrement", true)
+                        //.Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn)
+                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     MapPosition = table.Column<int>(nullable: false),
                     Name = table.Column<string>(maxLength: 50, nullable: true),
                     OpponentAttacks = table.Column<int>(nullable: false),

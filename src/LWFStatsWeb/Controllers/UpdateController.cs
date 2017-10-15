@@ -61,6 +61,12 @@ namespace LWFStatsWeb.Controllers
 
             model.Errors = loader.Errors;
 
+            //Update all clans when list is empty
+            if (loadedClans.Count == 0)
+            {
+                loadedClans = db.Clans.Select(v => new ClanObject { Tag = v.Tag, Name = v.Name, Group = Constants.LIST_FWA }).ToList();
+            }
+
             if (loadedClans.Count > 0)
             {
                 model.Tasks = updater.GetUpdates(loadedClans);
