@@ -182,7 +182,18 @@ namespace LWFStatsWeb.Controllers
             var resultSet = new HashSet<string>();
 
             var dateZero = new DateTime(1899, 12, 30, 0, 0, 0);
-            var sheetTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+            TimeZoneInfo sheetTimeZone = null;
+
+            try
+            {
+                //Windows
+                sheetTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+            }
+            catch(Exception)
+            {
+                //Linux
+                sheetTimeZone = TimeZoneInfo.FindSystemTimeZoneById("US/Eastern");
+            }
 
             var pendingSet = new HashSet<string>();
 

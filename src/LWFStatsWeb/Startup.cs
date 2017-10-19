@@ -123,11 +123,6 @@ namespace LWFStatsWeb
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddNLog();
-            loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-            if (env.IsDevelopment())
-                loggerFactory.AddDebug();
-
-            //loggerFactory.AddAzureWebAppDiagnostics(); // for default setting.
 
             if (env.IsDevelopment())
             {
