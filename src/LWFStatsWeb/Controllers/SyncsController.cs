@@ -175,6 +175,11 @@ namespace LWFStatsWeb.Controllers
                 Sync = db.WarSyncs.Where(s => s.ID == id && s.Verified == true && s.Start < Constants.MaxVisibleEndTime).FirstOrDefault()
             };
 
+            if(model.Sync == null)
+            {
+                return null;
+            }
+
             var blacklisted = db.BlacklistedClans.Select(c => c.Tag).ToList();
 
             var searchTime = model.Sync.SearchTime;
@@ -218,16 +223,27 @@ namespace LWFStatsWeb.Controllers
         }
 
         [Route("Sync/{id}/{teamSize?}")]
-        public ActionResult Details(int id, int teamSize)
+        public ActionResult Details(string id, int teamSize)
         {
             logger.LogInformation("Details {0} {1}", id, teamSize);
 
-            var model = memoryCache.GetOrCreate(Constants.CACHE_SYNC_DETAILS_ + id + "." + teamSize, entry => {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
-                return GetWars(id,teamSize);
-            });
+            if (int.TryParse(id, out int i))
+            {
+                var model = memoryCache.GetOrCreate(Constants.CACHE_SYNC_DETAILS_ + i + "." + teamSize, entry =>
+                {
+                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
+                    return GetWars(i, teamSize);
+                });
 
-            return View(model);
+                if(model == null)
+                    return NotFound($"Sync {id} not found.");
+
+                return View(model);
+            }
+            else //Support old yyyy-mm-dd style syncs, google bot is still requesting these
+            {
+                return NotFound($"Sync {id} not found.");
+            }
         }
     }
 }
