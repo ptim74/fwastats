@@ -223,6 +223,12 @@ namespace LWFStatsWeb.Controllers
             return Ok();
         }
 
+        public IActionResult DBPing()
+        {
+            var test = db.Clans.FirstOrDefault();
+            return Ok();
+        }
+
         public IActionResult Error(int id)
         {
             logger.LogError("Error.{0}", id);
