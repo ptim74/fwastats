@@ -230,28 +230,36 @@ namespace LWFStatsWeb.Controllers
                                     timestamp = new DateTime(1900, 1, 1);
                                 }
 
-                                result.TeamSize = resultDb.TeamSize;
-
                                 //round to second to eliminate unnecessary updates
-                                result.Timestamp = new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second);
+                                timestamp = new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second);
+                                timestamp = timestamp.Subtract(sheetTimeZone.GetUtcOffset(timestamp));
 
-                                result.Timestamp = result.Timestamp.Subtract(sheetTimeZone.GetUtcOffset(result.Timestamp));
-
-                                result.TH11Count = Convert.ToInt32(row[6]);
-                                result.TH10Count = Convert.ToInt32(row[7]);
-                                result.TH9Count = Convert.ToInt32(row[8]);
-                                result.TH8Count = Convert.ToInt32(row[9]);
-                                result.TH7Count = Convert.ToInt32(row[10]);
-
-                                result.THSum = result.TH11Count * 11 + result.TH10Count * 10 + result.TH9Count * 9 + result.TH8Count * 8 + result.TH7Count * 7;
-
-                                int max = resultDb.TeamSize + 10;
-                                for (int i = 11; i <= max; i++)
+                                if (timestamp > result.Timestamp)
                                 {
-                                    result.SetBase(i - 10, Convert.ToInt32(row[i]));
-                                }
+                                    result.Timestamp = timestamp;
+                                    result.TeamSize = resultDb.TeamSize;
 
-                                result.Weight = Convert.ToInt32(row[resultDb.TeamSize + 11]);
+                                    result.TH11Count = Convert.ToInt32(row[6]);
+                                    result.TH10Count = Convert.ToInt32(row[7]);
+                                    result.TH9Count = Convert.ToInt32(row[8]);
+                                    result.TH8Count = Convert.ToInt32(row[9]);
+                                    result.TH7Count = Convert.ToInt32(row[10]);
+
+                                    result.THSum = result.TH11Count * 11 + result.TH10Count * 10 + result.TH9Count * 9 + result.TH8Count * 8 + result.TH7Count * 7;
+
+                                    int max = resultDb.TeamSize + 10;
+                                    for (int i = 11; i <= max; i++)
+                                    {
+                                        result.SetBase(i - 10, Convert.ToInt32(row[i]));
+                                    }
+
+                                    for(int i = resultDb.TeamSize + 1; i <= 50; i++)
+                                    {
+                                        result.SetBase(i, 0);
+                                    }
+
+                                    result.Weight = Convert.ToInt32(row[resultDb.TeamSize + 11]);
+                                }
                             }
                         }
                     }
