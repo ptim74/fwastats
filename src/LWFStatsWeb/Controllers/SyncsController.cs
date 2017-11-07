@@ -1,31 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using LWFStatsWeb.Models.SyncViewModels;
 using LWFStatsWeb.Data;
-using Microsoft.EntityFrameworkCore;
 using LWFStatsWeb.Models;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
-using LWFStatsWeb.Logic;
 
 namespace LWFStatsWeb.Controllers
 {
+    [ResponseCache(Duration = Constants.CACHE_NORMAL)]
     public class SyncsController : Controller
     {
         private readonly ApplicationDbContext db;
-        private IMemoryCache memoryCache;
         ILogger<SyncsController> logger;
 
         public SyncsController(
             ApplicationDbContext db,
-            IMemoryCache memoryCache,
             ILogger<SyncsController> logger)
         {
             this.db = db;
-            this.memoryCache = memoryCache;
             this.logger = logger;
         }
 
@@ -69,26 +63,6 @@ namespace LWFStatsWeb.Controllers
             }
 
             var formerClans = formerClanQ.ToDictionary(f => f.Tag);
-
-            /*
-            foreach(var formerClan in formerClans.Values)
-            {
-                if (!clans.ContainsKey(formerClan.Tag))
-                {
-                    var syncClan = new SyncIndexClan { Tag = formerClan.Tag, Name = formerClan.Name, Results = new List<SyncIndexResult>(), Departed = true };
-
-                    var clanBadges = (from o in db.Wars
-                                        where o.OpponentTag == formerClan.Tag
-                                        orderby o.EndTime descending
-                                        select o.OpponentBadgeUrl).ToList();
-
-                    if (clanBadges.Count > 0)
-                        syncClan.BadgeUrl = clanBadges.First();
-
-                    clans.Add(formerClan.Tag, syncClan);
-                }
-            }
-            */
 
             foreach (var newClan in newClanQ)
             {
@@ -158,11 +132,7 @@ namespace LWFStatsWeb.Controllers
         {
             logger.LogInformation("Index {0}", count);
 
-            var model = memoryCache.GetOrCreate(Constants.CACHE_SYNCS_ALL + count, entry =>
-            {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
-                return GetData(count);
-            });
+            var model = GetData(count);
 
             return View(model);
         }
@@ -229,11 +199,7 @@ namespace LWFStatsWeb.Controllers
 
             if (int.TryParse(id, out int i))
             {
-                var model = memoryCache.GetOrCreate(Constants.CACHE_SYNC_DETAILS_ + i + "." + teamSize, entry =>
-                {
-                    entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
-                    return GetWars(i, teamSize);
-                });
+                var model = GetWars(i, teamSize);
 
                 if(model == null)
                     return NotFound($"Sync {id} not found.");

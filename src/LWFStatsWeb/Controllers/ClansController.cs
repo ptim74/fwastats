@@ -3,14 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using LWFStatsWeb.Data;
 using LWFStatsWeb.Models;
 using LWFStatsWeb.Models.ClanViewModels;
 using LWFStatsWeb.Logic;
 using System.IO;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net;
@@ -18,11 +16,11 @@ using Newtonsoft.Json;
 
 namespace LWFStatsWeb.Controllers
 {
+    [ResponseCache(Duration = Constants.CACHE_NORMAL)]
     public class ClansController : Controller
     {
         private readonly ApplicationDbContext db;
         private readonly IClashApi api;
-        private IMemoryCache memoryCache;
         ILogger<ClansController> logger;
         IOptions<WeightSubmitOptions> submitOptions;
         IGoogleSheetsService googleSheets;
@@ -32,7 +30,7 @@ namespace LWFStatsWeb.Controllers
         public ClansController(
             ApplicationDbContext db,
             IClashApi api,
-            IMemoryCache memoryCache,
+            //IMemoryCache memoryCache,
             ILogger<ClansController> logger,
             IOptions<WeightSubmitOptions> submitOptions,
             IGoogleSheetsService googleSheets,
@@ -42,7 +40,7 @@ namespace LWFStatsWeb.Controllers
         {
             this.db = db;
             this.api = api;
-            this.memoryCache = memoryCache;
+            //this.memoryCache = memoryCache;
             this.logger = logger;
             this.submitOptions = submitOptions;
             this.googleSheets = googleSheets;
@@ -84,10 +82,7 @@ namespace LWFStatsWeb.Controllers
         {
             logger.LogInformation("Index");
 
-            var model = memoryCache.GetOrCreate(Constants.CACHE_CLANS_ALL, entry => {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
-                return GetClanList();
-            });
+            var model =  GetClanList();
 
             return View(model);
         }
@@ -96,38 +91,32 @@ namespace LWFStatsWeb.Controllers
         {
             logger.LogInformation("Departed");
 
-            var model = memoryCache.GetOrCreate(Constants.CACHE_CLANS_DEPARTED, entry => {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
+            var clans = new List<FormerClan>();
 
-                var clans = new List<FormerClan>();
+            var validTo = DateTime.UtcNow.AddMonths(-1); // 1 month delay requested by fwa admins
 
-                var validTo = DateTime.UtcNow.AddMonths(-1); // 1 month delay requested by fwa admins
+            var clanQ = from c in db.ClanValidities where c.ValidTo < validTo orderby c.ValidTo descending select c;
 
-                var clanQ = from c in db.ClanValidities where c.ValidTo < validTo orderby c.ValidTo descending select c;
+            var clanBadges = (from w in db.Wars group w by w.OpponentTag into g select new { Tag = g.Key, BadgeUrl = g.Max(w => w.OpponentBadgeUrl) }).ToDictionary(w => w.Tag, w => w.BadgeUrl);
 
-                var clanBadges = (from w in db.Wars group w by w.OpponentTag into g select new { Tag = g.Key, BadgeUrl = g.Max(w => w.OpponentBadgeUrl) }).ToDictionary(w => w.Tag, w => w.BadgeUrl);
-
-                foreach (var clan in clanQ)
+            foreach (var clan in clanQ)
+            {
+                var clanDetail = new FormerClan
                 {
-                    var clanDetail = new FormerClan
-                    {
-                        Tag = clan.Tag,
-                        Name = clan.Name,
-                        Group = clan.Group,
-                        ValidFrom = clan.ValidFrom,
-                        ValidTo = clan.ValidTo
-                    };
+                    Tag = clan.Tag,
+                    Name = clan.Name,
+                    Group = clan.Group,
+                    ValidFrom = clan.ValidFrom,
+                    ValidTo = clan.ValidTo
+                };
 
-                    if (clanBadges.TryGetValue(clan.Tag, out string badgeUrl))
-                        clanDetail.BadgeURL = badgeUrl;
+                if (clanBadges.TryGetValue(clan.Tag, out string badgeUrl))
+                    clanDetail.BadgeURL = badgeUrl;
 
-                    clans.Add(clanDetail);
-                }
+                clans.Add(clanDetail);
+            }
 
-                return clans;
-            });
-
-            return View(model);
+            return View(clans);
         }
 
         protected List<War> GetPrivateWars(string id)
@@ -253,161 +242,151 @@ namespace LWFStatsWeb.Controllers
 
             var tag = Utils.LinkIdToTag(id);
 
-            var model = await memoryCache.GetOrCreateAsync(Constants.CACHE_CLANS_DETAILS_ + tag, async entry => {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
+            var details = new DetailsViewModel
+            {
+                InAlliance = db.Clans.Any(c => c.Tag == tag),
+                Clan = await this.GetDetails(tag),
+                Validity = this.db.ClanValidities.SingleOrDefault(c => c.Tag == tag),
+                Events = new List<ClanDetailsEvent>()
+            };
 
-                var details = new DetailsViewModel
+            var blacklisted = db.BlacklistedClans.Select(c => c.Tag).ToList();
+
+            if (details.Clan.Wars != null)
+            {
+                foreach (var war in details.Clan.Wars)
                 {
-                    InAlliance = db.Clans.Any(c => c.Tag == tag),
-                    Clan = await this.GetDetails(tag),
-                    Validity = this.db.ClanValidities.SingleOrDefault(c => c.Tag == tag),
-                    Events = new List<ClanDetailsEvent>()
-                };
-
-                var blacklisted = db.BlacklistedClans.Select(c => c.Tag).ToList();
-
-                if (details.Clan.Wars != null)
-                {
-                    foreach (var war in details.Clan.Wars)
-                    {
-                        if (blacklisted.Contains(war.OpponentTag))
-                            war.Blacklisted = true;
-                    }
+                    if (blacklisted.Contains(war.OpponentTag))
+                        war.Blacklisted = true;
                 }
+            }
 
-                details.Clan.Th11Count = 0;
-                details.Clan.Th10Count = 0;
-                details.Clan.Th9Count = 0;
-                details.Clan.Th8Count = 0;
-                details.Clan.ThLowCount = 0;
+            details.Clan.Th11Count = 0;
+            details.Clan.Th10Count = 0;
+            details.Clan.Th9Count = 0;
+            details.Clan.Th8Count = 0;
+            details.Clan.ThLowCount = 0;
 
-                var thlevels = (from p in db.Players join m in db.Members on p.Tag equals m.Tag where m.ClanTag == tag select new { p.Tag, p.TownHallLevel }).ToList();
-                foreach(var thlevel in thlevels)
+            var thlevels = (from p in db.Players join m in db.Members on p.Tag equals m.Tag where m.ClanTag == tag select new { p.Tag, p.TownHallLevel }).ToList();
+            foreach (var thlevel in thlevels)
+            {
+                var member = details.Clan.MemberList.SingleOrDefault(m => m.Tag == thlevel.Tag);
+                if (member != null)
                 {
-                    var member = details.Clan.MemberList.SingleOrDefault(m => m.Tag == thlevel.Tag);
-                    if (member != null)
-                    {
-                        member.TownHallLevel = thlevel.TownHallLevel;
-                        if (member.TownHallLevel == 11)
-                            details.Clan.Th11Count++;
-                        else if (member.TownHallLevel == 10)
-                            details.Clan.Th10Count++;
-                        else if (member.TownHallLevel == 9)
-                            details.Clan.Th9Count++;
-                        else if (member.TownHallLevel == 8)
-                            details.Clan.Th8Count++;
-                        else
-                            details.Clan.ThLowCount++;
-                    }
+                    member.TownHallLevel = thlevel.TownHallLevel;
+                    if (member.TownHallLevel == 11)
+                        details.Clan.Th11Count++;
+                    else if (member.TownHallLevel == 10)
+                        details.Clan.Th10Count++;
+                    else if (member.TownHallLevel == 9)
+                        details.Clan.Th9Count++;
+                    else if (member.TownHallLevel == 8)
+                        details.Clan.Th8Count++;
+                    else
+                        details.Clan.ThLowCount++;
                 }
+            }
 
-                if (details.Clan.Members == Constants.WAR_SIZE2)
+            if (details.Clan.Members == Constants.WAR_SIZE2)
+            {
+                var weights = (from w in db.Weights join m in db.Members on w.Tag equals m.Tag where m.ClanTag == tag select new { w.Tag, w.WarWeight }).ToList();
+
+                details.Clan.EstimatedWeight = 0;
+
+                foreach (var member in details.Clan.MemberList)
                 {
-                    var weights = (from w in db.Weights join m in db.Members on w.Tag equals m.Tag where m.ClanTag == tag select new { w.Tag, w.WarWeight }).ToList();
-
-                    details.Clan.EstimatedWeight = 0;
-
-                    foreach (var member in details.Clan.MemberList)
+                    var weight = weights.SingleOrDefault(w => w.Tag == member.Tag);
+                    if (weight != null && weight.WarWeight > 0)
                     {
-                        var weight = weights.SingleOrDefault(w => w.Tag == member.Tag);
-                        if (weight != null && weight.WarWeight > 0)
-                        {
-                            details.Clan.EstimatedWeight += weight.WarWeight / 1000;
-                        }
-                        else
-                        {
-                            if (member.TownHallLevel == 11)
-                                details.Clan.EstimatedWeight += 105;
-                            else if (member.TownHallLevel == 10)
-                                details.Clan.EstimatedWeight += 85;
-                            else if (member.TownHallLevel == 9)
-                                details.Clan.EstimatedWeight += 65;
-                            else if (member.TownHallLevel == 8)
-                                details.Clan.EstimatedWeight += 50;
-                            else if (member.TownHallLevel == 7)
-                                details.Clan.EstimatedWeight += 35;
-                            else if (member.TownHallLevel == 6)
-                                details.Clan.EstimatedWeight += 25;
-                            else if (member.TownHallLevel == 5)
-                                details.Clan.EstimatedWeight += 15;
-                            else if (member.TownHallLevel == 4)
-                                details.Clan.EstimatedWeight += 7;
-                            else if (member.TownHallLevel == 3)
-                                details.Clan.EstimatedWeight += 3;
-                            else if (member.TownHallLevel == 2)
-                                details.Clan.EstimatedWeight += 1;
-                        }
-
-                    }
-                }
-
-                var clanEvents = from e in db.PlayerEvents
-                                join p in db.Players on e.PlayerTag equals p.Tag
-                                where e.ClanTag == tag
-                                && e.EventType != PlayerEventType.Stars
-                                orderby e.EventDate descending
-                                select new { Event = e, Name = p.Name };
-
-                foreach(var clanEvent in clanEvents.Take(100))
-                {
-                    var e = new ClanDetailsEvent { Tag = clanEvent.Event.PlayerTag, Name = clanEvent.Name, EventDate = clanEvent.Event.EventDate, EventType = clanEvent.Event.EventType, TimeDesc = clanEvent.Event.TimeDesc() };
-                    if(e.EventType == PlayerEventType.Promote || e.EventType == PlayerEventType.Demote)
-                    {
-                        e.Value = clanEvent.Event.RoleName;
+                        details.Clan.EstimatedWeight += weight.WarWeight / 1000;
                     }
                     else
                     {
-                        e.Value = clanEvent.Event.Value.ToString();
+                        if (member.TownHallLevel == 11)
+                            details.Clan.EstimatedWeight += 105;
+                        else if (member.TownHallLevel == 10)
+                            details.Clan.EstimatedWeight += 85;
+                        else if (member.TownHallLevel == 9)
+                            details.Clan.EstimatedWeight += 65;
+                        else if (member.TownHallLevel == 8)
+                            details.Clan.EstimatedWeight += 50;
+                        else if (member.TownHallLevel == 7)
+                            details.Clan.EstimatedWeight += 35;
+                        else if (member.TownHallLevel == 6)
+                            details.Clan.EstimatedWeight += 25;
+                        else if (member.TownHallLevel == 5)
+                            details.Clan.EstimatedWeight += 15;
+                        else if (member.TownHallLevel == 4)
+                            details.Clan.EstimatedWeight += 7;
+                        else if (member.TownHallLevel == 3)
+                            details.Clan.EstimatedWeight += 3;
+                        else if (member.TownHallLevel == 2)
+                            details.Clan.EstimatedWeight += 1;
                     }
-                    details.Events.Add(e);
+
                 }
+            }
 
-                details.WarsWithDetails = new HashSet<string>();
-                var warsWithMembers = (from w in db.Wars where w.ClanTag == tag join m in db.WarMembers on w.ID equals m.WarID select w.ID).Distinct().ToList();
-                foreach (var warId in warsWithMembers)
-                    details.WarsWithDetails.Add(warId);
+            var clanEvents = from e in db.PlayerEvents
+                             join p in db.Players on e.PlayerTag equals p.Tag
+                             where e.ClanTag == tag
+                             && e.EventType != PlayerEventType.Stars
+                             orderby e.EventDate descending
+                             select new { Event = e, Name = p.Name };
 
-                return details;
-            });
+            foreach (var clanEvent in clanEvents.Take(100))
+            {
+                var e = new ClanDetailsEvent { Tag = clanEvent.Event.PlayerTag, Name = clanEvent.Name, EventDate = clanEvent.Event.EventDate, EventType = clanEvent.Event.EventType, TimeDesc = clanEvent.Event.TimeDesc() };
+                if (e.EventType == PlayerEventType.Promote || e.EventType == PlayerEventType.Demote)
+                {
+                    e.Value = clanEvent.Event.RoleName;
+                }
+                else
+                {
+                    e.Value = clanEvent.Event.Value.ToString();
+                }
+                details.Events.Add(e);
+            }
 
-            return View(model);
+            details.WarsWithDetails = new HashSet<string>();
+            var warsWithMembers = (from w in db.Wars where w.ClanTag == tag join m in db.WarMembers on w.ID equals m.WarID select w.ID).Distinct().ToList();
+            foreach (var warId in warsWithMembers)
+                details.WarsWithDetails.Add(warId);
+
+            return View(details);
         }
 
         public ActionResult Following()
         {
             logger.LogInformation("Following");
 
-            var model = memoryCache.GetOrCreate(Constants.CACHE_CLANS_FOLLOWING, entry => {
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
+            var clans = new Dictionary<string, FollowingClan>();
 
-                var clans = new Dictionary<string, FollowingClan>();
+            var blacklisted = db.BlacklistedClans.Select(c => c.Tag).ToDictionary(c => c);
 
-                var blacklisted = db.BlacklistedClans.Select(c => c.Tag).ToDictionary(c => c);
+            var mismatches = from w in db.Wars where w.Synced == true && w.Matched == false && w.EndTime < Constants.MaxVisibleEndTime orderby w.ID select w;
 
-                var mismatches = from w in db.Wars where w.Synced == true && w.Matched == false && w.EndTime < Constants.MaxVisibleEndTime orderby w.ID select w;
-
-                foreach (var mismatch in mismatches)
+            foreach (var mismatch in mismatches)
+            {
+                if (!clans.TryGetValue(mismatch.OpponentTag, out FollowingClan followingClan))
                 {
-                    if (!clans.TryGetValue(mismatch.OpponentTag, out FollowingClan followingClan))
+                    followingClan = new FollowingClan { Tag = mismatch.OpponentTag };
+                    if (blacklisted.ContainsKey(followingClan.Tag))
                     {
-                        followingClan = new FollowingClan { Tag = mismatch.OpponentTag };
-                        if (blacklisted.ContainsKey(followingClan.Tag))
-                        {
-                            followingClan.Blacklisted = true;
-                        }
-                        clans.Add(mismatch.OpponentTag, followingClan);
+                        followingClan.Blacklisted = true;
                     }
-
-                    followingClan.Name = mismatch.OpponentName;
-                    followingClan.BadgeURL = mismatch.OpponentBadgeUrl;
-                    followingClan.Wars++;
-                    followingClan.LatestTag = mismatch.ClanTag;
-                    followingClan.LatestClan = mismatch.ClanName;
-                    followingClan.LatestDate = mismatch.SearchTime;
+                    clans.Add(mismatch.OpponentTag, followingClan);
                 }
 
-                return clans.Values.Where(c => c.Wars > 1).OrderByDescending(c => c.LatestDate).ToList();
-            });
+                followingClan.Name = mismatch.OpponentName;
+                followingClan.BadgeURL = mismatch.OpponentBadgeUrl;
+                followingClan.Wars++;
+                followingClan.LatestTag = mismatch.ClanTag;
+                followingClan.LatestClan = mismatch.ClanName;
+                followingClan.LatestDate = mismatch.SearchTime;
+            }
+
+            var model = clans.Values.Where(c => c.Wars > 1).OrderByDescending(c => c.LatestDate).ToList();
 
             return View(model);
         }
@@ -533,81 +512,6 @@ namespace LWFStatsWeb.Controllers
                             war.Matched = false;
                         }
                     }
-
-                    /*
-                    var clan = await api.GetClan(tag, true, false);
-
-                    if (!clan.IsWarLogPublic)
-                        clan.Wars = this.GetPrivateWars(tag);
-
-                    if (clan.Wars != null)
-                    {
-                        var existingWars = db.Wars.Where(w => w.ClanTag == clan.Tag).ToDictionary(w => w.ID);
-                        var clanValidities = db.ClanValidities.ToDictionary(v => v.Tag);
-                        var syncs = db.WarSyncs.ToList();
-
-                        foreach (var clanWar in clan.Wars)
-                        {
-                            if (clanWar.EndTime > clanValidity.ValidFrom && clanWar.EndTime < clanValidity.ValidTo)
-                            {
-                                if (clanValidities.ContainsKey(clanWar.OpponentTag))
-                                {
-                                    var opponentValidity = clanValidities[clanWar.OpponentTag];
-                                    var searchTime = clanWar.SearchTime;
-                                    if (opponentValidity.ValidFrom < searchTime && opponentValidity.ValidTo > searchTime)
-                                        clanWar.Matched = true;
-                                }
-
-                                var warSyncs = (from s in syncs where s.Start >= clanWar.EndTime && s.Finish <= clanWar.EndTime select s).ToList();
-
-                                foreach (var warSync in warSyncs)
-                                {
-                                    clanWar.Synced = true;
-                                }
-
-                                if (!existingWars.ContainsKey(clanWar.ID))
-                                {
-                                    db.Wars.Add(clanWar);
-                                }
-                                else
-                                {
-                                    var existingWar = existingWars[clanWar.ID];
-                                    if(existingWar.Matched != clanWar.Matched || existingWar.Synced != clanWar.Synced)
-                                    {
-                                        existingWar.Matched = clanWar.Matched;
-                                        existingWar.Synced = clanWar.Synced;
-                                        //db.Entry(existingWar).State = EntityState.Modified;
-                                    }
-                                }
-                            }
-                        }
-
-                        foreach (var war in existingWars.Values)
-                            if (war.EndTime > clanValidity.ValidTo || war.EndTime < clanValidity.ValidFrom)
-                                db.Entry(war).State = EntityState.Deleted;
-                    }
-
-                    var opp = db.Wars.Where(o => o.OpponentTag == tag).OrderBy(o => o.EndTime);
-                    foreach(var war in opp)
-                    {
-                        var searchTime = war.SearchTime;
-                        var matched = false;
-                        if(clanValidity.ValidFrom <= searchTime && clanValidity.ValidTo >= searchTime)
-                        {
-                            matched = true;
-                        }
-                        if(war.Matched != matched)
-                        {
-                            war.Matched = matched;
-                            db.Entry(war).State = EntityState.Modified;
-                        }
-                    }*/
-
-                    memoryCache.Remove(Constants.CACHE_CLANS_DETAILS_ + tag);
-                    memoryCache.Remove(Constants.CACHE_DATA_MEMBERS_ + tag);
-                    memoryCache.Remove(Constants.CACHE_CLANS_ALL);
-                    memoryCache.Remove(Constants.CACHE_CLANS_FOLLOWING);
-                    memoryCache.Remove(Constants.CACHE_CLANS_DEPARTED);
 
                     await db.SaveChangesAsync();
                 }
@@ -1039,7 +943,6 @@ namespace LWFStatsWeb.Controllers
             if(model.Command != null)
             {
                 SaveWeight(model);
-                memoryCache.Remove(Constants.CACHE_DATA_MEMBERS_ + tag);
 
                 if ( model.Command.Equals("submit", StringComparison.OrdinalIgnoreCase))
                 {
@@ -1051,23 +954,10 @@ namespace LWFStatsWeb.Controllers
         }
 
         [Route("Clan/{id}/Donations")]
-        public async Task<IActionResult> DonationData(string id, int counter)
+        [ResponseCache(Duration = Constants.CACHE_MIN)]
+        public async Task<IActionResult> DonationData(string id)
         {
             var tag = Utils.LinkIdToTag(id);
-
-            if (counter == 0)
-            {
-                logger.LogInformation("Tracking {0} Started", id);
-            }
-            else if (counter > 1440)
-            {
-                logger.LogInformation("Tracking {0} Stopped", id);
-                return NoContent();
-            }
-            else if(counter < 30 || counter % 10 == 0)
-            {
-                logger.LogInformation("Tracking {0} #{1}", id, counter);
-            }
 
             var data = new List<DonationTrackModel>();
 

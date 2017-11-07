@@ -50,7 +50,6 @@
 
             var track_progress = 0;
             var track_enabled = false;
-            var track_counter = 0;
             var prev_data = null;
 
             function findMember(members, tag) {
@@ -140,7 +139,7 @@
 
                 if (track_progress >= 20) {
                     track_progress = 0;
-                    $.getJSON('/Clan/@Model.LinkID/Donations?counter=' + (++track_counter), dataCallback).fail(failCallback);
+                    $.getJSON('/Clan/@Model.LinkID/Donations', dataCallback).fail(failCallback);
                 } else {
                     setTimeout(timerCallback, 3000);
                 }
@@ -176,9 +175,8 @@
                     $('.btn-stop').show();
                     createMessage('bg-success', 'Tracking started');
                     track_enabled = true;
-                    track_counter = 0;
                     track_progress = 0;
-                    $.getJSON('/Clan/@Model.LinkID/Donations?counter=' + track_counter, scheduleNext).fail(failCallback);
+                    $.getJSON('/Clan/@Model.LinkID/Donations', scheduleNext).fail(failCallback);
                 });
                 $('.btn-stop').click(function () {
                     track_enabled = false;

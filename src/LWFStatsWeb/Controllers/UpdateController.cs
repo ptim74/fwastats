@@ -9,11 +9,11 @@ using LWFStatsWeb.Data;
 using LWFStatsWeb.Logic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
 
 namespace LWFStatsWeb.Controllers
 {
+    [ResponseCache(NoStore = true)]
     public class UpdateController : Controller
     {
         private readonly ApplicationDbContext db;
@@ -22,7 +22,6 @@ namespace LWFStatsWeb.Controllers
         private readonly IClashApi api;
         private readonly IClanStatistics statistics;
         ILogger<UpdateController> logger;
-        private IMemoryCache memoryCache;
         IGoogleSheetsService googleSheets;
         IOptions<WeightDatabaseOptions> weightDatabase;
         IOptions<WeightResultOptions> resultDatabase;
@@ -35,7 +34,6 @@ namespace LWFStatsWeb.Controllers
             IClanUpdater updater,
             IClashApi api,
             IClanStatistics statistics,
-            IMemoryCache memoryCache,
             ILogger<UpdateController> logger,
             IGoogleSheetsService googleSheets,
             IOptions<WeightDatabaseOptions> weightDatabase,
@@ -46,7 +44,6 @@ namespace LWFStatsWeb.Controllers
             this.updater = updater;
             this.api = api;
             this.statistics = statistics;
-            this.memoryCache = memoryCache;
             this.logger = logger;
             this.googleSheets = googleSheets;
             this.weightDatabase = weightDatabase;
@@ -74,7 +71,7 @@ namespace LWFStatsWeb.Controllers
             }
             else
             {
-                model.Tasks = new List<Models.UpdateTask>();
+                model.Tasks = new List<UpdateTask>();
             }
 
             return model;
@@ -708,6 +705,7 @@ namespace LWFStatsWeb.Controllers
         }
 
         // GET: Update
+        [ResponseCache(NoStore = true)]
         public async Task<IActionResult> Index()
         {
             logger.LogInformation("Index");
@@ -733,6 +731,7 @@ namespace LWFStatsWeb.Controllers
             return View(model);
         }
 
+        [ResponseCache(NoStore = true)]
         public async Task<IActionResult> GetTasks()
         {
             logger.LogInformation("GetTasks");
@@ -873,21 +872,6 @@ namespace LWFStatsWeb.Controllers
                 logger.LogError(e.ToString());
             }
 
-            try
-            {
-                logger.LogInformation("PerformFinished.ClearCache");
-                memoryCache.Remove(Constants.CACHE_HOME_INDEX);
-                memoryCache.Remove(Constants.CACHE_CLANS_ALL);
-                memoryCache.Remove(Constants.CACHE_CLANS_FOLLOWING);
-                memoryCache.Remove(Constants.CACHE_CLANS_DEPARTED);
-                memoryCache.Remove(Constants.CACHE_SYNCS_ALL);
-                memoryCache.Remove(Constants.CACHE_DATA_CLANS);
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e.ToString());
-            }
-
             logger.LogInformation("PerformFinished.Done");
         }
 
@@ -969,20 +953,6 @@ namespace LWFStatsWeb.Controllers
         {
             logger.LogInformation("PlayerBatch.Begin");
 
-            /*
-            try
-            {
-                var starEventCleanupDate = DateTime.UtcNow.AddDays(-14);
-                var starEvents = db.PlayerEvents.Where(e => e.EventType == PlayerEventType.Stars && e.EventDate < starEventCleanupDate).Take(MAX_UPDATES);
-                db.PlayerEvents.RemoveRange(starEvents);
-                db.SaveChanges();
-                logger.LogInformation("PlayerBatch.StarEventsDeleted");
-            }
-            catch( Exception e)
-            {
-                logger.LogWarning("PlayerBatch.StarEventDeleteFailed: {0}", e.Message);
-            }*/
-
             var memberTags = db.Members.Where(m => !db.Players.Where(p => p.Tag == m.Tag).Any()).Select(m => m.Tag).Take(Constants.PLAYER_BATCH).ToList();
 
             logger.LogInformation("PlayerBatch.NewMembers = {0}", memberTags.Count);
@@ -1008,24 +978,6 @@ namespace LWFStatsWeb.Controllers
                 Errors = new List<string>(),
                 Tasks = new List<PlayerUpdateTask>()
             };
-
-            /*
-            var playerEvent = db.PlayerEvents.FirstOrDefault();
-            if(playerEvent == null)
-            {
-                foreach( var member in db.Members.Where(m => m.Role != "member").Select(m => new { Tag = m.Tag, ClanTag = m.ClanTag, Role = m.Role }).ToList())
-                {
-                    db.Add(new PlayerEvent
-                    {
-                        ClanTag = member.ClanTag,
-                        PlayerTag = member.Tag,
-                        EventDate = DateTime.UtcNow,
-                        EventType = PlayerEventType.Promote,
-                        Role = member.Role
-                    });
-                }
-                db.SaveChanges();
-            }*/
 
             foreach (var member in db.Members.Select(m => new { Tag = m.Tag, Name = m.Name }))
             {

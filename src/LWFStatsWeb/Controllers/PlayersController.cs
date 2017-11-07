@@ -5,30 +5,26 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using LWFStatsWeb.Models.PlayerViewModels;
 using LWFStatsWeb.Data;
-using Microsoft.EntityFrameworkCore;
 using LWFStatsWeb.Models;
-using Microsoft.Extensions.Caching.Memory;
 using LWFStatsWeb.Logic;
 using Microsoft.Extensions.Logging;
 
 namespace LWFStatsWeb.Controllers
 {
+    [ResponseCache(Duration = Constants.CACHE_NORMAL)]
     public class PlayersController : Controller
     {
         private readonly ApplicationDbContext db;
         private readonly IClashApi api;
-        private IMemoryCache memoryCache;
         ILogger<PlayersController> logger;
 
         public PlayersController(
             ApplicationDbContext db,
             IClashApi api,
-            IMemoryCache memoryCache,
             ILogger<PlayersController> logger)
         {
             this.db = db;
             this.api = api;
-            this.memoryCache = memoryCache;
             this.logger = logger;
         }
 
@@ -99,40 +95,33 @@ namespace LWFStatsWeb.Controllers
 
             var tag = Utils.LinkIdToTag(id);
 
-            var model = await memoryCache.GetOrCreateAsync<DetailsViewModel>(Constants.CACHE_PLAYER_DETAILS_ + tag, async entry => {
+            var ret = new DetailsViewModel
+            {
+                Events = new List<PlayerDetailsEvent>(),
+                Player = await api.GetPlayer(tag)
+            };
 
-                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(Constants.CACHE_TIME);
+            var events = from e in db.PlayerEvents
+                         join v in db.ClanValidities on e.ClanTag equals v.Tag
+                         where e.PlayerTag == tag
+                         orderby e.EventDate descending
+                         select new { Event = e, Name = v.Name };
 
-                var ret = new DetailsViewModel
+            foreach (var clanEvent in events.Take(100))
+            {
+                var e = new PlayerDetailsEvent { Tag = clanEvent.Event.ClanTag, Name = clanEvent.Name, EventDate = clanEvent.Event.EventDate, EventType = clanEvent.Event.EventType, TimeDesc = clanEvent.Event.TimeDesc() };
+                if (e.EventType == PlayerEventType.Promote || e.EventType == PlayerEventType.Demote)
                 {
-                    Events = new List<PlayerDetailsEvent>(),
-                    Player = await api.GetPlayer(tag)
-                };
-
-                var events = from e in db.PlayerEvents
-                                 join v in db.ClanValidities on e.ClanTag equals v.Tag
-                                 where e.PlayerTag == tag
-                                 orderby e.EventDate descending
-                                 select new { Event = e, Name = v.Name };
-
-                foreach (var clanEvent in events.Take(100))
-                {
-                    var e = new PlayerDetailsEvent { Tag = clanEvent.Event.ClanTag, Name = clanEvent.Name, EventDate = clanEvent.Event.EventDate, EventType = clanEvent.Event.EventType, TimeDesc = clanEvent.Event.TimeDesc() };
-                    if (e.EventType == PlayerEventType.Promote || e.EventType == PlayerEventType.Demote)
-                    {
-                        e.Value = clanEvent.Event.RoleName;
-                    }
-                    else
-                    {
-                        e.Value = clanEvent.Event.Value.ToString();
-                    }
-                    ret.Events.Add(e);
+                    e.Value = clanEvent.Event.RoleName;
                 }
+                else
+                {
+                    e.Value = clanEvent.Event.Value.ToString();
+                }
+                ret.Events.Add(e);
+            }
 
-                return ret;
-            });
-
-            return View(model);
+            return View(ret);
         }
     }
 }
