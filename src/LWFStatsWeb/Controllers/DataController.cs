@@ -9,6 +9,7 @@ using System.Linq;
 
 namespace LWFStatsWeb.Controllers
 {
+    [ResponseCache(Duration = Constants.CACHE_NORMAL)]
     public class DataController : Controller
     {
         private readonly ApplicationDbContext db;
