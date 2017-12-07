@@ -243,11 +243,18 @@ namespace LWFStatsWeb.Controllers
                                     result.TH7Count = Convert.ToInt32(row[10]);
 
                                     result.THSum = result.TH11Count * 11 + result.TH10Count * 10 + result.TH9Count * 9 + result.TH8Count * 8 + result.TH7Count * 7;
+                                    var totalWeight = 0;
 
                                     int max = resultDb.TeamSize + 10;
                                     for (int i = 11; i <= max; i++)
                                     {
-                                        result.SetBase(i - 10, Convert.ToInt32(row[i]));
+                                        var weight = Convert.ToInt32(row[i]);
+                                        if (weight > 110000)
+                                            weight = 110000;
+                                        if (weight < 0)
+                                            weight = 0;
+                                        totalWeight += weight;
+                                        result.SetBase(i - 10, weight);
                                     }
 
                                     for(int i = resultDb.TeamSize + 1; i <= 50; i++)
@@ -255,7 +262,8 @@ namespace LWFStatsWeb.Controllers
                                         result.SetBase(i, 0);
                                     }
 
-                                    result.Weight = Convert.ToInt32(row[resultDb.TeamSize + 11]);
+                                    //result.Weight = Convert.ToInt32(row[resultDb.TeamSize + 11]);
+                                    result.Weight = totalWeight;
                                 }
                             }
                         }

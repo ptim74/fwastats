@@ -231,5 +231,11 @@ namespace LWFStatsWeb.Controllers
 
             return View();
         }
+
+        public IActionResult Tracker()
+        {
+            logger.LogInformation("Tracker");
+            return View();
+        }
     }
 }
