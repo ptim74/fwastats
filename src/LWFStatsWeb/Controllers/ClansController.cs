@@ -845,7 +845,14 @@ namespace LWFStatsWeb.Controllers
                     using (var reader = new StreamReader(submitResponse.GetResponseStream()))
                     {
                         var data = await reader.ReadToEndAsync();
-                        model.Message = JsonConvert.DeserializeObject<string>(data);
+                        try
+                        {
+                            model.Message = JsonConvert.DeserializeObject<string>(data);
+                        }
+                        catch(JsonSerializationException)
+                        {
+                            logger.LogWarning("Weight.SubmitResponseData {0}", data);
+                        }
                     }
 
                     logger.LogInformation("Weight.SubmitResponse {0}", model.Message);

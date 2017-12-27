@@ -106,6 +106,7 @@ namespace LWFStatsWeb
             services.AddTransient<IClanStatistics, ClanStatistics>();
             services.AddTransient<IClashApi, ClashApi>();
             services.AddTransient<IGoogleSheetsService, GoogleSheetsService>();
+            //services.AddSingleton<IWeightSubmitService, WeightSubmitService>();
 
             // Caching
             services.AddMemoryCache();
