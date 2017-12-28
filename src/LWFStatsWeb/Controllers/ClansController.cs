@@ -836,6 +836,8 @@ namespace LWFStatsWeb.Controllers
 
                 logger.LogInformation("Weight.SubmitRequest '{0}'", clanName);
 
+                var checkStatus = false;
+
                 try
                 {
                     var submitRequest = WebRequest.Create(options.SubmitURL);
@@ -847,37 +849,52 @@ namespace LWFStatsWeb.Controllers
                         var data = await reader.ReadToEndAsync();
                         try
                         {
-                            model.Message = JsonConvert.DeserializeObject<string>(data);
+                            dynamic json = JsonConvert.DeserializeObject(data);
+                            if(json is string)
+                            {
+                                //This is the value from StatusRange Cell
+                                model.Message = json as string;
+                                logger.LogInformation("Weight.SubmitResponse {0}", model.Message);
+                            }
+                            else
+                            {
+                                //Script error returned as json
+                                if(json.message != null || json.name != null)
+                                {
+                                    checkStatus = true;
+                                    string scriptError = string.Format("{0}: {1} (line {2} in '{3}')", json.name, json.message, json.lineNumber, json.fileName);
+                                    logger.LogInformation("Weight.SubmitScript{0}", scriptError);
+                                }
+                            }
                         }
                         catch(JsonReaderException jre)
                         {
-                            //This is handled in outer exception block
-                            throw new WebException(data, jre);  
+                            //Script error returned as html
+                            checkStatus = true;
+                            logger.LogInformation("Weight.SubmitParsingError: {0}", jre.Message);
                         }
                     }
-
-                    logger.LogInformation("Weight.SubmitResponse {0}", model.Message);
                 }
                 catch (WebException we)
                 {
+                    checkStatus = true;
                     logger.LogInformation("Weight.SubmitErrorHandler: {0}", we.Message);
+                }
+
+                if(checkStatus)
+                {
                     try
                     {
                         var statusData = await googleSheets.Get(options.SheetId, "ROWS", options.StatusRange);
                         if (statusData.Count == 1 && statusData[0].Count == 1 && statusData[0][0] != null)
                         {
                             model.Message = statusData[0][0].ToString();
-                            logger.LogInformation("Weight.SubmitErrorHandlerResponse {0}", model.Message);
+                            logger.LogInformation("Weight.SubmitCheckResponse {0}", model.Message);
                         }
                     }
                     catch (Exception e)
                     {
-                        logger.LogError("Weight.SubmitErrorHandlerFailure: {0}", e.Message);
-                    }
-
-                    if (string.IsNullOrEmpty(model.Message))
-                    {
-                        throw we;
+                        logger.LogError("Weight.SubmitCheckFailure: {0}", e.Message);
                     }
                 }
 
