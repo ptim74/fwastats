@@ -849,7 +849,7 @@ namespace LWFStatsWeb.Controllers
                         {
                             model.Message = JsonConvert.DeserializeObject<string>(data);
                         }
-                        catch(JsonSerializationException)
+                        catch(JsonReaderException)
                         {
                             logger.LogWarning("Weight.SubmitResponseData {0}", data);
                         }
@@ -890,7 +890,15 @@ namespace LWFStatsWeb.Controllers
                     {
                         model.Status = true;
                         responseSheetId = results.SheetId;
-                        await this.UpdatePendingSubmit(weight.Members.Count, weight.ClanTag);
+                        //await this.UpdatePendingSubmit(weight.Members.Count, weight.ClanTag);
+                        var result = db.WeightResults.SingleOrDefault(r => r.Tag == weight.ClanTag);
+                        if (result == null)
+                        {
+                            result = new WeightResult { Tag = weight.ClanTag, Timestamp = DateTime.MinValue };
+                            db.WeightResults.Add(result);
+                        }
+                        result.PendingResult = true;
+                        db.SaveChanges();
                     }
                 }
             }
