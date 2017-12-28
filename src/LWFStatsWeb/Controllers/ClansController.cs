@@ -849,9 +849,10 @@ namespace LWFStatsWeb.Controllers
                         {
                             model.Message = JsonConvert.DeserializeObject<string>(data);
                         }
-                        catch(JsonReaderException)
+                        catch(JsonReaderException jre)
                         {
-                            logger.LogWarning("Weight.SubmitResponseData {0}", data);
+                            //This is handled in outer exception block
+                            throw new WebException(data, jre);  
                         }
                     }
 
