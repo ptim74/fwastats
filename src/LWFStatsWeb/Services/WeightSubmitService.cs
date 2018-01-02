@@ -51,12 +51,14 @@ namespace LWFStatsWeb.Services
 
         protected async Task RunAsync(CancellationToken cancellationToken)
         {
-            while(q.TryDequeue(out string tag))
+            while (q.TryDequeue(out string tag))
             {
                 currentTag = tag;
+                //TODO: remove
+                await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
             }
             currentTag = string.Empty;
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
     }
 }

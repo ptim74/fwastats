@@ -867,11 +867,11 @@ namespace LWFStatsWeb.Controllers
                                 }
                             }
                         }
-                        catch(JsonReaderException jre)
+                        catch(JsonReaderException)
                         {
                             //Script error returned as html
                             checkStatus = true;
-                            logger.LogInformation("Weight.SubmitParsingError: {0}", jre.Message);
+                            logger.LogInformation("Weight.SubmitParsingError: {0}", data);
                         }
                     }
                 }
