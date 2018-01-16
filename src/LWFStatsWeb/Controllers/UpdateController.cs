@@ -179,18 +179,6 @@ namespace LWFStatsWeb.Controllers
             var resultSet = new HashSet<string>();
 
             var dateZero = new DateTime(1899, 12, 30, 0, 0, 0);
-            TimeZoneInfo sheetTimeZone = null;
-
-            try
-            {
-                //Windows
-                sheetTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-            }
-            catch(Exception)
-            {
-                //Linux
-                sheetTimeZone = TimeZoneInfo.FindSystemTimeZoneById("US/Eastern");
-            }
 
             var pendingSet = new HashSet<string>();
 
@@ -229,7 +217,7 @@ namespace LWFStatsWeb.Controllers
 
                                 //round to second to eliminate unnecessary updates
                                 timestamp = new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second);
-                                timestamp = timestamp.Subtract(sheetTimeZone.GetUtcOffset(timestamp));
+                                timestamp = timestamp.Subtract(Utils.EasternTimeZone.GetUtcOffset(timestamp));
 
                                 if (timestamp > result.Timestamp)
                                 {
@@ -531,9 +519,11 @@ namespace LWFStatsWeb.Controllers
                 foreach (var war in clan.Wars)
                 {
                     var earliestEndTime = war.EndTime.AddHours(-8); //Prepare for maintenance break
-                    var latestEndTime = war.EndTime;
+                    var latestEndTime = war.EndTime.AddMinutes(1); //Prepare for 1 sec off
                     var duplicate = (from w in clanWars.Values
                                      where w.ID != war.ID &&
+                                        w.Result != "win" && w.Result != "tie" && w.Result != "lose" && //Duplicate must be the incomplete one
+                                        (war.Result == "win" || war.Result == "tie" || war.Result == "lose") && //and current war must be ended
                                         w.EndTime > earliestEndTime &&
                                         w.EndTime < latestEndTime &&
                                         w.OpponentTag == war.OpponentTag &&
@@ -737,6 +727,48 @@ namespace LWFStatsWeb.Controllers
             }
 
             return View(model);
+        }
+
+        [ResponseCache(NoStore = true)]
+        public IActionResult Clan(string id)
+        {
+            var tag = Utils.LinkIdToTag(id);
+
+            var clan = db.ClanValidities.FirstOrDefault(c => c.Tag == tag);
+
+            var model = new IndexViewModel
+            {
+                Errors = new List<string>(),
+                Tasks = new List<UpdateTask>()
+            };
+
+            if (clan != null && clan.IsValid())
+            {
+                var task = new UpdateTask
+                {
+                    ID = Guid.NewGuid(),
+                    ClanTag = clan.Tag,
+                    ClanName = clan.Name,
+                    ClanGroup = clan.Group,
+                    Mode = UpdateTaskMode.Update
+                };
+                model.Tasks.Add(task);
+                db.UpdateTasks.Add(task);
+                db.SaveChanges();
+            }
+            else
+            {
+                if(clan == null)
+                {
+                    model.Errors.Add(string.Format("Clan '{0}' not found", id));
+                }
+                else
+                {
+                    model.Errors.Add(string.Format("Clan '{0}' is not valid", clan.Name));
+                }
+            }
+
+            return View("Index", model);
         }
 
         [ResponseCache(NoStore = true)]

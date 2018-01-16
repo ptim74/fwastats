@@ -886,11 +886,11 @@ namespace LWFStatsWeb.Controllers
                     try
                     {
                         var statusData = await googleSheets.Get(options.SheetId, "ROWS", options.StatusRange);
-                        if (statusData.Count == 1 && statusData[0].Count == 1 && statusData[0][0] != null)
+                        if (statusData != null && statusData.Count == 1 && statusData[0].Count == 1 && statusData[0][0] != null)
                         {
                             model.Message = statusData[0][0].ToString();
-                            logger.LogInformation("Weight.SubmitCheckResponse {0}", model.Message);
                         }
+                        logger.LogInformation("Weight.SubmitCheckResponse {0}", model.Message);
                     }
                     catch (Exception e)
                     {

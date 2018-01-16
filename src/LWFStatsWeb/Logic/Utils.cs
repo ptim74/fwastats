@@ -68,5 +68,36 @@ namespace LWFStatsWeb.Logic
         {
             return D.AddSeconds(id);
         }
+
+        private static TimeZoneInfo _easternTimeZone = null;
+
+        public static TimeZoneInfo EasternTimeZone
+        {
+            get
+            {
+                if (_easternTimeZone == null)
+                {
+                    try
+                    {
+                        //Windows
+                        _easternTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
+                    }
+                    catch (Exception)
+                    {
+                        //Linux
+                        _easternTimeZone = TimeZoneInfo.FindSystemTimeZoneById("US/Eastern");
+                    }
+                }
+                return _easternTimeZone;
+            }
+        }
+
+        public static DateTime AsEasternTime(DateTime dateTime)
+        {
+            //round to second to eliminate unnecessary updates
+            var ret = new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute, dateTime.Second);
+            ret = ret.Subtract(Utils.EasternTimeZone.GetUtcOffset(ret));
+            return ret;
+        }
     }
 }

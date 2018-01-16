@@ -81,6 +81,26 @@ namespace LWFStatsWeb.Models
 
         public int Weight { get; set; }
 
+        // Extra properties for submit service
+        /*
+        [NotMapped]
+        public string SubmitName { get; set; }
+        [NotMapped]
+        public string SubmitMessage { get; set; }
+        [NotMapped]
+        public bool SubmitResult { get; set; }
+        [NotMapped]
+        public bool SubmitProcessed { get; set; }
+
+        public string LinkID
+        {
+            get
+            {
+                return Logic.Utils.TagToLinkId(Tag);
+            }
+        }
+        */
+
         public void SetBase(int n, int weight)
         {
             switch(n)

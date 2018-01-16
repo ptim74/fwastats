@@ -119,7 +119,7 @@ namespace LWFStatsWeb.Logic
                     {
                         var prevWar = data.Wars.SingleOrDefault( w => 
                             w.EndTime >= currentWar.EndTime.AddMinutes(-1) && 
-                            w.EndTime <= currentWar.EndTime &&
+                            w.EndTime <= currentWar.EndTime.AddMinutes(1) &&
                             w.OpponentTag == currentWar.OpponentTag &&
                             w.TeamSize == currentWar.TeamSize
                             );
@@ -127,7 +127,13 @@ namespace LWFStatsWeb.Logic
                         {
                             currentWar.FixData(DateTime.MinValue);
                             prevWar.Members = currentWar.Members;
+                            if (prevWar.Members != null)
+                                foreach (var member in prevWar.Members)
+                                    member.WarID = prevWar.ID;
                             prevWar.Attacks = currentWar.Attacks;
+                            if (prevWar.Attacks != null)
+                                foreach (var attack in prevWar.Attacks)
+                                    attack.WarID = prevWar.ID;
                         }
                     }
                     else if (!string.IsNullOrEmpty(currentWar.State) && !currentWar.State.Equals("notInWar"))

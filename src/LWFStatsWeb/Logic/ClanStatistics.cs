@@ -410,8 +410,8 @@ namespace LWFStatsWeb.Logic
             {
                 foreach(var syncEvent in cal.Events.Where(a => a.Duration == syncDuration))
                 {
-                    var eventStart = syncEvent.Start.Value.AddHours(47);
-                    var eventEnd = syncEvent.End.Value.AddHours(47);
+                    var eventStart = syncEvent.Start.AsUtc.AddHours(47);
+                    var eventEnd = syncEvent.End.AsUtc.AddHours(47);
                     var sync = syncs.Where(s => s.Start < eventEnd && s.Finish > eventStart).FirstOrDefault();
                     if(sync != null)
                     {
@@ -438,6 +438,10 @@ namespace LWFStatsWeb.Logic
                     //CREATED:20170531T104049Z
                     //LAST-MODIFIED:20170531T104049Z
                     //END:VEVENT
+
+                    //2018: Times changed from UTC to Eastern
+                    //DTSTART; TZID = America / New_York:20180102T052600
+                    //DTEND; TZID = America / New_York:20180102T072600
                 }
             }
 

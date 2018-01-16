@@ -123,11 +123,13 @@ namespace LWFStatsWeb.Models
             if (string.IsNullOrEmpty(Result) && !string.IsNullOrEmpty(State))
                 Result = State;
 
-            if(ClanExpEarned == 0 && ClanStars > 0 && string.IsNullOrEmpty(State))
+            var timeSincePreviousWar = EndTime.Subtract(previousEndTime);
+
+            if (ClanExpEarned == 0 && ClanStars > 0 && string.IsNullOrEmpty(State))
             {
                 Friendly = true;
             }
-            else if(EndTime.Subtract(previousEndTime).TotalHours <= 47.0)
+            else if(timeSincePreviousWar.TotalHours <= 47.0 && timeSincePreviousWar.TotalMinutes > 1)
             {
                 Friendly = true;
             }
