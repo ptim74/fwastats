@@ -904,7 +904,7 @@ namespace LWFStatsWeb.Controllers
                 }
                 else
                 {
-                    if (model.Message.Equals(string.Format("Submitted '{0}'", clanName), StringComparison.OrdinalIgnoreCase))
+                    if (model.Message.StartsWith(string.Format("Submitted '{0}'", clanName), StringComparison.OrdinalIgnoreCase))
                     {
                         model.Status = true;
                         responseSheetId = results.SheetId;
