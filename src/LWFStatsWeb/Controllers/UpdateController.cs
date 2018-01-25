@@ -518,19 +518,34 @@ namespace LWFStatsWeb.Controllers
 
                 foreach (var war in clan.Wars)
                 {
-                    var earliestEndTime = war.EndTime.AddHours(-8); //Prepare for maintenance break
+                    var earliestEndTime = war.EndTime.AddHours(-1); //Prepare for maintenance break
                     var latestEndTime = war.EndTime.AddMinutes(1); //Prepare for 1 sec off
                     var duplicate = (from w in clanWars.Values
                                      where w.ID != war.ID &&
                                         w.Result != "win" && w.Result != "tie" && w.Result != "lose" && //Duplicate must be the incomplete one
                                         (war.Result == "win" || war.Result == "tie" || war.Result == "lose") && //and current war must be ended
-                                        w.EndTime > earliestEndTime &&
-                                        w.EndTime < latestEndTime &&
+                                        w.EndTime > earliestEndTime && //maintenance break
+                                        w.EndTime < latestEndTime && //1 sec off
                                         w.OpponentTag == war.OpponentTag &&
                                         w.TeamSize == war.TeamSize &&
                                         w.Friendly == false &&
                                         war.Friendly == false
                                      select w).FirstOrDefault();
+
+                    //Maintenance break on prepday or battle day
+                    if(duplicate == null && (war.Result == "preparation" || war.Result == "inWar"))
+                    {
+                        duplicate = (from w in clanWars.Values
+                                         where w.ID != war.ID &&
+                                            (w.Result == "preparation" || w.Result == "inWar") &&
+                                            w.EndTime > earliestEndTime && //maintenance break
+                                            w.EndTime < war.EndTime && //look only past
+                                            w.OpponentTag == war.OpponentTag &&
+                                            w.TeamSize == war.TeamSize &&
+                                            w.Friendly == false &&
+                                            war.Friendly == false
+                                         select w).FirstOrDefault();
+                    }
 
                     if (clanWars.TryGetValue(war.ID, out var existingWar))
                     {
