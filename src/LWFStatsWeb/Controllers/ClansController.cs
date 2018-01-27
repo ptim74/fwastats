@@ -841,7 +841,7 @@ namespace LWFStatsWeb.Controllers
                 try
                 {
                     var submitRequest = WebRequest.Create(options.SubmitURL);
-                    submitRequest.Timeout = 15000;
+                    submitRequest.Timeout = 20000;
                     var submitResponse = await submitRequest.GetResponseAsync();
 
                     using (var reader = new StreamReader(submitResponse.GetResponseStream()))
