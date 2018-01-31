@@ -118,10 +118,12 @@ namespace LWFStatsWeb.Controllers
 
         protected async Task UpdateWeights()
         {
+            logger.LogDebug("UpdateWeights Begin");
             var data = await googleSheets.Get(weightDatabase.Value.SheetId, "ROWS", weightDatabase.Value.Range);
-
-            if(data != null)
+            logger.LogDebug("UpdateWeights Get Done");
+            if (data != null)
             {
+                logger.LogDebug("UpdateWeights ToDictionary");
                 var weights = db.Weights.ToDictionary(w => w.Tag);
                 var updates = 0;
                 var dateZero = new DateTime(1899, 12, 30, 0, 0, 0);
@@ -158,10 +160,13 @@ namespace LWFStatsWeb.Controllers
 
                     tag = Utils.LinkIdToTag(tag);
 
+                    logger.LogDebug("Data {0}, {1}, {2}", tag, weight, timestamp);
+
                     if (!string.IsNullOrEmpty(tag))
                     {
                         if (weights.TryGetValue(tag, out var w))
                         {
+                            logger.LogDebug("Comp {0}, {1}, {2}", w.Tag, w.WarWeight, w.LastModified);
                             if (weight != w.WarWeight && timestamp > w.LastModified)
                             {
                                 logger.LogTrace("UpdateWeight: {0} {1} -> {2} ({3} > {4})",tag, w.WarWeight, weight, timestamp, w.LastModified);
@@ -186,10 +191,10 @@ namespace LWFStatsWeb.Controllers
                         updates = 0;
                     }
                 }
-
+                logger.LogDebug("UpdateWeights Save");
                 db.SaveChanges();
             }
-
+            logger.LogDebug("UpdateWeights End");
         }
 
         protected async Task UpdateResults()
