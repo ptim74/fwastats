@@ -952,7 +952,7 @@ namespace LWFStatsWeb.Controllers
 
         public async Task<IActionResult> UpdateTask(string id)
         {
-            logger.LogInformation("UpdateTask {0}", id);
+            //logger.LogInformation("UpdateTask {0}", id);
             try
             {
                 return Json(await PerformTask(id));
@@ -966,7 +966,7 @@ namespace LWFStatsWeb.Controllers
 
         public async Task<IActionResult> UpdatePlayerTask(string id)
         {
-            logger.LogInformation("UpdatePlayerTask {0}", id);
+            //logger.LogInformation("UpdatePlayerTask {0}", id);
 
             var playerTag = Utils.LinkIdToTag(id);
 
