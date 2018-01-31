@@ -118,12 +118,12 @@ namespace LWFStatsWeb.Controllers
 
         protected async Task UpdateWeights()
         {
-            logger.LogDebug("UpdateWeights Begin");
+            logger.LogInformation("UpdateWeights Begin");
             var data = await googleSheets.Get(weightDatabase.Value.SheetId, "ROWS", weightDatabase.Value.Range);
-            logger.LogDebug("UpdateWeights Get Done");
+            logger.LogInformation("UpdateWeights Get Done");
             if (data != null)
             {
-                logger.LogDebug("UpdateWeights ToDictionary");
+                logger.LogInformation("UpdateWeights ToDictionary");
                 var weights = db.Weights.ToDictionary(w => w.Tag);
                 var updates = 0;
                 var dateZero = new DateTime(1899, 12, 30, 0, 0, 0);
@@ -160,16 +160,16 @@ namespace LWFStatsWeb.Controllers
 
                     tag = Utils.LinkIdToTag(tag);
 
-                    logger.LogDebug("Data {0}, {1}, {2}", tag, weight, timestamp);
+                    logger.LogInformation("Data {0}, {1}, {2}", tag, weight, timestamp);
 
                     if (!string.IsNullOrEmpty(tag))
                     {
                         if (weights.TryGetValue(tag, out var w))
                         {
-                            logger.LogDebug("Comp {0}, {1}, {2}", w.Tag, w.WarWeight, w.LastModified);
+                            logger.LogInformation("Comp {0}, {1}, {2}", w.Tag, w.WarWeight, w.LastModified);
                             if (weight != w.WarWeight && timestamp > w.LastModified)
                             {
-                                logger.LogTrace("UpdateWeight: {0} {1} -> {2} ({3} > {4})",tag, w.WarWeight, weight, timestamp, w.LastModified);
+                                logger.LogInformation("UpdateWeight: {0} {1} -> {2} ({3} > {4})",tag, w.WarWeight, weight, timestamp, w.LastModified);
                                 w.WarWeight = weight;
                                 w.LastModified = timestamp;
                                 updates++;
@@ -177,7 +177,7 @@ namespace LWFStatsWeb.Controllers
                         }
                         else
                         {
-                            logger.LogTrace("InsertWeight: {0} {1} ({2])", tag, weight, timestamp);
+                            logger.LogInformation("InsertWeight: {0} {1} ({2])", tag, weight, timestamp);
                             var newWeight = new Weight { Tag = tag, WarWeight = weight, LastModified = timestamp };
                             db.Weights.Add(newWeight);
                             weights.Add(tag, newWeight);
@@ -191,10 +191,10 @@ namespace LWFStatsWeb.Controllers
                         updates = 0;
                     }
                 }
-                logger.LogDebug("UpdateWeights Save");
+                logger.LogInformation("UpdateWeights Save");
                 db.SaveChanges();
             }
-            logger.LogDebug("UpdateWeights End");
+            logger.LogInformation("UpdateWeights End");
         }
 
         protected async Task UpdateResults()
