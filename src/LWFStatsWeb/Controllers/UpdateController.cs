@@ -124,16 +124,34 @@ namespace LWFStatsWeb.Controllers
             {
                 var weights = db.Weights.ToDictionary(w => w.Tag);
                 var updates = 0;
+                var dateZero = new DateTime(1899, 12, 30, 0, 0, 0);
 
-                foreach(var row in data)
+                foreach (var row in data)
                 {
                     var tag = "";
                     var weight = 0;
+                    DateTime timestamp = DateTime.MinValue;
 
                     if (row.Count > weightDatabase.Value.TagColumn && row[weightDatabase.Value.TagColumn] != null)
                         tag = row[weightDatabase.Value.TagColumn].ToString();
                     if (row.Count > weightDatabase.Value.WeightColumn && row[weightDatabase.Value.WeightColumn] != null)
                         int.TryParse(row[weightDatabase.Value.WeightColumn].ToString(), out weight);
+                    if (row.Count > weightDatabase.Value.TimestampColumn && row[weightDatabase.Value.TimestampColumn] != null)
+                    {
+                        try
+                        {
+                            timestamp = dateZero.AddDays(Convert.ToDouble(row[4]));
+                        }
+                        catch (Exception)
+                        {
+                            logger.LogError("Unable to convert to double: '{0}'", row[4]);
+                            timestamp = new DateTime(1900, 1, 1);
+                        }
+
+                        //round to second to eliminate unnecessary updates
+                        timestamp = new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second);
+                        timestamp = timestamp.Subtract(Utils.EasternTimeZone.GetUtcOffset(timestamp));
+                    }
 
                     if (weight <= 110)
                         weight *= 1000;
@@ -144,16 +162,18 @@ namespace LWFStatsWeb.Controllers
                     {
                         if (weights.TryGetValue(tag, out var w))
                         {
-                            if (weight > w.WarWeight && weight <= 110000)
+                            if (weight != w.WarWeight && timestamp > w.LastModified)
                             {
+                                logger.LogTrace("UpdateWeight: {0} {1} -> {2} ({3} > {4})",tag, w.WarWeight, weight, timestamp, w.LastModified);
                                 w.WarWeight = weight;
-                                w.LastModified = DateTime.UtcNow;
+                                w.LastModified = timestamp;
                                 updates++;
                             }
                         }
                         else
                         {
-                            var newWeight = new Weight { Tag = tag, WarWeight = weight, LastModified = DateTime.UtcNow };
+                            logger.LogTrace("InsertWeight: {0} {1} ({2])", tag, weight, timestamp);
+                            var newWeight = new Weight { Tag = tag, WarWeight = weight, LastModified = timestamp };
                             db.Weights.Add(newWeight);
                             weights.Add(tag, newWeight);
                             updates++;
@@ -780,6 +800,146 @@ namespace LWFStatsWeb.Controllers
                 else
                 {
                     model.Errors.Add(string.Format("Clan '{0}' is not valid", clan.Name));
+                }
+            }
+
+            return View("Index", model);
+        }
+
+        [ResponseCache(NoStore = true)]
+        public async Task<IActionResult> Task(string id)
+        {
+            var model = new IndexViewModel
+            {
+                Errors = new List<string>(),
+                Tasks = new List<UpdateTask>()
+            };
+
+            var task = id?.ToLowerInvariant() ?? "";
+
+            if(task == "deletehistory")
+            {
+                try
+                {
+                    logger.LogInformation("Task.DeleteHistory");
+                    statistics.DeleteHistory();
+                }
+                catch (Exception e)
+                {
+                    model.Errors.Add(e.Message);
+                    logger.LogError(e.ToString());
+                }
+            }
+
+            if (task == "updatevalidities")
+            {
+                try
+                {
+                    logger.LogInformation("Task.UpdateValidities");
+                    statistics.UpdateValidities();
+                }
+                catch (Exception e)
+                {
+                    model.Errors.Add(e.Message);
+                    logger.LogError(e.ToString());
+                }
+            }
+
+            if (task == "calculatesyncs")
+            {
+                try
+                {
+                    logger.LogInformation("Task.CalculateSyncs");
+                    statistics.CalculateSyncs();
+                }
+                catch (Exception e)
+                {
+                    model.Errors.Add(e.Message);
+                    logger.LogError(e.ToString());
+                }
+            }
+
+            if (task == "updatesynccalendar")
+            {
+                try
+                {
+                    logger.LogInformation("Task.UpdateSyncCalendar");
+                    await statistics.UpdateSyncCalendar();
+                }
+                catch (Exception e)
+                {
+                    model.Errors.Add(e.Message);
+                    logger.LogError(e.ToString());
+                }
+            }
+
+            if (task == "updatesyncmatch")
+            {
+                try
+                {
+                    logger.LogInformation("Task.UpdateSyncMatch");
+                    statistics.UpdateSyncMatch();
+                }
+                catch (Exception e)
+                {
+                    model.Errors.Add(e.Message);
+                    logger.LogError(e.ToString());
+                }
+            }
+
+            if (task == "updateclanstats")
+            {
+                try
+                {
+                    logger.LogInformation("Task.UpdateClanStats");
+                    statistics.UpdateClanStats();
+                }
+                catch (Exception e)
+                {
+                    model.Errors.Add(e.Message);
+                    logger.LogError(e.ToString());
+                }
+            }
+
+            if (task == "blacklisted")
+            {
+                try
+                {
+                    logger.LogInformation("Task.Blacklisted");
+                    await this.UpdateBlacklisted();
+                }
+                catch (Exception e)
+                {
+                    model.Errors.Add(e.Message);
+                    logger.LogError(e.ToString());
+                }
+            }
+
+            if (task == "weights")
+            {
+                try
+                {
+                    logger.LogInformation("Task.Weights");
+                    await this.UpdateWeights();
+                }
+                catch (Exception e)
+                {
+                    model.Errors.Add(e.Message);
+                    logger.LogError(e.ToString());
+                }
+            }
+
+            if (task == "updateresults")
+            {
+                try
+                {
+                    logger.LogInformation("Task.UpdateResults");
+                    await this.UpdateResults();
+                }
+                catch (Exception e)
+                {
+                    model.Errors.Add(e.Message);
+                    logger.LogError(e.ToString());
                 }
             }
 
