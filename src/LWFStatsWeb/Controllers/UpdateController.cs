@@ -171,7 +171,7 @@ namespace LWFStatsWeb.Controllers
                         }
                         else
                         {
-                            logger.LogInformation("InsertWeight: {0} {1} ({2])", tag, weight, timestamp);
+                            logger.LogInformation("InsertWeight: {0} {1} ({2})", tag, weight, timestamp);
                             var newWeight = new Weight { Tag = tag, WarWeight = weight, LastModified = timestamp };
                             db.Weights.Add(newWeight);
                             weights.Add(tag, newWeight);
