@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net;
 using Newtonsoft.Json;
+using LWFStatsWeb.Services;
 
 namespace LWFStatsWeb.Controllers
 {
@@ -26,6 +27,8 @@ namespace LWFStatsWeb.Controllers
         IGoogleSheetsService googleSheets;
         IClanLoader clanLoader;
         IOptions<WeightResultOptions> resultDatabase;
+        WeightSubmitService submitService;
+        IOptions<GlobalOptions> globalOptions;
 
         public ClansController(
             ApplicationDbContext db,
@@ -35,7 +38,9 @@ namespace LWFStatsWeb.Controllers
             IOptions<WeightSubmitOptions> submitOptions,
             IGoogleSheetsService googleSheets,
             IClanLoader clanLoader,
-            IOptions<WeightResultOptions> resultDatabase
+            IOptions<WeightResultOptions> resultDatabase,
+            WeightSubmitService submitService,
+            IOptions<GlobalOptions> globalOptions
             )
         {
             this.db = db;
@@ -46,6 +51,8 @@ namespace LWFStatsWeb.Controllers
             this.googleSheets = googleSheets;
             this.clanLoader = clanLoader;
             this.resultDatabase = resultDatabase;
+            this.submitService = submitService;
+            this.globalOptions = globalOptions;
         }
 
         protected IndexViewModel GetClanList()
@@ -737,7 +744,51 @@ namespace LWFStatsWeb.Controllers
             return View(model);
         }
 
-        protected void SaveWeight(WeightViewModel model)
+        [Route("Clan/{id}/WeightStatus")]
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult WeightStatus(string id)
+        {
+            var tag = Utils.LinkIdToTag(id);
+
+            var model = new WeightStatusModel();
+
+            var status = submitService.Status(tag);
+
+            var runningTime = Convert.ToInt32(DateTime.UtcNow.Subtract(status.Timestamp).TotalSeconds);
+
+            switch(status.Phase)
+            {
+                case SubmitPhase.Queued:
+                    model.Final = false;
+                    model.Result = false;
+                    model.Text = $"Added to queue {runningTime} seconds ago.";
+                    break;
+                case SubmitPhase.Running:
+                    model.Final = false;
+                    model.Result = false;
+                    model.Text = $"Processing started {runningTime} seconds ago. ({status.Message})";
+                    break;
+                case SubmitPhase.Succeeded:
+                    model.Final = true;
+                    model.Result = true;
+                    model.Text = status.Message;
+                    break;
+                case SubmitPhase.Failed:
+                    model.Final = true;
+                    model.Result = false;
+                    model.Text = status.Message;
+                    break;
+                default:
+                    model.Final = true;
+                    model.Result = false;
+                    model.Text = "Unknown result";
+                    break;
+            }
+
+            return Json(model);
+        }
+
+        protected async Task SaveWeight(WeightViewModel model)
         {
             if (model != null && model.Members != null)
             {
@@ -761,8 +812,45 @@ namespace LWFStatsWeb.Controllers
                     }
                 }
 
-                db.SaveChanges();
+                await db.SaveChangesAsync();
             }
+        }
+
+        protected async Task QueueWeightSubmit(WeightViewModel weight)
+        {
+            var submit = new SubmitRequest
+            {
+                ClanTag = weight.ClanTag,
+                ClanName = weight.ClanName,
+                Mode = "submit",
+                Members = new List<SubmitMember>()
+            };
+
+            //Read clan name from Proud FWA List
+            var clans = await clanLoader.Load(Constants.LIST_FWA);
+            if (clans != null)
+            {
+                var clan = clans.Where(c => c.Tag == weight.ClanTag).SingleOrDefault();
+                if (clan != null)
+                {
+                    submit.ClanName = clan.Name;
+                }
+            }
+
+            var position = 0;
+            foreach(var m in weight.Members)
+            {
+                submit.Members.Add(new SubmitMember
+                {
+                    Position = ++position,
+                    Tag = m.Tag,
+                    Name = m.Name,
+                    TownHall = m.TownHallLevel,
+                    Weight = m.Weight
+                });
+            }
+
+            submitService.Queue(submit);
         }
 
         protected async Task<IActionResult> WeightSubmit(WeightViewModel weight)
@@ -975,11 +1063,21 @@ namespace LWFStatsWeb.Controllers
 
             if(model.Command != null)
             {
-                SaveWeight(model);
+                await SaveWeight(model);
 
                 if ( model.Command.Equals("submit", StringComparison.OrdinalIgnoreCase))
                 {
-                    return await WeightSubmit(WeightData(id,model.WarID));
+                    if(globalOptions.Value.BackgroundSubmit)
+                    {
+                        var model2 = WeightData(id, model.WarID);
+                        model2.WeightSubmitQueued = true;
+                        await QueueWeightSubmit(model2);
+                        return View(model2);
+                    }
+                    else
+                    {
+                        return await WeightSubmit(WeightData(id, model.WarID));
+                    }
                 }
             }
 

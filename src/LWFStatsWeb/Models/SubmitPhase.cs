@@ -5,19 +5,12 @@ using System.Threading.Tasks;
 
 namespace LWFStatsWeb.Models
 {
-    public enum SubmitState
+    public enum SubmitPhase
     {
         Unknown,
         Queued,
         Running,
         Succeeded,
         Failed
-    }
-
-    public class SubmitResult
-    {
-        public DateTime Timestamp { get; set; }
-        public SubmitState State { get; set; }
-        public string Message { get; set; }
     }
 }

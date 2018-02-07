@@ -19,6 +19,7 @@ using Microsoft.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using LWFStatsWeb.Formatters;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Hosting;
 
 namespace LWFStatsWeb
 {
@@ -72,8 +73,8 @@ namespace LWFStatsWeb
             services.Configure<WeightSubmitOptions>(Configuration.GetSection("WeightSubmit"));
             services.Configure<WeightDatabaseOptions>(Configuration.GetSection("WeightDatabase"));
             services.Configure<WeightResultOptions>(Configuration.GetSection("ResultDatabase"));
-
             services.Configure<GoogleServiceOptions>(Configuration.GetSection("GoogleService"));
+            services.Configure<GlobalOptions>(Configuration.GetSection("Options"));
 
             //services.Configure<GoogleOptions>(Configuration.GetSection("GoogleAuth"));
 
@@ -104,7 +105,8 @@ namespace LWFStatsWeb
             services.AddTransient<IClanStatistics, ClanStatistics>();
             services.AddTransient<IClashApi, ClashApi>();
             services.AddTransient<IGoogleSheetsService, GoogleSheetsService>();
-            //services.AddSingleton<IWeightSubmitService, WeightSubmitService>();
+            services.AddSingleton<WeightSubmitService>();
+            services.AddSingleton<IHostedService, HostedWebSubmitService>();
 
             // Caching
             services.AddMemoryCache();

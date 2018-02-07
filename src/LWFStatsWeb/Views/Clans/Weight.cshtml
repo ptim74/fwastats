@@ -210,6 +210,24 @@ else
 
 </form>
 
+<div id="submitModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div id="submitModalHeader" class="modal-header-primary">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <div id="submitModalAnimation" class="loader"></div>
+                <h4 id="submitModalTitle" class="modal-title loader-title">Submitting...</h4>
+            </div>
+            <div class="modal-body">
+                <p id="submit-details">Please wait...</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section scripts {
 
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
@@ -329,10 +347,43 @@ else
                 return false;
             });
 
+            calculateWarWeight();
+            resizeChart();
+
+            @if (Model.WeightSubmitQueued)
+            {
+                @:statusPoll();
+                @:$("#submitModal").modal();
+            }
         });
 
-        function weightTooltip(e) {
-            return "xx";
+        function statusPoll()
+        {
+            $.getJSON('/Clan/@Model.ClanLink/WeightStatus')
+                .done(function (data) {
+                    //{"final":true,"result":false,"text":"Unknown result"}
+                    $("#submit-details").text(data.text);
+                    if (data.final === true) {
+                        if (data.result) {
+                            $("#submitModalTitle").text("Submit done");
+                            $("#submitModalHeader").addClass("modal-header-success");
+                        } else {
+                            $("#submitModalTitle").text("Submit failed");
+                            $("#submitModalHeader").addClass("modal-header-danger");
+                        }
+                        $("#submitModalHeader").removeClass("modal-header-primary");
+                        $("#submitModalAnimation").removeClass("loader");
+                    }
+                    if(data.final === false)
+                        setTimeout(statusPoll, 1000);
+                })
+                .fail(function (jqxhr, textStatus, error) {
+                    $("#submitModalTitle").text("Submit error");
+                    $("#submitModalHeader").addClass("modal-header-danger");
+                    $("#submitModalHeader").removeClass("modal-header-primary");
+                    $("#submitModalAnimation").removeClass("loader");
+                    $("#submit-details").text(textStatus + ": " + error);
+                });
         }
 
         function calculateWarWeight()
@@ -389,23 +440,18 @@ else
             $('#chart').css('height', height + 'px');
         }
 
-        $(function () {
-            calculateWarWeight();
-            resizeChart();
-        });
-
         google.charts.load('current', { 'packages': ['corechart'] });
         google.charts.setOnLoadCallback(function () {
             @if (Model.Comparisons != null)
             {
-                var comma = '[';
+                var comma = ' ';
                 <text>
 
                 var data = new google.visualization.DataTable();
                 data.addColumn('number', 'Pos');
                 data.addColumn('number', 'Weight');
                 data.addColumn('number', 'Average');
-                data.addRows(
+                data.addRows([
                 </text>
                 @foreach(var c in Model.Comparisons)
                 {

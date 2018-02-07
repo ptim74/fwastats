@@ -1,27 +1,26 @@
-﻿using LWFStatsWeb.Logic;
+﻿using LWFStatsWeb.Data;
+using LWFStatsWeb.Logic;
 using LWFStatsWeb.Models;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace LWFStatsWeb.Services
 {
-    public interface IWeightSubmitService
+    public class WeightSubmitService
     {
-        void Queue(WeightResult result);
-        SubmitResult Status(string tag);
-    }
-
-    public class WeightSubmitService : HostedService, IWeightSubmitService
-    {
-        private ConcurrentQueue<WeightResult> q = new ConcurrentQueue<WeightResult>();
-        private WeightResult currentResult = null;
-        private WeightResult previousResult = null;
+        private ConcurrentQueue<SubmitEntry> q = new ConcurrentQueue<SubmitEntry>();
+        private SubmitEntry currentEntry = null;
+        private SubmitEntry previousEntry = null;
 
         ILogger<WeightSubmitService> logger;
         IOptions<WeightSubmitOptions> submitOptions;
@@ -43,79 +42,81 @@ namespace LWFStatsWeb.Services
             this.clanLoader = clanLoader;
         }
 
-        public void Queue(WeightResult result)
+        public void Queue(SubmitRequest request)
         {
-            /*
-            logger.LogInformation("Queued {0}", result.LinkID);
-            
-            result.SubmitMessage = "Queued";
-            result.SubmitResult = false;
-            result.SubmitProcessed = false;
-            result.Timestamp = DateTime.UtcNow;
+            logger.LogInformation("Queued {0}", request.ClanTag);
 
-            q.Enqueue(result);
-            */
+            var entry = new SubmitEntry
+            {
+                Request = request,
+                Status = new SubmitStatus
+                {
+                    Phase = SubmitPhase.Queued,
+                    Timestamp = DateTime.UtcNow,
+                    Message = "Queued"
+                }
+            };
+
+            q.Enqueue(entry);
         }
 
-        public SubmitResult Status(string tag)
+        public SubmitStatus Status(string tag)
         {
-            /*
             if (tag != null)
             {
-                var result = q.FirstOrDefault(r => r.Tag == tag);
-                if (result != null)
-                    return new SubmitResult { Timestamp = result.Timestamp, Message = result.SubmitMessage, State = SubmitState.Queued };
+                var entry = q.FirstOrDefault(e => e.Request.ClanTag == tag);
+                if (entry != null)
+                    return entry.Status;
 
-                result = currentResult;
-                if (result != null && tag.Equals(result.Tag))
-                    return new SubmitResult { Timestamp = result.Timestamp, Message = result.SubmitMessage, State = SubmitState.Running };
+                entry = currentEntry;
+                if (entry != null && tag.Equals(entry.Request.ClanTag))
+                    return entry.Status;
 
-                result = previousResult;
-                if (result != null && tag.Equals(result.Tag))
-                    return new SubmitResult { Timestamp = result.Timestamp, Message = result.SubmitMessage, State = result.SubmitResult ? SubmitState.Succeeded : SubmitState.Failed };
+                entry = previousEntry;
+                if (entry != null && tag.Equals(entry.Request.ClanTag))
+                    return entry.Status;
             }
-            */
-            return new SubmitResult { Timestamp = DateTime.UtcNow, Message = "Not found", State = SubmitState.Unknown };
+            return new SubmitStatus { Timestamp = DateTime.UtcNow, Message = "Unknown", Phase = SubmitPhase.Unknown };
         }
 
-        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+        public async Task ProcessQueue(CancellationToken cancellationToken)
         {
-            while (!cancellationToken.IsCancellationRequested)
+            while (q.TryDequeue(out SubmitEntry entry))
             {
-                await RunAsync(cancellationToken);
-                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+                Interlocked.Exchange(ref currentEntry, entry);
+                await Submit(entry);
+                Interlocked.Exchange(ref previousEntry, entry);
             }
+            Interlocked.Exchange(ref currentEntry, null);
         }
 
-        protected async Task RunAsync(CancellationToken cancellationToken)
+        protected async Task Submit(SubmitEntry entry)
         {
-            while (q.TryDequeue(out WeightResult result))
-            {
-                Interlocked.Exchange(ref currentResult, result);
-                await Submit(result);
-                Interlocked.Exchange(ref previousResult, result);
-            }
-            Interlocked.Exchange(ref currentResult, null);
-        }
+            var request = entry.Request;
+            var status = entry.Status;
 
-        public async Task Submit(WeightResult result)
-        {
             try
             {
-                //logger.LogInformation("Started {0} [{1}]", result.LinkID, result.TeamSize);
+                status.UpdatePhase(SubmitPhase.Running);
+                
+                //var response = entry.Response;
+                var clanTag = request.ClanTag;
+                var teamSize = request.Members.Count;
 
-                var options = submitOptions.Value.SelectTeamSize(result.TeamSize);
-                var resultdb = resultDatabase.Value.SelectTeamSize(result.TeamSize);
+                logger.LogInformation("Started {0} [{1}]", clanTag, teamSize);
+
+                var options = submitOptions.Value.SelectTeamSize(teamSize);
+                var resultdb = resultDatabase.Value.SelectTeamSize(teamSize);
                 var responseSheetId = options.SheetId;
 
-                //result.SubmitMessage = "Reading FWA Clan List";
+                status.Message = "Reading FWA Clan List";
                 await Task.Delay(TimeSpan.FromSeconds(2));
 
                 string clanName = null;
                 var clans = await clanLoader.Load(Constants.LIST_FWA);
                 if (clans != null)
                 {
-                    var clan = clans.Where(c => c.Tag == result.Tag).SingleOrDefault();
+                    var clan = clans.Where(c => c.Tag == clanTag).SingleOrDefault();
                     if (clan != null)
                     {
                         clanName = clan.Name;
@@ -127,7 +128,7 @@ namespace LWFStatsWeb.Services
                     throw new Exception("Clan not found in FWA Clan List");
                 }
 
-                var nameSection = new List<object> { clanName, "", "", result.Tag };
+                var nameSection = new List<object> { clanName, "", "", clanTag };
 
                 var compositions = new Dictionary<int, int>();
                 var weightSection = new List<object>();
@@ -137,150 +138,127 @@ namespace LWFStatsWeb.Services
                 for (int i = 0; i <= 11; i++)
                     compositions.Add(i, 0);
 
-
-                /*
-                foreach (var member in result.)
+                foreach (var member in request.Members)
                 {
-                    compositions[member.TownHallLevel]++;
+                    compositions[member.TownHall]++;
                     weightSection.Add(member.Weight);
                     tagSection.Add(member.Tag);
-                    thSection.Add(member.TownHallLevel);
-                }*/
+                    thSection.Add(member.TownHall);
+                }
 
-                /*
+                var compositionSection = new List<object>
+                {
+                    compositions[11],
+                    compositions[10],
+                    compositions[9],
+                    compositions[8],
+                    compositions[7] + compositions[6] + compositions[5] + compositions[4] + compositions[3]
+                };
 
+                var updateData = new Dictionary<string, IList<IList<object>>>
+                {
+                    { options.ClanNameRange, new List<IList<object>> { nameSection } },
+                    { options.CompositionRange, new List<IList<object>> { compositionSection } },
+                    { options.WeightRange, new List<IList<object>> { weightSection } },
+                    { options.TagRange, new List<IList<object>> { tagSection } },
+                    { options.THRange, new List<IList<object>> { thSection } }
+                };
 
-                    
+                status.Message = "Updating Submit Sheet";
+                await Task.Delay(TimeSpan.FromSeconds(2));
 
-                    var compositionSection = new List<object>
+                await googleSheets.BatchUpdate(options.SheetId, "COLUMNS", updateData);
+
+                logger.LogInformation("Weight.SubmitRequest '{0}'", clanName);
+
+                var checkStatus = false;
+
+                try
+                {
+                    status.Message = "Calling Submit Script";
+                    var submitRequest = WebRequest.Create(options.SubmitURL);
+                    //submitRequest.Timeout = 15000;
+                    var submitResponse = await submitRequest.GetResponseAsync();
+
+                    using (var reader = new StreamReader(submitResponse.GetResponseStream()))
                     {
-                        compositions[11],
-                        compositions[10],
-                        compositions[9],
-                        compositions[8],
-                        compositions[7] + compositions[6] + compositions[5] + compositions[4] + compositions[3]
-                    };
-
-                    var updateData = new Dictionary<string, IList<IList<object>>>
-                    {
-                        { options.ClanNameRange, new List<IList<object>> { nameSection } },
-                        { options.CompositionRange, new List<IList<object>> { compositionSection } },
-                        { options.WeightRange, new List<IList<object>> { weightSection } },
-                        { options.TagRange, new List<IList<object>> { tagSection } },
-                        { options.THRange, new List<IList<object>> { thSection } }
-                    };
-
-                    await googleSheets.BatchUpdate(options.SheetId, "COLUMNS", updateData);
-
-                    logger.LogInformation("Weight.SubmitRequest '{0}'", clanName);
-
-                    var checkStatus = false;
-
-                    try
-                    {
-                        var submitRequest = WebRequest.Create(options.SubmitURL);
-                        submitRequest.Timeout = 15000;
-                        var submitResponse = await submitRequest.GetResponseAsync();
-
-                        using (var reader = new StreamReader(submitResponse.GetResponseStream()))
-                        {
-                            var data = await reader.ReadToEndAsync();
-                            try
-                            {
-                                dynamic json = JsonConvert.DeserializeObject(data);
-                                if(json is string)
-                                {
-                                    //This is the value from StatusRange Cell
-                                    model.Message = json as string;
-                                    logger.LogInformation("Weight.SubmitResponse {0}", model.Message);
-                                }
-                                else
-                                {
-                                    //Script error returned as json
-                                    if(json.message != null || json.name != null)
-                                    {
-                                        checkStatus = true;
-                                        string scriptError = string.Format("{0}: {1} (line {2} in '{3}')", json.name, json.message, json.lineNumber, json.fileName);
-                                        logger.LogInformation("Weight.SubmitScript{0}", scriptError);
-                                    }
-                                }
-                            }
-                            catch(JsonReaderException)
-                            {
-                                //Script error returned as html
-                                checkStatus = true;
-                                logger.LogInformation("Weight.SubmitParsingError: {0}", data);
-                            }
-                        }
-                    }
-                    catch (WebException we)
-                    {
-                        checkStatus = true;
-                        logger.LogInformation("Weight.SubmitErrorHandler: {0}", we.Message);
-                    }
-
-                    if(checkStatus)
-                    {
+                        var data = await reader.ReadToEndAsync();
                         try
                         {
-                            var statusData = await googleSheets.Get(options.SheetId, "ROWS", options.StatusRange);
-                            if (statusData != null && statusData.Count == 1 && statusData[0].Count == 1 && statusData[0][0] != null)
+                            
+                            dynamic json = JsonConvert.DeserializeObject(data);
+                            if(json is string)
                             {
-                                model.Message = statusData[0][0].ToString();
+                                //This is the value from StatusRange Cell
+                                status.Message = json as string;
+                                logger.LogInformation("Weight.SubmitResponse {0}", status.Message);
                             }
-                            logger.LogInformation("Weight.SubmitCheckResponse {0}", model.Message);
-                        }
-                        catch (Exception e)
-                        {
-                            logger.LogError("Weight.SubmitCheckFailure: {0}", e.Message);
-                        }
-                    }
-
-                    if (string.IsNullOrEmpty(model.Message))
-                    {
-                        model.Message = "Unknown error";
-                    }
-                    else
-                    {
-                        if (model.Message.Equals(string.Format("Submitted '{0}'", clanName), StringComparison.OrdinalIgnoreCase))
-                        {
-                            model.Status = true;
-                            responseSheetId = results.SheetId;
-                            //await this.UpdatePendingSubmit(weight.Members.Count, weight.ClanTag);
-                            var result = db.WeightResults.SingleOrDefault(r => r.Tag == weight.ClanTag);
-                            if (result == null)
+                            else
                             {
-                                result = new WeightResult { Tag = weight.ClanTag, Timestamp = DateTime.MinValue };
-                                db.WeightResults.Add(result);
+                                //Script error returned as json
+                                if(json.message != null || json.name != null)
+                                {
+                                    checkStatus = true;
+                                    string scriptError = string.Format("{0}: {1} (line {2} in '{3}')", json.name, json.message, json.lineNumber, json.fileName);
+                                    logger.LogInformation("Weight.SubmitScript{0}", scriptError);
+                                    status.Message = json.message;
+                                }
                             }
-                            result.PendingResult = true;
-                            db.SaveChanges();
+                        }
+                        catch(JsonReaderException)
+                        {
+                            //Script error returned as html
+                            checkStatus = true;
+                            logger.LogInformation("Weight.SubmitParsingError: {0}", data);
                         }
                     }
                 }
-                catch(Exception e)
+                catch (WebException we)
                 {
-                    model.Message = e.Message;
-                    logger.LogError("Weight.SubmitError {0}", e.ToString());
+                    checkStatus = true;
+                    logger.LogInformation("Weight.SubmitErrorHandler: {0}", we.Message);
                 }
-                model.SheetUrl = $"https://docs.google.com/spreadsheets/d/{responseSheetId}";
-                return View("WeightSubmit", model);
-                 */
 
-                //result.SubmitMessage = "OK";
+                if(checkStatus)
+                {
+                    try
+                    {
+                        status.Message = "Checking status";
+                        var statusData = await googleSheets.Get(options.SheetId, "ROWS", options.StatusRange);
+                        if (statusData != null && statusData.Count == 1 && statusData[0].Count == 1 && statusData[0][0] != null)
+                        {
+                            status.Message = statusData[0][0].ToString();
+                        }
+                        logger.LogInformation("Weight.SubmitCheckResponse {0}", status.Message);
+                    }
+                    catch (Exception e)
+                    {
+                        logger.LogError("Weight.SubmitCheckFailure: {0}", e.Message);
+                    }
+                }
 
-                //logger.LogInformation("Finished {0} {1}", result.LinkID, result.SubmitMessage);
+                if (string.IsNullOrEmpty(status.Message))
+                {
+                    status.Message = "Unknown error";
+                }
 
+                if (status.Message.StartsWith(string.Format("Submitted '{0}'", clanName), StringComparison.OrdinalIgnoreCase))
+                {
+                    status.UpdatePhase(SubmitPhase.Succeeded);
+                    status.Message = string.Format("Submitted '{0}'", clanName); //cut the timestamp
+                }
+                else
+                {
+                    status.UpdatePhase(SubmitPhase.Failed);
+                }
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                //result.SubmitMessage = e.Message;
-                //logger.LogError("Failed {0} {1}", result.LinkID, e.ToString());
+                status.UpdatePhase(SubmitPhase.Failed);
+                status.Message = e.Message;
+                logger.LogError("Failed {0} {1}", request.ClanTag, e.ToString());
             }
-            finally
-            {
-                //result.SubmitProcessed = true;
-            }
+
         }
     }
 }
