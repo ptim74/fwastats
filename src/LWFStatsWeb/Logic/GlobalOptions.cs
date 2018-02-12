@@ -8,5 +8,7 @@ namespace LWFStatsWeb.Logic
     public class GlobalOptions
     {
         public bool BackgroundSubmit { get; set; }
+        public bool UseNewSubmitScript { get; set; }
+        public string NewSubmitScript { get; set; }
     }
 }

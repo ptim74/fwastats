@@ -5,12 +5,14 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,19 +29,22 @@ namespace LWFStatsWeb.Services
         IGoogleSheetsService googleSheets;
         IOptions<WeightResultOptions> resultDatabase;
         IClanLoader clanLoader;
+        IOptions<GlobalOptions> globalOptions;
 
         public WeightSubmitService(
             ILogger<WeightSubmitService> logger,
             IOptions<WeightSubmitOptions> submitOptions,
             IGoogleSheetsService googleSheets,
             IOptions<WeightResultOptions> resultDatabase,
-            IClanLoader clanLoader)
+            IClanLoader clanLoader,
+            IOptions<GlobalOptions> globalOptions)
         {
             this.logger = logger;
             this.submitOptions = submitOptions;
             this.googleSheets = googleSheets;
             this.resultDatabase = resultDatabase;
             this.clanLoader = clanLoader;
+            this.globalOptions = globalOptions;
         }
 
         public void Queue(SubmitRequest request)
@@ -91,6 +96,70 @@ namespace LWFStatsWeb.Services
         }
 
         protected async Task Submit(SubmitEntry entry)
+        {
+            if (globalOptions.Value.UseNewSubmitScript)
+            {
+                logger.LogInformation("Weight.SubmitRequest '{0}'", entry.Request.ClanName);
+                entry.Status.UpdatePhase(SubmitPhase.Running);
+                entry.Status.Message = "Calling Submit Script";
+                entry.Request.Mode = "submit";
+                var submitResponse = await NewSubmit(entry.Request);
+                entry.Status.Message = submitResponse.Details;
+                logger.LogInformation("Weight.SubmitResponse {0}", submitResponse.Details);
+                if (submitResponse.Status)
+                {
+                    entry.Status.UpdatePhase(SubmitPhase.Succeeded);
+
+                    entry.Request.Mode = "save";
+                    var saveResponse = await NewSubmit(entry.Request);
+                    logger.LogInformation("Weight.SaveResponse {0}", saveResponse.Details);
+                }
+                else
+                {
+                    entry.Status.UpdatePhase(SubmitPhase.Failed);
+                }
+            }
+            else
+            {
+                await OldSubmit(entry);
+            }
+        }
+
+        protected async Task<SubmitResponse> NewSubmit(SubmitRequest request)
+        {
+            try
+            {
+                var webRequest = WebRequest.Create(globalOptions.Value.NewSubmitScript);
+                webRequest.Method = "POST";
+                var settings = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
+                var payloadText = JsonConvert.SerializeObject(request, settings);
+                byte[] postBytes = Encoding.UTF8.GetBytes(payloadText);
+                webRequest.ContentLength = postBytes.Length;
+                Stream requestStream = await webRequest.GetRequestStreamAsync();
+                await requestStream.WriteAsync(postBytes, 0, postBytes.Length);
+                requestStream.Close();
+                string responseText = null;
+                var webResponse = await webRequest.GetResponseAsync();
+                using (var reader = new StreamReader(webResponse.GetResponseStream()))
+                {
+                    responseText = await reader.ReadToEndAsync();
+                }
+
+                var response = JsonConvert.DeserializeObject<SubmitResponse>(responseText);
+                return response;
+            }
+            catch (Exception e)
+            {
+                logger.LogError("Failed {0} {1}", request.ClanTag, e.ToString());
+                return new SubmitResponse
+                {
+                    Status = false,
+                    Details = e.Message
+                };
+            }
+        }
+
+        protected async Task OldSubmit(SubmitEntry entry)
         {
             var request = entry.Request;
             var status = entry.Status;
@@ -165,7 +234,6 @@ namespace LWFStatsWeb.Services
                 };
 
                 status.Message = "Updating Submit Sheet";
-                await Task.Delay(TimeSpan.FromSeconds(2));
 
                 await googleSheets.BatchUpdate(options.SheetId, "COLUMNS", updateData);
 
@@ -177,7 +245,6 @@ namespace LWFStatsWeb.Services
                 {
                     status.Message = "Calling Submit Script";
                     var submitRequest = WebRequest.Create(options.SubmitURL);
-                    //submitRequest.Timeout = 15000;
                     var submitResponse = await submitRequest.GetResponseAsync();
 
                     using (var reader = new StreamReader(submitResponse.GetResponseStream()))
