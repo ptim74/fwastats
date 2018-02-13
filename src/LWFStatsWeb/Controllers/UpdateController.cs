@@ -165,14 +165,20 @@ namespace LWFStatsWeb.Controllers
                             {
                                 logger.LogInformation("UpdateWeight: {0} {1} -> {2} ({3} > {4})",tag, w.WarWeight, weight, timestamp, w.LastModified);
                                 w.WarWeight = weight;
+                                w.ExtWeight = weight;
                                 w.LastModified = timestamp;
+                                updates++;
+                            }
+                            else if(weight != w.ExtWeight)
+                            {
+                                w.ExtWeight = weight;
                                 updates++;
                             }
                         }
                         else
                         {
                             logger.LogInformation("InsertWeight: {0} {1} ({2})", tag, weight, timestamp);
-                            var newWeight = new Weight { Tag = tag, WarWeight = weight, LastModified = timestamp };
+                            var newWeight = new Weight { Tag = tag, WarWeight = weight, ExtWeight = weight, LastModified = timestamp };
                             db.Weights.Add(newWeight);
                             weights.Add(tag, newWeight);
                             updates++;

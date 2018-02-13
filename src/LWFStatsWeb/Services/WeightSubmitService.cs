@@ -49,7 +49,7 @@ namespace LWFStatsWeb.Services
 
         public void Queue(SubmitRequest request)
         {
-            logger.LogInformation("Queued {0}", request.ClanTag);
+            logger.LogInformation("Queued {0} [{1}]", request.ClanTag, request.Members.Count);
 
             var entry = new SubmitEntry
             {
@@ -104,15 +104,15 @@ namespace LWFStatsWeb.Services
                 entry.Status.Message = "Calling Submit Script";
                 entry.Request.Mode = "submit";
                 var submitResponse = await NewSubmit(entry.Request);
-                entry.Status.Message = submitResponse.Details;
-                logger.LogInformation("Weight.SubmitResponse {0}", submitResponse.Details);
+                entry.Status.Message = submitResponse.ToString();
+                logger.LogInformation("Weight.SubmitResponse {0}", submitResponse.ToString());
                 if (submitResponse.Status)
                 {
                     entry.Status.UpdatePhase(SubmitPhase.Succeeded);
 
                     entry.Request.Mode = "save";
                     var saveResponse = await NewSubmit(entry.Request);
-                    logger.LogInformation("Weight.SaveResponse {0}", saveResponse.Details);
+                    logger.LogInformation("Weight.SaveResponse {0}", saveResponse.ToString());
                 }
                 else
                 {

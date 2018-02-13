@@ -214,5 +214,28 @@ namespace LWFStatsWeb.Controllers
 
             return Ok(data);
         }
+
+        [FormatFilter]
+        [Route("WeightUpdates.{format}")]
+        public IActionResult WeightUpdates()
+        {
+            logger.LogInformation("WeightUpdates");
+
+            var data = new Weights();
+
+            var limitDate = DateTime.UtcNow.AddDays(-28);
+
+            foreach (var weight in db.Weights.Where(w => w.WarWeight > 0 && w.WarWeight != w.ExtWeight && w.LastModified > limitDate).OrderBy(w => w.LastModified))
+            {
+                data.Add(new WeightModel
+                {
+                    Tag = weight.Tag,
+                    Weight = weight.WarWeight,
+                    LastModified = weight.LastModified
+                });
+            }
+
+            return Ok(data);
+        }
     }
 }

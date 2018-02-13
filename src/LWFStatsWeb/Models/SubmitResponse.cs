@@ -10,5 +10,21 @@ namespace LWFStatsWeb.Models
         public bool Status { get; set; }
         public string Details { get; set; }
         public SubmitError Error { get; set; }
+
+        public override string ToString()
+        {
+            var ret = Details ?? String.Empty;
+
+            if(!Status && Error != null)
+            {
+                if (string.IsNullOrEmpty(ret))
+                    ret = Error.ToString();
+                else
+                    ret = $"{ret}, {Error.ToString()}";
+            }
+
+            return ret;
+        }
+
     }
 }

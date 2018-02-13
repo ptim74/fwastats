@@ -14,6 +14,7 @@ namespace LWFStatsWeb.Models
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public string Tag { get; set; }
         public int WarWeight { get; set; }
+        public int ExtWeight { get; set; }
         public bool InWar { get; set; }
         public DateTime LastModified { get; set; }
     }
