@@ -106,18 +106,11 @@ namespace LWFStatsWeb.Services
                 var submitResponse = await NewSubmit(entry.Request);
                 entry.Status.Message = submitResponse.ToString();
                 logger.LogInformation("Weight.SubmitResponse {0}", submitResponse.ToString());
-                if (submitResponse.Status)
-                {
-                    entry.Status.UpdatePhase(SubmitPhase.Succeeded);
-
-                    entry.Request.Mode = "save";
-                    var saveResponse = await NewSubmit(entry.Request);
-                    logger.LogInformation("Weight.SaveResponse {0}", saveResponse.ToString());
-                }
-                else
-                {
-                    entry.Status.UpdatePhase(SubmitPhase.Failed);
-                }
+                var runningSecs = Convert.ToInt32(DateTime.UtcNow.Subtract(entry.Status.Timestamp).TotalSeconds);
+                if (runningSecs > 15)
+                    logger.LogWarning("Submit took {0} seconds");
+                var submitPhase = submitResponse.Status ? SubmitPhase.Succeeded : SubmitPhase.Failed;
+                entry.Status.UpdatePhase(submitPhase);
             }
             else
             {
