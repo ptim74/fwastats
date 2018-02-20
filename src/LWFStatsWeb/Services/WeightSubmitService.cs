@@ -108,7 +108,7 @@ namespace LWFStatsWeb.Services
                 logger.LogInformation("Weight.SubmitResponse {0}", submitResponse.ToString());
                 var runningSecs = Convert.ToInt32(DateTime.UtcNow.Subtract(entry.Status.Timestamp).TotalSeconds);
                 if (runningSecs > 15)
-                    logger.LogWarning("Submit took {0} seconds");
+                    logger.LogWarning("Submit took {0} seconds", runningSecs);
                 var submitPhase = submitResponse.Status ? SubmitPhase.Succeeded : SubmitPhase.Failed;
                 entry.Status.UpdatePhase(submitPhase);
             }
