@@ -123,7 +123,7 @@ namespace LWFStatsWeb.Controllers
             {
                 data.Add(new ClanWarModel
                 {
-                    EndTime = new DateTime(row.EndTime.Ticks, DateTimeKind.Utc).Date,
+                    EndTime = RoundToDate(row.EndTime, DateTimeKind.Utc),
                     Result = row.Result,
                     TeamSize = row.TeamSize,
                     ClanTag = row.ClanTag,
@@ -211,22 +211,10 @@ namespace LWFStatsWeb.Controllers
                               Tag = w.Tag,
                               Weight = w.WarWeight,
                               Townhall = p.TownHallLevel,
-                              LastModified = w.LastModified
+                              LastModified = RoundToSec(w.LastModified, DateTimeKind.Utc)
                           };
 
             data.AddRange(weightQ);
-
-            /*
-            foreach (var weight in db.Weights.Where(w => w.WarWeight > 0))
-            {
-                data.Add(new WeightModel
-                {
-                    Tag = weight.Tag,
-                    Weight = weight.WarWeight,
-                    LastModified = weight.LastModified
-                });
-            }
-            */
 
             return Ok(data);
         }
@@ -253,23 +241,22 @@ namespace LWFStatsWeb.Controllers
                               Tag = w.Tag,
                               Weight = w.WarWeight,
                               Townhall = p.TownHallLevel,
-                              LastModified = w.LastModified
+                              LastModified = RoundToSec(w.LastModified, DateTimeKind.Utc)
                           };
 
             data.AddRange(weightQ);
 
-            /*
-            foreach (var weight in db.Weights.Where(w => w.WarWeight > 0 && w.WarWeight != w.ExtWeight && w.LastModified > limitDate).OrderBy(w => w.LastModified))
-            {
-                data.Add(new WeightModel
-                {
-                    Tag = weight.Tag,
-                    Weight = weight.WarWeight,
-                    LastModified = weight.LastModified
-                });
-            }*/
-
             return Ok(data);
+        }
+
+        protected DateTime RoundToSec(DateTime input, DateTimeKind kind)
+        {
+            return new DateTime(input.Year, input.Month, input.Day, input.Hour, input.Minute, input.Second, kind);
+        }
+
+        protected DateTime RoundToDate(DateTime input, DateTimeKind kind)
+        {
+            return new DateTime(input.Year, input.Month, input.Day, 0, 0, 0, kind);
         }
     }
 }
