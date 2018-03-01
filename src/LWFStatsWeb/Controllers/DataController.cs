@@ -202,6 +202,21 @@ namespace LWFStatsWeb.Controllers
 
             var data = new Weights();
 
+            var weightQ = from w in db.Weights
+                          where w.WarWeight > 0
+                          join p in db.Players
+                          on w.Tag equals p.Tag
+                          select new WeightModel
+                          {
+                              Tag = w.Tag,
+                              Weight = w.WarWeight,
+                              Townhall = p.TownHallLevel,
+                              LastModified = w.LastModified
+                          };
+
+            data.AddRange(weightQ);
+
+            /*
             foreach (var weight in db.Weights.Where(w => w.WarWeight > 0))
             {
                 data.Add(new WeightModel
@@ -211,6 +226,7 @@ namespace LWFStatsWeb.Controllers
                     LastModified = weight.LastModified
                 });
             }
+            */
 
             return Ok(data);
         }
@@ -225,6 +241,24 @@ namespace LWFStatsWeb.Controllers
 
             var limitDate = DateTime.UtcNow.AddDays(-28);
 
+            var weightQ = from w in db.Weights
+                          where w.WarWeight > 0
+                          && w.WarWeight != w.ExtWeight
+                          && w.LastModified > limitDate
+                          join p in db.Players
+                          on w.Tag equals p.Tag
+                          orderby w.LastModified
+                          select new WeightModel
+                          {
+                              Tag = w.Tag,
+                              Weight = w.WarWeight,
+                              Townhall = p.TownHallLevel,
+                              LastModified = w.LastModified
+                          };
+
+            data.AddRange(weightQ);
+
+            /*
             foreach (var weight in db.Weights.Where(w => w.WarWeight > 0 && w.WarWeight != w.ExtWeight && w.LastModified > limitDate).OrderBy(w => w.LastModified))
             {
                 data.Add(new WeightModel
@@ -233,7 +267,7 @@ namespace LWFStatsWeb.Controllers
                     Weight = weight.WarWeight,
                     LastModified = weight.LastModified
                 });
-            }
+            }*/
 
             return Ok(data);
         }

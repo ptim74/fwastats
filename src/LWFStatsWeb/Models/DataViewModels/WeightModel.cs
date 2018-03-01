@@ -16,6 +16,7 @@ namespace LWFStatsWeb.Models.DataViewModels
     {
         public string Tag { get; set; }
         public int Weight { get; set; }
+        public int Townhall { get; set; }
         public DateTime LastModified { get; set; }
     }
 }
