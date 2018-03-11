@@ -159,7 +159,8 @@ namespace LWFStatsWeb.Controllers
 
                 foreach (var teamSize in new int[] { Constants.WAR_SIZE1, Constants.WAR_SIZE2 })
                 {
-                    var results = db.WeightResults.Where(r => r.Weight > 2000000 && r.TeamSize == teamSize).ToList();
+                    var limitDate = DateTime.UtcNow.AddDays(-28);
+                    var results = db.WeightResults.Where(r => r.Weight > 2000000 && r.TeamSize == teamSize && r.Timestamp > limitDate).ToList();
                     var divider = 50000;
                     var thcounters = new Dictionary<int, TownhallCounter>();
                     foreach (var result in results)

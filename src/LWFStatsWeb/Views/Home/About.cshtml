@@ -17,20 +17,14 @@
 <p>
     <a href="http://fwastats.com">💎 FWA Stats</a> uses clan list from <a href="http://tiny.cc/ProudFWA">Proud Clans of FWA</a> Google Sheet.
     Clan and clanwar details are retrieved with <a href="https://developer.clashofclans.com/">Clash of Clans API</a>
-    and stored into local <a href="https://www.sqlite.org/">SQLite</a> database to avoid exceeding API usage limits.
-    Database is updated once per hour.
-</p>
-
-<p>
-    War sync window is calculated from all wars of entire alliance.
-    War is considered to be started when 10 wars have started within 1 hour time window,
-    and ended when less than 10 wars have started within 2 hours.
-    If clan has started war outside calculated sync window, it is the same as if not started at all.
+    and stored into local <a href="https://www.sqlite.org/">SQLite</a> database.
+    Database is updated once every 15 minutes.
 </p>
 
 <p>
     <b>Note:</b> API doesn't provide war start times, only war ending time.
     This website doesn't show the exact war ending times.
+    Current war details are delayed for 2 hours to prevent this site to be used for sync stalking.
 </p>
 
 <p>
@@ -40,21 +34,10 @@
 </p>
 
 <p>
-    <b>Weight estimation:</b> 
-    <ul>
-        <li>Each townhall level is valued as max weight - 5000</li>
-        <li>( TH11 = 105000, TH10 = 85000, TH9 = 65000 and TH8 = 50000 )</li>
-        <li>Maximum weight is calculated from top @Constants.WAR_SIZE1 bases</li>
-        <li>Minimum weight is calculated from bottom @Constants.WAR_SIZE1 bases</li>
-        <li>( max 5 TH8 and no bases below TH8 if max weight is below 3300000 )</li>
-        <li>( max 1 TH8 and no bases below TH8 if max weight is over 3300000 )</li>
-        <li>Estimated weight = ( maximum weight + minimum weight ) / 2</li>
-    </ul>
-</p>
-
-<p>
-    This website started as fun project while learning about <a href="https://azure.microsoft.com/">Azure Cloud Services</a> and web development with <a href="https://www.visualstudio.com/">Visual Studio 2015</a>.
+    This website started as fun project while learning about <a href="https://azure.microsoft.com/">Azure Cloud Services</a> and web development with <a href="https://www.visualstudio.com/">Visual Studio 2017</a>.
     Site was later ported to <a href="https://www.microsoft.com/net/core/">.Net Core 2.0</a> and is currently running on <a href="https://www.ubuntu.com/">Ubuntu Linux</a> at <a href="https://aws.amazon.com/ec2/">Amazon Web Services</a>.
+    Source code is kept in <a href="https://git-scm.com/">Git</a>-repository on <a href="https://www.visualstudio.com/team-services/">Visual Studio Team Services</a>.
+    This site is updated automatically from source code changes with <a href="https://www.visualstudio.com/team-services/continuous-integration/">CI/CD</a>-pipeline. 
 </p>
 
 <p>-- <br />War Farmers 18 | pete</p>
