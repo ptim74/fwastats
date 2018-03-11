@@ -412,13 +412,12 @@ namespace LWFStatsWeb.Logic
                 {
                     var eventStart = syncEvent.Start.AsUtc.AddHours(47);
                     var eventEnd = syncEvent.End.AsUtc.AddHours(47);
-                    var sync = syncs.Where(s => s.Start < eventEnd && s.Finish > eventStart).FirstOrDefault();
+                    var sync = syncs.Where(s => s.Start < eventEnd && s.Finish > eventStart && s.AllianceMatches > 50).FirstOrDefault();
                     if(sync != null)
                     {
                         var diff = sync.Start.Subtract(eventStart);
                         logger.LogInformation("Sync at {0}, diff {1}, [{2}], {3}", eventStart, diff, sync.AllianceMatches, syncEvent.Summary);
-                        if(sync.AllianceMatches > 50)
-                            sync.Verified = true;
+                        sync.Verified = true;
                         //sync.Start = eventStart;
                         //sync.Finish = eventEnd;
                     }
