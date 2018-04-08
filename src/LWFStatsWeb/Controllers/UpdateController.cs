@@ -541,7 +541,7 @@ namespace LWFStatsWeb.Controllers
 
                 foreach (var war in clan.Wars)
                 {
-                    var earliestEndTime = war.EndTime.AddHours(-1); //Prepare for maintenance break
+                    var earliestEndTime = war.EndTime.AddHours(-2); //Prepare for maintenance break
                     var latestEndTime = war.EndTime.AddMinutes(1); //Prepare for 1 sec off
                     var duplicate = (from w in clanWars.Values
                                      where w.ID != war.ID &&
