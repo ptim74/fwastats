@@ -210,7 +210,17 @@ namespace LWFStatsWeb.Controllers
             foreach (var resultDb in resultDatabase.Value)
             {
                 logger.LogInformation("UpdateResults.ResultFetchBegin{0}", resultDb.TeamSize);
-                var resultData = await googleSheets.Get(resultDb.SheetId, "ROWS", resultDb.ResultRange);
+
+                var ranges = new string[] { resultDb.ResultRange, resultDb.PendingRange };
+
+                var resultDataDict = await googleSheets.BatchGet(resultDb.SheetId, "ROWS", ranges);
+
+                if (resultDataDict == null)
+                    throw new Exception("BatchGet returned null");
+                if (resultDataDict.Count != ranges.Length)
+                    throw new Exception(string.Format("BatchGet returned {0} elements when {1} was expected", resultDataDict.Count, ranges.Length));
+
+                var resultData = resultDataDict[0];
                 logger.LogInformation("UpdateResults.ResultFetchEnd{0}", resultDb.TeamSize);
                 if (resultData != null)
                 {
@@ -285,9 +295,7 @@ namespace LWFStatsWeb.Controllers
                     }
                 }
 
-                logger.LogInformation("UpdateResults.PendingFetchBegin{0}", resultDb.TeamSize);
-                var pendingData = await googleSheets.Get(resultDb.SheetId, "ROWS", resultDb.PendingRange);
-                logger.LogInformation("UpdateResults.PendingFetchEnd{0}", resultDb.TeamSize);
+                var pendingData = resultDataDict[1];
                 if (pendingData != null)
                 {
                     foreach (var row in pendingData)

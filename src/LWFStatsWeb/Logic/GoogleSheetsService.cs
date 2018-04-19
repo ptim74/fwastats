@@ -13,6 +13,7 @@ namespace LWFStatsWeb.Logic
     public interface IGoogleSheetsService
     {
         Task<IList<IList<object>>> Get(string sheetId, string majorDimension, string range);
+        Task<IList<IList<IList<object>>>> BatchGet(string sheetId, string majorDimension, IList<string> ranges);
         Task Update(string sheetId, string majorDimension, string range, IList<IList<object>> values);
         Task BatchUpdate(string sheetId, string majorDimension, Dictionary<string, IList<IList<object>>> values);
     }
@@ -59,6 +60,22 @@ namespace LWFStatsWeb.Logic
                 typeof(SpreadsheetsResource.ValuesResource.GetRequest.MajorDimensionEnum), majorDimension);
             var getResponse = await getRequest.ExecuteAsync();
             return getResponse.Values;
+        }
+
+        public async Task<IList<IList<IList<object>>>> BatchGet(string sheetId, string majorDimension, IList<string> ranges)
+        {
+            var getRequest = Service.Spreadsheets.Values.BatchGet(sheetId);
+            getRequest.ValueRenderOption = SpreadsheetsResource.ValuesResource.BatchGetRequest.ValueRenderOptionEnum.UNFORMATTEDVALUE;
+            getRequest.DateTimeRenderOption = SpreadsheetsResource.ValuesResource.BatchGetRequest.DateTimeRenderOptionEnum.SERIALNUMBER;
+            getRequest.MajorDimension = (SpreadsheetsResource.ValuesResource.BatchGetRequest.MajorDimensionEnum)Enum.Parse(
+                typeof(SpreadsheetsResource.ValuesResource.BatchGetRequest.MajorDimensionEnum), majorDimension);
+            getRequest.Ranges = new Google.Apis.Util.Repeatable<string>(ranges);
+            var getResponse = await getRequest.ExecuteAsync();
+
+            var ret = new List<IList<IList<object>>>();
+            foreach (var valueRange in getResponse.ValueRanges)
+                ret.Add(valueRange.Values);
+            return ret;
         }
 
         public async Task Update(string sheetId, string majorDimension, string range, IList<IList<object>> values)
