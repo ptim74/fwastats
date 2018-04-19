@@ -197,6 +197,8 @@ namespace LWFStatsWeb.Controllers
 
         protected async Task UpdateResults()
         {
+            logger.LogInformation("UpdateResults.ReadDB");
+
             var results = db.WeightResults.ToDictionary(r => r.Tag);
 
             var resultSet = new HashSet<string>();
@@ -207,7 +209,9 @@ namespace LWFStatsWeb.Controllers
 
             foreach (var resultDb in resultDatabase.Value)
             {
+                logger.LogInformation("UpdateResults.ResultFetchBegin{0}", resultDb.TeamSize);
                 var resultData = await googleSheets.Get(resultDb.SheetId, "ROWS", resultDb.ResultRange);
+                logger.LogInformation("UpdateResults.ResultFetchEnd{0}", resultDb.TeamSize);
                 if (resultData != null)
                 {
                     foreach (var row in resultData)
@@ -281,7 +285,9 @@ namespace LWFStatsWeb.Controllers
                     }
                 }
 
+                logger.LogInformation("UpdateResults.PendingFetchBegin{0}", resultDb.TeamSize);
                 var pendingData = await googleSheets.Get(resultDb.SheetId, "ROWS", resultDb.PendingRange);
+                logger.LogInformation("UpdateResults.PendingFetchEnd{0}", resultDb.TeamSize);
                 if (pendingData != null)
                 {
                     foreach (var row in pendingData)
@@ -308,6 +314,8 @@ namespace LWFStatsWeb.Controllers
                 }
             }
 
+            logger.LogInformation("UpdateResults.DeleteLoop");
+
             foreach (var result in results)
             {
                 if (!resultSet.Contains(result.Key))
@@ -320,7 +328,11 @@ namespace LWFStatsWeb.Controllers
                 }
             }
 
+            logger.LogInformation("UpdateResults.Save");
+
             await db.SaveChangesAsync();
+
+            logger.LogInformation("UpdateResults.Finished");
         }
 
         protected async Task<UpdateTaskResponse> UpdatePlayer(string playerTag)
