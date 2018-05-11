@@ -16,6 +16,8 @@ namespace LWFStatsWeb
         public const double HIDE_TIME = 2.25;
         public const int PLAYER_BATCH = 200;
 
+        public const int WEIGHT_COMPARE = 30000;
+
         public static DateTime MaxVisibleEndTime
         {
             get

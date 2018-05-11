@@ -690,11 +690,15 @@ namespace LWFStatsWeb.Controllers
 
             if(memberCount == Constants.WAR_SIZE1 || memberCount == Constants.WAR_SIZE2)
             {
-                var maxWeight = clanWeight + 30000;
-                var minWeight = clanWeight - 30000;
+                var maxWeight = clanWeight + Constants.WEIGHT_COMPARE; //30000
+                var minWeight = clanWeight - Constants.WEIGHT_COMPARE;
                 var results = db.WeightResults.Where(w => w.Weight >= minWeight && w.Weight <= maxWeight && w.TeamSize == memberCount && w.Tag != tag).ToList();
-                
-                if(results.Count > 0)
+
+                model.ComparisonSampleSize = results.Count;
+                //double sumOfSquares = 0D;
+                double sumOfAbs = 0D;
+
+                if (results.Count > 0)
                 {
                     foreach (var res in results)
                     {
@@ -725,9 +729,15 @@ namespace LWFStatsWeb.Controllers
                             comparison.Min /= 1000;
                             comparison.Max /= 1000;
                             model.Comparisons.Add(comparison);
+                            var diff = comparison.Weight - comparison.Average;
+                            //sumOfSquares += diff * diff;
+                            sumOfAbs += Math.Abs(diff);
                         }
                     }
                 }
+
+                //model.ComparisonDeviation =  (int)(Math.Sqrt(sumOfSquares) / memberCount * 1000);
+                model.ComparisonDeviation = (int)(sumOfAbs / memberCount * 1000);
             }
 
             return model;

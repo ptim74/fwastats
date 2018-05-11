@@ -78,9 +78,10 @@
 
 @if (Model.Comparisons != null)
 {
+    int me = (int)(Model.ComparisonDeviation / Model.ComparisonSampleSize);
     <div id="chart"></div>
     <div class="caption">
-        <p class="small">Weight of selected roster compared against average of weight submit results close to selected weight (+/- 30000).</p>
+        <p class="small">Weight of selected roster compared against average of @Model.ComparisonSampleSize weight submit results close to selected weight (+/- @Constants.WEIGHT_COMPARE). Mean absolute deviation is @Model.ComparisonDeviation and mean absolute error is @me.</p>
     </div>
 }
 else

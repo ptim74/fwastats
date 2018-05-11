@@ -16,6 +16,8 @@ namespace LWFStatsWeb.Models.ClanViewModels
         public DateTime WeightSubmitDate { get; set; }
         public bool PendingWeightSubmit { get; set; }
         public bool WeightSubmitQueued { get; set; }
+        public int ComparisonSampleSize { get; set; }
+        public int ComparisonDeviation { get; set; }
 
         public virtual ICollection<MemberWeightModel> Members { get; set; }
 
