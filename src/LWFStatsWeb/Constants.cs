@@ -26,6 +26,14 @@ namespace LWFStatsWeb
             }
         }
 
+        public static DateTime EmptyStartTime
+        {
+            get
+            {
+                return new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified);
+            }
+        }
+
         public const string CACHE_HOME_INDEX = "Home.Index";
         public const string CACHE_CLANS_ALL = "Clans.All";
         public const string CACHE_CLANS_DEPARTED = "Clans.Departed";

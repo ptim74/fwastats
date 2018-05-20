@@ -557,7 +557,7 @@ namespace LWFStatsWeb.Controllers
 
             if (clan.Wars != null)
             {
-                var clanWars = (from w in db.Wars where w.ClanTag == clan.Tag select new { w.ID, w.Result, w.EndTime, w.OpponentTag, w.TeamSize, w.Friendly, w.Matched, w.Synced }).ToDictionary(w => w.ID);
+                var clanWars = (from w in db.Wars where w.ClanTag == clan.Tag select new { w.ID, w.Result, w.PreparationStartTime, w.StartTime, w.EndTime, w.OpponentTag, w.TeamSize, w.Friendly, w.Matched, w.Synced }).ToDictionary(w => w.ID);
 
                 foreach (var war in clan.Wars)
                 {
@@ -596,6 +596,19 @@ namespace LWFStatsWeb.Controllers
                         {
                             war.Matched = existingWar.Matched;
                             war.Synced = existingWar.Synced;
+                            if (war.PreparationStartTime <= Constants.EmptyStartTime)
+                            {
+                                war.PreparationStartTime = existingWar.PreparationStartTime;
+                                if (war.PreparationStartTime <= Constants.EmptyStartTime)
+                                    war.PreparationStartTime = war.EndTime.AddHours(-47);
+                            }
+                            if (war.StartTime <= Constants.EmptyStartTime)
+                            {
+                                war.StartTime = existingWar.StartTime;
+                                if (war.StartTime <= Constants.EmptyStartTime)
+                                    war.StartTime = war.EndTime.AddHours(-24);
+                            }
+
                             db.Entry(war).State = EntityState.Modified;
                         }
                     }

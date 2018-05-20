@@ -31,6 +31,12 @@ namespace LWFStatsWeb.Models
         private WarClan Opponent { get; set; }
 
         [DataMember]
+        public DateTime PreparationStartTime { get; set; }
+
+        [DataMember]
+        public DateTime StartTime { get; set; }
+
+        [DataMember]
         public DateTime EndTime { get; set; }
 
         [StringLength(10)]
@@ -189,6 +195,8 @@ namespace LWFStatsWeb.Models
         {
             get
             {
+                if (PreparationStartTime > Constants.EmptyStartTime)
+                    return PreparationStartTime;
                 if (EndTime == DateTime.MinValue)
                     return EndTime;
                 return EndTime.AddHours(-47);
