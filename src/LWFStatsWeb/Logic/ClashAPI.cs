@@ -134,6 +134,8 @@ namespace LWFStatsWeb.Logic
                             if (prevWar.Attacks != null)
                                 foreach (var attack in prevWar.Attacks)
                                     attack.WarID = prevWar.ID;
+                            prevWar.StartTime = currentWar.StartTime;
+                            prevWar.PreparationStartTime = currentWar.PreparationStartTime;
                         }
                     }
                     else if (!string.IsNullOrEmpty(currentWar.State) && !currentWar.State.Equals("notInWar"))
