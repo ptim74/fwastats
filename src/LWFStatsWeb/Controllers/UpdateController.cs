@@ -613,6 +613,18 @@ namespace LWFStatsWeb.Controllers
                         db.Entry(war).State = EntityState.Added;
                     }
 
+                    if(duplicate != null)
+                    {
+                        if (war.PreparationStartTime <= Constants.EmptyStartTime)
+                        {
+                            war.PreparationStartTime = duplicate.PreparationStartTime;
+                        }
+                        if (war.StartTime <= Constants.EmptyStartTime)
+                        {
+                            war.StartTime = duplicate.StartTime;
+                        }
+                    }
+
                     var addedMembers = new HashSet<string>();
 
                     if (war.Members != null && war.Members.Count > 0)
