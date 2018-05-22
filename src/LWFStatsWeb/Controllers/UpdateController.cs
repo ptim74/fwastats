@@ -599,14 +599,10 @@ namespace LWFStatsWeb.Controllers
                             if (war.PreparationStartTime <= Constants.EmptyStartTime)
                             {
                                 war.PreparationStartTime = existingWar.PreparationStartTime;
-                                if (war.PreparationStartTime <= Constants.EmptyStartTime)
-                                    war.PreparationStartTime = war.EndTime.AddHours(-47);
                             }
                             if (war.StartTime <= Constants.EmptyStartTime)
                             {
                                 war.StartTime = existingWar.StartTime;
-                                if (war.StartTime <= Constants.EmptyStartTime)
-                                    war.StartTime = war.EndTime.AddHours(-24);
                             }
 
                             db.Entry(war).State = EntityState.Modified;
