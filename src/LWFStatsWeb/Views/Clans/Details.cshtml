@@ -228,7 +228,7 @@
                             opp_class = "text-muted";
                         }
                         var valid_alliance_clan = false;
-                        if (Model.Validity != null && Model.Validity.ValidFrom <= war.SearchTime && Model.Validity.ValidTo >= war.SearchTime)
+                        if (Model.Validity != null && Model.Validity.ValidFrom <= war.PreparationStartTime && Model.Validity.ValidTo >= war.PreparationStartTime)
                         {
                             valid_alliance_clan = true;
                         }

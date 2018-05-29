@@ -195,7 +195,7 @@ namespace LWFStatsWeb.Models
         {
             get
             {
-                if (PreparationStartTime > Constants.EmptyStartTime)
+                if (PreparationStartTime != DateTime.MinValue)
                     return PreparationStartTime;
                 if (EndTime == DateTime.MinValue)
                     return EndTime;

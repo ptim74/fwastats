@@ -129,7 +129,7 @@ namespace LWFStatsWeb.Controllers
         protected List<War> GetPrivateWars(string id)
         {
             var wars = new List<War>();
-            var opponentsWars = db.Wars.Where(o => o.OpponentTag == id && o.EndTime < Constants.MaxVisibleEndTime).OrderByDescending(w => w.EndTime).ToList();
+            var opponentsWars = db.Wars.Where(o => o.OpponentTag == id && o.PreparationStartTime < Constants.MaxVisibleSearchTime).OrderByDescending(w => w.EndTime).ToList();
             if (opponentsWars.Count > 0)
             {
                 foreach (var o in opponentsWars)
@@ -138,6 +138,8 @@ namespace LWFStatsWeb.Controllers
                     {
                         ID = o.ID.Replace(o.ClanTag, o.OpponentTag),
                         EndTime = o.EndTime,
+                        PreparationStartTime = o.PreparationStartTime,
+                        StartTime = o.StartTime,
                         TeamSize = o.TeamSize,
                         Matched = o.Matched,
                         Synced = o.Synced,
@@ -189,7 +191,7 @@ namespace LWFStatsWeb.Controllers
                     clan.MemberList = db.Members.Where(m => m.ClanTag == clan.Tag).OrderBy(m => m.ClanRank).ToList();
 
                     if (clan.IsWarLogPublic)
-                        clan.Wars = db.Wars.Where(w => w.ClanTag == tag && w.EndTime < Constants.MaxVisibleEndTime).OrderByDescending(w => w.EndTime).ToList();
+                        clan.Wars = db.Wars.Where(w => w.ClanTag == tag && w.PreparationStartTime < Constants.MaxVisibleSearchTime).OrderByDescending(w => w.EndTime).ToList();
                     else
                         clan.Wars = this.GetPrivateWars(tag);
                 }
@@ -209,7 +211,7 @@ namespace LWFStatsWeb.Controllers
                                 var warKey = string.Format("{0}{1}", war.OpponentTag, war.EndTime.Date);
                                 if(!warLookup.TryGetValue(warKey, out War clanWar))
                                 {
-                                    var synced = syncTimes.Where(s => s.Start <= war.EndTime && s.Finish >= war.EndTime).FirstOrDefault();
+                                    var synced = syncTimes.Where(s => s.Start <= war.PreparationStartTime && s.Finish >= war.PreparationStartTime).FirstOrDefault();
                                     if (synced != null && (war.TeamSize == Constants.WAR_SIZE1 || war.TeamSize == Constants.WAR_SIZE2))
                                         war.Synced = true;
 
@@ -217,11 +219,11 @@ namespace LWFStatsWeb.Controllers
                                     clanWar = war;
                                 }
 
-                                var matched = validities.Where(v => v.Tag == war.OpponentTag && v.ValidFrom <= war.SearchTime && v.ValidTo >= war.EndTime).FirstOrDefault();
+                                var matched = validities.Where(v => v.Tag == war.OpponentTag && v.ValidFrom <= war.PreparationStartTime && v.ValidTo >= war.PreparationStartTime).FirstOrDefault();
                                 if (matched != null)
                                     clanWar.Matched = true;
                             }
-                            clan.Wars = wars.OrderByDescending(w => w.EndTime).ToList();
+                            clan.Wars = wars.OrderByDescending(w => w.PreparationStartTime).ToList();
                         }
                         else
                         {
@@ -339,7 +341,7 @@ namespace LWFStatsWeb.Controllers
                              where e.ClanTag == tag
                              && e.EventType != PlayerEventType.Stars
                              orderby e.EventDate descending
-                             select new { Event = e, Name = p.Name };
+                             select new { Event = e, p.Name };
 
             foreach (var clanEvent in clanEvents.Take(100))
             {
@@ -371,7 +373,7 @@ namespace LWFStatsWeb.Controllers
 
             var blacklisted = db.BlacklistedClans.Select(c => c.Tag).ToDictionary(c => c);
 
-            var mismatches = from w in db.Wars where w.Synced == true && w.Matched == false && w.EndTime < Constants.MaxVisibleEndTime orderby w.ID select w;
+            var mismatches = from w in db.Wars where w.Synced == true && w.Matched == false && w.PreparationStartTime < Constants.MaxVisibleSearchTime orderby w.ID select w;
 
             foreach (var mismatch in mismatches)
             {
@@ -390,7 +392,7 @@ namespace LWFStatsWeb.Controllers
                 followingClan.Wars++;
                 followingClan.LatestTag = mismatch.ClanTag;
                 followingClan.LatestClan = mismatch.ClanName;
-                followingClan.LatestDate = mismatch.SearchTime;
+                followingClan.LatestDate = mismatch.PreparationStartTime;
             }
 
             var model = clans.Values.Where(c => c.Wars > 1).OrderByDescending(c => c.LatestDate).ToList();
@@ -513,7 +515,7 @@ namespace LWFStatsWeb.Controllers
 
                     foreach(var war in db.Wars.Where( w => w.ClanTag == tag || w.OpponentTag == w.ClanTag))
                     {
-                        if(war.SearchTime < clanValidity.ValidFrom || war.SearchTime > clanValidity.ValidTo)
+                        if(war.PreparationStartTime < clanValidity.ValidFrom || war.PreparationStartTime > clanValidity.ValidTo)
                         {
                             war.Synced = false; // this is fixed in next sync
                             war.Matched = false;
@@ -533,7 +535,7 @@ namespace LWFStatsWeb.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction("Details", new { id = id });
+                return RedirectToAction("Details", new { id });
             }
 
             return View(clanValidity);

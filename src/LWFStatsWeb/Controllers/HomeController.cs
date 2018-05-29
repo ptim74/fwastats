@@ -38,12 +38,12 @@ namespace LWFStatsWeb.Controllers
             {
                 var validClans = db.Clans.Select(c => new { c.Tag, c.Group, c.Members }).ToList();
 
-                var recentSyncs = db.WarSyncs.Where(w => w.Start < Constants.MaxVisibleEndTime && w.Verified == true).OrderByDescending(w => w.Start).Take(10).ToList();
+                var recentSyncs = db.WarSyncs.Where(w => w.Finish < DateTime.UtcNow && w.Verified == true).OrderByDescending(w => w.Start).Take(10).ToList();
 
                 var fromDate = recentSyncs.Last().Start;
                 var loadedWars = (from w in db.Wars
-                                  where w.EndTime >= fromDate
-                                  select new { Result = w.Result, EndTime = w.EndTime, ClanTag = w.ClanTag, OpponentTag = w.OpponentTag, TeamSize = w.TeamSize }).ToList();
+                                  where w.PreparationStartTime >= fromDate && w.Synced == true && w.Friendly == false && (w.TeamSize == Constants.WAR_SIZE1 || w.TeamSize == Constants.WAR_SIZE2)
+                                  select new { w.Result, w.PreparationStartTime, w.ClanTag, w.OpponentTag, w.TeamSize }).ToList();
 
                 var loadedValidities = db.ClanValidities.ToList();
 
@@ -66,11 +66,11 @@ namespace LWFStatsWeb.Controllers
 
                 foreach (var currentSync in recentSyncs.OrderBy(w => w.Start))
                 {
-                    var syncDate = currentSync.SearchTime;
+                    var syncDate = currentSync.Start;
 
                     var lastSyncWars = (from w in loadedWars
-                                        where w.EndTime >= currentSync.Start && w.EndTime <= currentSync.Finish
-                                        select new { Result = w.Result, ClanTag = w.ClanTag, OpponentTag = w.OpponentTag, TeamSize = w.TeamSize }).ToList();
+                                        where w.PreparationStartTime >= currentSync.Start && w.PreparationStartTime <= currentSync.Finish
+                                        select new { w.Result, w.ClanTag, w.OpponentTag, w.TeamSize }).ToList();
 
                     var stats = new SyncStats
                     {
@@ -78,19 +78,6 @@ namespace LWFStatsWeb.Controllers
                         DisplayName = currentSync.DisplayName
                     };
                     var syncWins = 0;
-
-                    if (currentSync.Finish > DateTime.UtcNow)
-                    {
-                        var tomorrow = DateTime.UtcNow.AddDays(1);
-                        if (currentSync.Start > tomorrow)
-                            stats.Status = "preparation day";
-                        else
-                            stats.Status = "battle day";
-                    }
-                    else
-                    {
-                        stats.Status = "ended";
-                    }
 
                     var validClanTags = (from f in loadedValidities
                                          where f.ValidTo > syncDate && f.ValidFrom < syncDate
@@ -101,6 +88,24 @@ namespace LWFStatsWeb.Controllers
                                              select f.Tag).ToList();
 
                     stats.NotStarted = validClanTags.Count;
+
+                    var statusPreparation = false;
+                    var statusBattle = false;
+
+                    foreach (var war in lastSyncWars)
+                    {
+                        if (war.Result == "preparation")
+                            statusPreparation = true;
+                        if (war.Result == "inWar")
+                            statusBattle = true;
+                    }
+
+                    if (statusBattle)
+                        stats.Status = "battle day";
+                    else if (statusPreparation)
+                        stats.Status = "preparation day";
+                    else
+                        stats.Status = "ended";
 
                     foreach (var war in lastSyncWars)
                     {
@@ -205,6 +210,13 @@ namespace LWFStatsWeb.Controllers
         public IActionResult About()
         {
             logger.LogInformation("About");
+            return View();
+        }
+
+        //default 24h cache
+        public IActionResult PrivacyPolicy()
+        {
+            logger.LogInformation("PrivacyPolicy");
             return View();
         }
 

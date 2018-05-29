@@ -28,6 +28,7 @@ namespace LWFStatsWeb.Data
             builder.Entity<War>().HasIndex(e => e.EndTime);
             builder.Entity<War>().HasIndex(e => e.ClanTag);
             builder.Entity<War>().HasIndex(e => new { e.OpponentTag, e.EndTime });
+            builder.Entity<War>().HasIndex(e => e.PreparationStartTime);
             builder.Entity<WarSync>().HasIndex(e => e.Start);
             builder.Entity<WarSync>().HasIndex(e => e.Finish);
             builder.Entity<ClanValidity>().HasIndex(v => v.ValidFrom);

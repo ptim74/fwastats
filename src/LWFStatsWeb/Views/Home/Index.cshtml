@@ -122,18 +122,18 @@
                 var chart = "areachart";
                 <text>
                 var @data = google.visualization.arrayToDataTable([
-                    ['Date', 'Matches', 'Mismatches']
+                    ['Date', 'Matches', 'Mismatches', 'Didn\'t start']
                 </text>
                 @foreach(var sync in Model.SyncHistory)
                 {
-                    @: ,['@sync.DisplayName', @sync.AllianceMatches, @sync.WarMatches]
+                    @: ,['@sync.DisplayName', @sync.AllianceMatches, @sync.WarMatches, @sync.NotStarted]
                 }
                 <text>
                 ]);
 
                 var @options = {
                     isStacked: 'relative',
-                    legend: {position: 'top', maxLines: 2},
+                    legend: {position: 'top', maxLines: 3},
                     vAxis: {format: 'percent' },
                     chartArea: { left: 35, top: 15, width: '250', height: '170' }
                 };

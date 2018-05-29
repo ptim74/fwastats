@@ -596,11 +596,11 @@ namespace LWFStatsWeb.Controllers
                         {
                             war.Matched = existingWar.Matched;
                             war.Synced = existingWar.Synced;
-                            if (war.PreparationStartTime <= Constants.EmptyStartTime)
+                            if (war.PreparationStartTime == DateTime.MinValue)
                             {
                                 war.PreparationStartTime = existingWar.PreparationStartTime;
                             }
-                            if (war.StartTime <= Constants.EmptyStartTime)
+                            if (war.StartTime == DateTime.MinValue)
                             {
                                 war.StartTime = existingWar.StartTime;
                             }
@@ -615,11 +615,11 @@ namespace LWFStatsWeb.Controllers
 
                     if(duplicate != null)
                     {
-                        if (war.PreparationStartTime <= Constants.EmptyStartTime)
+                        if (war.PreparationStartTime == DateTime.MinValue)
                         {
                             war.PreparationStartTime = duplicate.PreparationStartTime;
                         }
-                        if (war.StartTime <= Constants.EmptyStartTime)
+                        if (war.StartTime == DateTime.MinValue)
                         {
                             war.StartTime = duplicate.StartTime;
                         }
@@ -894,21 +894,7 @@ namespace LWFStatsWeb.Controllers
                 try
                 {
                     logger.LogInformation("Task.CalculateSyncs");
-                    statistics.CalculateSyncs();
-                }
-                catch (Exception e)
-                {
-                    model.Errors.Add(e.Message);
-                    logger.LogError(e.ToString());
-                }
-            }
-
-            if (task == "updatesynccalendar")
-            {
-                try
-                {
-                    logger.LogInformation("Task.UpdateSyncCalendar");
-                    await statistics.UpdateSyncCalendar();
+                    await statistics.CalculateSyncs();
                 }
                 catch (Exception e)
                 {
@@ -1063,22 +1049,13 @@ namespace LWFStatsWeb.Controllers
             try
             {
                 logger.LogInformation("PerformFinished.CalculateSyncs");
-                statistics.CalculateSyncs();
+                await statistics.CalculateSyncs();
             }
             catch (Exception e)
             {
                 logger.LogError(e.ToString());
             }
 
-            try
-            {
-                logger.LogInformation("PerformFinished.UpdateSyncCalendar");
-                await statistics.UpdateSyncCalendar();
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e.ToString());
-            }
 
             try
             {
@@ -1238,7 +1215,7 @@ namespace LWFStatsWeb.Controllers
                 Tasks = new List<PlayerUpdateTask>()
             };
 
-            foreach (var member in db.Members.Select(m => new { Tag = m.Tag, Name = m.Name }))
+            foreach (var member in db.Members.Select(m => new { m.Tag, m.Name }))
             {
                 var task = new PlayerUpdateTask
                 {

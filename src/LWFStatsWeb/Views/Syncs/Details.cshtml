@@ -42,13 +42,15 @@
                 Opponent
             </th>
             <th>
-                Time offset
+                Search Time
             </th>
         </tr>
     </thead>
     <tbody>
         @foreach (var war in Model.Wars)
         {
+            var offset = war.PreparationStartTime.Subtract(Model.Sync.Start).ToString("c");
+            var offsetOrdering = war.PreparationStartTime.Subtract(Model.Sync.Start.AddHours(-6)).ToString("c");
             var war_class = "";
             var opp_class = "";
             if (war.Result == "win")
@@ -103,7 +105,12 @@
                     <small class="text-muted">@war.OpponentDestructionPercentage.ToString("0.#") %</small>
                 </td>
                 <td class="text-nowrap">
-                    @war.EndTime.ToString("HH:mm:ss",System.Globalization.CultureInfo.InvariantCulture)
+                    <span style="display:none;">@offsetOrdering</span>@offset
+                    @if (!war.Synced)
+                    {
+                        <br />
+                        <small class="label label-warning">Out of sync</small>
+                    }
                 </td>
             </tr>
         }

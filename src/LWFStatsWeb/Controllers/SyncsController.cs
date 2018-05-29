@@ -33,7 +33,7 @@ namespace LWFStatsWeb.Controllers
 
             var blacklisted = db.BlacklistedClans.Select(c => c.Tag).ToDictionary(c => c);
 
-            var recentSyncs = db.WarSyncs.Where(w => w.Start < Constants.MaxVisibleEndTime && w.Verified == true).OrderByDescending(w => w.Start).Take(warsToTake).ToList();
+            var recentSyncs = db.WarSyncs.Where(w => w.Start < Constants.MaxVisibleSearchTime && w.Verified == true).OrderByDescending(w => w.Start).Take(warsToTake).ToList();
 
             var earliestWar = DateTime.MaxValue;
 
@@ -42,8 +42,6 @@ namespace LWFStatsWeb.Controllers
                 if (s.Start < earliestWar)
                     earliestWar = s.Start;
             }
-
-            earliestWar = earliestWar.AddDays(-2);
 
             var clanQ = db.Clans.AsQueryable();
             var formerClanQ = db.ClanValidities.Where(v => v.ValidTo > earliestWar);
@@ -77,8 +75,8 @@ namespace LWFStatsWeb.Controllers
             foreach (var s in recentSyncs)
             {
                 var q = from w in db.Wars
-                        where w.EndTime >= s.Start && w.EndTime <= s.Finish && w.Synced == true && w.Friendly == false
-                        select new { ClanTag = w.ClanTag, Result = w.Result, OpponentTag = w.OpponentTag, OpponentName = w.OpponentName, OpponentBadge = w.OpponentBadgeUrl };
+                    where w.PreparationStartTime >= s.Start && w.PreparationStartTime <= s.Finish && w.Synced == true && w.Friendly == false
+                    select new { ClanTag = w.ClanTag, Result = w.Result, OpponentTag = w.OpponentTag, OpponentName = w.OpponentName, OpponentBadge = w.OpponentBadgeUrl };
 
                 foreach (var r in q)
                 {
@@ -142,7 +140,7 @@ namespace LWFStatsWeb.Controllers
             var model = new DetailsViewModel
             {
                 TeamSize = teamSize,
-                Sync = db.WarSyncs.Where(s => s.ID == id && s.Verified == true && s.Start < Constants.MaxVisibleEndTime).FirstOrDefault()
+                Sync = db.WarSyncs.Where(s => s.ID == id && s.Verified == true && s.Finish < DateTime.UtcNow).FirstOrDefault()
             };
 
             if(model.Sync == null)
@@ -152,7 +150,7 @@ namespace LWFStatsWeb.Controllers
 
             var blacklisted = db.BlacklistedClans.Select(c => c.Tag).ToList();
 
-            var searchTime = model.Sync.SearchTime;
+            var searchTime = model.Sync.Start;
 
             var validClans = new HashSet<string>();
 
@@ -162,31 +160,26 @@ namespace LWFStatsWeb.Controllers
             }
 
             model.Wars = new List<War>();
-            var syncStart = model.Sync.Finish;
-
-            if (model.Sync.Start < Constants.MaxVisibleEndTime)
+            
+            if (model.Sync.Finish < DateTime.UtcNow)
             {
-                var wars = db.Wars.Where(w => w.EndTime >= model.Sync.Start && w.EndTime <= model.Sync.Finish && w.Synced == true);
+                var wars = db.Wars.Where(w => w.PreparationStartTime >= model.Sync.Start.AddHours(-2) && w.PreparationStartTime <= model.Sync.Finish.AddHours(2) && w.Friendly == false);
 
                 if (teamSize == Constants.WAR_SIZE1 || teamSize == Constants.WAR_SIZE2)
                     wars = wars.Where(w => w.TeamSize == teamSize);
+                else
+                    wars = wars.Where(w => w.TeamSize == Constants.WAR_SIZE1 || w.TeamSize == Constants.WAR_SIZE2);
 
                 foreach (var war in wars)
                 {
                     if (validClans.Contains(war.ClanTag))
                     {
                         model.Wars.Add(war);
-                        if (war.EndTime < syncStart)
-                            syncStart = war.EndTime;
                         if (blacklisted.Contains(war.OpponentTag))
                             war.Blacklisted = true;
                     }
                 }
             }
-
-            //Hide sync time
-            foreach (var war in model.Wars)
-                war.EndTime = new DateTime(2000, 1, 1).AddSeconds(war.EndTime.Subtract(syncStart).TotalSeconds);
 
             model.Wars = model.Wars.OrderBy(w => w.ClanName.ToLower()).ToList();
             return model;

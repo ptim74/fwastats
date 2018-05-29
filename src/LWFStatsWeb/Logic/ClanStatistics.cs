@@ -24,10 +24,9 @@ namespace LWFStatsWeb.Logic
     {
         void DeleteHistory();
         void UpdateValidities();
-        void CalculateSyncs();
+        Task CalculateSyncs();
         void UpdateSyncMatch();
         void UpdateClanStats();
-        Task UpdateSyncCalendar();
     }
 
     public class ClanStatistics : IClanStatistics
@@ -47,149 +46,39 @@ namespace LWFStatsWeb.Logic
             this.logger = logger;
         }
 
-        public void CalculateSyncs()
+        public async Task CalculateSyncs()
         {
-            var syncs = new List<WarSync>();
-
-            var dateQ = new Queue<DateTime>();
-            for (int i = 0; i < 10; i++)
-                dateQ.Enqueue(DateTime.MinValue);
-
-            var enterSync = new TimeSpan(0, 15, 0);
-            var exitSync = new TimeSpan(1, 0, 0);
-            var syncDuration = new TimeSpan(2, 15, 0);
-
-            var sync = new WarSync();
-
-            var q = from w in db.Wars where w.Friendly == false orderby w.EndTime select w.EndTime;
-            foreach (var endTime in q)
+            var request = WebRequest.Create(options.Value.SyncURL);
+            var response = await request.GetResponseAsync();
+            var data = string.Empty;
+            using (var reader = new StreamReader(response.GetResponseStream()))
             {
-                var fewWarsBeforeStartedAt = dateQ.Dequeue();
-                var fewWarsStartetWithin = endTime.Subtract(fewWarsBeforeStartedAt);
-
-                if (!sync.IsStarted)
-                {
-                    if (fewWarsStartetWithin < enterSync)
-                    {
-                        sync.Start = fewWarsBeforeStartedAt;
-                    }
-                }
-                else
-                {
-                    if (fewWarsStartetWithin > exitSync)
-                    {
-                        //This will be fixed later, finish would be last value in queue
-                        //TODO: test if dateQ.Last() would work
-                        //sync.Finish = fewWarsBeforeStartedAt.Add(exitSync);
-                        sync.Finish = sync.Start.Add(syncDuration);
-                        syncs.Add(sync);
-                        sync = new WarSync();
-                    }
-                }
-
-                dateQ.Enqueue(endTime);
+                data = await reader.ReadToEndAsync();
             }
 
-            //Latest sync is still active
-            if (sync.IsStarted && !sync.IsFinished)
+            var syncDuration = new TimeSpan(2, 0, 0);
+
+            this.FillSyncsUtc();
+
+            var syncTimes = db.WarSyncs.Select(s => s.Start).ToHashSet();
+
+            var cals = Calendar.Load(data);
+            foreach (var cal in cals)
             {
-                //sync.Finish = dateQ.Peek().Add(exitSync);
-                sync.Finish = sync.Start.Add(syncDuration);
-                syncs.Add(sync);
-            }
-
-            var clanList = (from c in db.ClanValidities select c).ToDictionary(c => c.Tag);
-
-            foreach (var s in syncs)
-            {
-                var searchTime = s.SearchTime;
-                var latestWarStarted = s.Start;
-
-                var warQ = from w in db.Wars
-                           where w.EndTime >= s.Start && w.EndTime <= s.Finish && w.Friendly == false
-                           select new { EndTime = w.EndTime, ClanTag = w.ClanTag, OpponentTag = w.OpponentTag };
-                 
-                s.MissedStarts = 0;
-                foreach (var clan in clanList.Values)
+                foreach (var syncEvent in cal.Events.Where(a => a.Duration == syncDuration).OrderBy(a => a.Start))
                 {
-                    if (clan.ValidFrom < searchTime && clan.ValidTo > searchTime)
-                        s.MissedStarts++;
-                }
+                    var eventStart = syncEvent.Start.AsUtc;
+                    var eventEnd = syncEvent.End.AsUtc;
 
-                foreach (var res in warQ)
-                {
-                    if (res.EndTime > latestWarStarted)
-                        latestWarStarted = res.EndTime;
-
-                    if (clanList.TryGetValue(res.ClanTag, out ClanValidity clan))
+                    if (!syncTimes.Contains(eventStart))
                     {
-                        if (clan.ValidFrom < searchTime && clan.ValidTo > searchTime)
+                        if (eventStart < DateTime.UtcNow)
                         {
-                            if (clanList.TryGetValue(res.OpponentTag, out ClanValidity opponent))
-                            {
-                                if (opponent.ValidFrom < searchTime && opponent.ValidTo > searchTime)
-                                {
-                                    s.AllianceMatches++;
-                                    s.MissedStarts--;
-                                }
-                                else
-                                {
-                                    s.WarMatches++;
-                                    s.MissedStarts--;
-                                }
-                            }
-                            else
-                            {
-                                s.WarMatches++;
-                                s.MissedStarts--;
-                            }
+                            var sync = new WarSync { Start = eventStart, Finish = eventEnd };
+                            db.WarSyncs.Add(sync);
                         }
                     }
                 }
-
-                s.Finish = latestWarStarted;
-            }
-
-            var syncId = 0;
-            var newSync = syncs[syncId++];
-
-            foreach(var existingSync in db.WarSyncs.OrderBy(s => s.Start))
-            {
-                if (newSync != null)
-                {
-                    if (existingSync.Finish > newSync.Start && existingSync.Start < newSync.Finish)
-                    {
-                        existingSync.Start = newSync.Start;
-                        existingSync.Finish = newSync.Finish;
-                        existingSync.MissedStarts = newSync.MissedStarts;
-                        existingSync.AllianceMatches = newSync.AllianceMatches;
-                        existingSync.WarMatches = newSync.WarMatches;
-                        if (syncId < syncs.Count)
-                            newSync = syncs[syncId++];
-                        else
-                            newSync = null;
-                    }
-                    else
-                    {
-                        db.WarSyncs.Remove(existingSync);
-                        while (newSync.Finish < existingSync.Start && syncId < syncs.Count)
-                        {
-                            db.WarSyncs.Add(newSync);
-                            if (syncId < syncs.Count)
-                                newSync = syncs[syncId++];
-                            else
-                                newSync = null;
-                        }
-                    }
-                }
-            }
-
-            if (newSync != null) //This was never added in loop
-                syncId--;
-
-            while (syncId < syncs.Count)
-            {
-                db.WarSyncs.Add(syncs[syncId++]);
             }
 
             db.SaveChanges();
@@ -238,45 +127,76 @@ namespace LWFStatsWeb.Logic
         {
             var validClans = db.ClanValidities.ToDictionary(l => l.Tag);
             var syncs = db.WarSyncs.OrderBy(w => w.Start).ToList();
-            var wars = db.Wars.OrderBy(w => w.EndTime).ToList();
+            var wars = db.Wars.OrderBy(w => w.PreparationStartTime).ToList();
 
             if (syncs.Count() == 0 || validClans.Count() == 0 || wars.Count() == 0)
                 return;
 
             var syncId = 0;
             var currentSync = syncs[syncId++];
+            var allianceMatches = 0;
+            var warMatches = 0;
 
             foreach (var war in wars)
             {
+                var me = false;
+                if(war.ClanTag == "#LGQJYLPY")
+                    me = true;
+
                 var clanIsValid = false;
                 if (validClans.TryGetValue(war.ClanTag, out ClanValidity validClan))
                 {
-                    if (validClan.ValidFrom < war.SearchTime && validClan.ValidTo > war.SearchTime)
+                    if (validClan.ValidFrom < war.PreparationStartTime && validClan.ValidTo > war.PreparationStartTime)
                         clanIsValid = true;
                 }
-                while(war.EndTime > currentSync.Finish && syncId < syncs.Count)
+                while(war.PreparationStartTime > currentSync.Finish && syncId < syncs.Count)
                 {
+                    currentSync.AllianceMatches = allianceMatches;
+                    currentSync.WarMatches = warMatches;
                     currentSync = syncs[syncId++];
+                    allianceMatches = 0;
+                    warMatches = 0;
                 }
 
-                if(war.EndTime >= currentSync.Start && war.EndTime <= currentSync.Finish && (war.TeamSize == Constants.WAR_SIZE1 || war.TeamSize == Constants.WAR_SIZE2) && clanIsValid)
+                var matched = false;
+                if (validClans.TryGetValue(war.OpponentTag, out validClan))
+                {
+                    var searchTime = war.PreparationStartTime;
+                    if (validClan.ValidFrom < searchTime && validClan.ValidTo > searchTime)
+                        matched = true;
+                }
+                war.Matched = matched;
+
+                if (war.PreparationStartTime >= currentSync.Start && war.PreparationStartTime <= currentSync.Finish && (war.TeamSize == Constants.WAR_SIZE1 || war.TeamSize == Constants.WAR_SIZE2) && clanIsValid && !war.Friendly)
                 {
                     war.Synced = true;
+                    if (war.Matched)
+                        allianceMatches++;
+                    else
+                        warMatches++;
                 }
                 else
                 {
                     war.Synced = false;
                 }
+            }
 
-                var matched = false;
-                if(validClans.TryGetValue(war.OpponentTag, out validClan))
+            currentSync.AllianceMatches = allianceMatches;
+            currentSync.WarMatches = warMatches;
+
+            foreach(var sync in syncs)
+            {
+                var clanCount = 0;
+                foreach(var validClan in validClans)
                 {
-                    var searchTime = war.SearchTime;
-                    if (validClan.ValidFrom < searchTime && validClan.ValidTo > searchTime)
-                        matched = true;
+                    if (validClan.Value.ValidFrom < sync.Start && validClan.Value.ValidTo > sync.Finish)
+                        clanCount++;
                 }
-
-                war.Matched = matched;
+                sync.MissedStarts = clanCount - sync.AllianceMatches - sync.WarMatches;
+                if (sync.AllianceMatches > 50 && sync.Finish < DateTime.UtcNow)
+                    sync.Verified = true;
+                else
+                    sync.Verified = false;
             }
 
             db.SaveChanges();
@@ -286,7 +206,7 @@ namespace LWFStatsWeb.Logic
         {
             var temp = (from w in db.Wars
                         join v in db.ClanValidities on w.ClanTag equals v.Tag
-                        where w.EndTime > v.ValidFrom && w.EndTime < v.ValidTo
+                        where w.PreparationStartTime > v.ValidFrom && w.PreparationStartTime < v.ValidTo
                         select new { w.ClanTag, w.Synced, w.Matched, w.Result }).ToList();
 
             var wars = (from w in temp
@@ -391,61 +311,188 @@ namespace LWFStatsWeb.Logic
             }
         }
 
-        public async Task UpdateSyncCalendar()
+        private void AddSync(int year, int month, int day, int hour, int minute, int startOffset, int finishOffset)
         {
-            var request = WebRequest.Create(options.Value.SyncURL);
-            var response = await request.GetResponseAsync();
-            var data = string.Empty;
-            using (var reader = new StreamReader(response.GetResponseStream()))
+            var startDate = new DateTime(year, month, day, hour, minute, 0, DateTimeKind.Unspecified);
+            var endDate = startDate.AddHours(2);
+
+            var sync = db.WarSyncs.Where(s => s.Start == startDate && s.Finish == endDate).FirstOrDefault();
+            if(sync != null)
             {
-                data = await reader.ReadToEndAsync();
+                sync.Verified = false;
+                return;
             }
 
-            var syncs = db.WarSyncs.ToList();
-
-            var syncDuration = new TimeSpan(2, 0, 0);
-
-            var cals = Calendar.Load(data);
-            foreach(var cal in cals)
+            //Convert endtime based sync to preparationstarttime based sync
+            var searchOldStart = startDate.AddHours(47 - 1);
+            var searchOldEnd = startDate.AddHours(47 + 4);
+            var keepWarsSince = DateTime.UtcNow.AddDays(-1.0 * options.Value.Wars).AddHours(-47);
+            if (endDate < keepWarsSince)
             {
-                foreach(var syncEvent in cal.Events.Where(a => a.Duration == syncDuration).OrderBy(a => a.Start))
-                {
-                    var eventStart = syncEvent.Start.AsUtc.AddHours(47);
-                    var eventEnd = syncEvent.End.AsUtc.AddHours(47);
-                    var sync = syncs.Where(s => s.Start < eventEnd && s.Finish > eventStart && s.AllianceMatches > 50).FirstOrDefault();
-                    if(sync != null)
-                    {
-                        var diff = sync.Start.Subtract(eventStart);
-                        logger.LogInformation("Sync at {0}, diff {1}, [{2}], {3}", eventStart, diff, sync.AllianceMatches, syncEvent.Summary);
-                        sync.Verified = true;
-                        //sync.Start = eventStart;
-                        //sync.Finish = eventEnd;
-                    }
-                    else
-                    {
-                        //var s = new WarSync { Start = eventStart, Finish = eventEnd };
-                        //db.WarSyncs.Add(s);
-                        //syncs.Add(s);
-                    }
-                    //db.SaveChanges();
-                    //BEGIN:VEVENT
-                    //DTSTAMP:20170722T095611Z
-                    //UID:52209313@band.us
-                    //DTSTART:20170601T154700Z
-                    //DTEND:20170601T174700Z
-                    //SUMMARY:⚀⚀Tie Breaker Low Sync ⬅️Closest to 0 wins 
-                    //DESCRIPTION:\n1st time listed means START SEARCHING 🔎\n2nd time listed means STOP SEARCHING 🚫 \n🔔Set your own reminders as BAND no longer sends them🔔\n\nYou can see the RSVP status of this event in BAND.\n(FWA ADMN added)
-                    //CREATED:20170531T104049Z
-                    //LAST-MODIFIED:20170531T104049Z
-                    //END:VEVENT
+                return;
+            }
 
-                    //2018: Times changed from UTC to Eastern
-                    //DTSTART; TZID = America / New_York:20180102T052600
-                    //DTEND; TZID = America / New_York:20180102T072600
-                }
+            sync = db.WarSyncs.Where(s => s.Start >= searchOldStart && s.Start <= searchOldEnd).FirstOrDefault();
+            if(sync != null)
+            {
+                sync.Start = startDate;
+                sync.Finish = endDate;
+                sync.Verified = false;
+            }
+            else
+            {
+                sync = new WarSync { Start = startDate, Finish = endDate, Verified = false };
+                db.WarSyncs.Add(sync);
             }
 
             db.SaveChanges();
+
+            var searchStart = startDate.AddHours(47).AddMinutes(startOffset);
+            var searchEnd = endDate.AddHours(47).AddMinutes(finishOffset);
+
+            if (startOffset != 0 || finishOffset != 0)
+            {
+                var timeFormat = "yyyy'-'MM'-'dd' 'HH':'mm':'ss";
+
+                if (startOffset != 0)
+                {
+                    var beforeSync = searchStart.AddHours(-4);
+                    var afterSync = searchEnd.AddHours(4);
+
+                    var sql = string.Format("UPDATE Wars SET preparationstarttime = datetime(endtime,'-47 hours','{0} minutes') WHERE endtime >= '{1}' AND endtime <= '{2}' AND starttime = '{3}'",
+                            -1 * startOffset, beforeSync.ToString(timeFormat), afterSync.ToString(timeFormat), DateTime.MinValue.ToString(timeFormat));
+
+                    db.Database.ExecuteSqlCommand(sql);
+                }
+
+                if (finishOffset > startOffset)
+                {
+                    var beforeSync = searchEnd;
+                    var afterSync = searchEnd.AddHours(4);
+
+                    var sql = string.Format("UPDATE Wars SET preparationstarttime = datetime(endtime,'-47 hours','{0} minutes') WHERE endtime >= '{1}' AND endtime <= '{2}' AND starttime = '{3}'",
+                            -1 * finishOffset, beforeSync.ToString(timeFormat), afterSync.ToString(timeFormat), DateTime.MinValue.ToString(timeFormat));
+
+                    db.Database.ExecuteSqlCommand(sql);
+                }
+            }
+        }
+
+        private void FillSyncsUtc()
+        {
+            db.Database.ExecuteSqlCommand("UPDATE Wars SET preparationstarttime = datetime(endtime,'-47 hours') WHERE preparationstarttime = '0001-01-01 00:00:00'");
+
+            db.Database.ExecuteSqlCommand("UPDATE WarSyncs SET Verified = 1");
+
+            AddSync(2017, 10, 21, 16, 0, 15, 15);
+            AddSync(2017, 10, 23, 16, 50, 0, 0);
+            AddSync(2017, 10, 25, 18, 0, 0, 0);
+            AddSync(2017, 10, 27, 18, 56, 0, 0);
+            AddSync(2017, 10, 29, 21, 19, 0, 0);
+            AddSync(2017, 10, 31, 22, 36, 20, 20);
+            AddSync(2017, 11, 2, 23, 47, 0, 0);
+            AddSync(2017, 11, 5, 0, 58, 0, 0);
+            AddSync(2017, 11, 7, 3, 7, 0, 0);
+            AddSync(2017, 11, 9, 7, 25, 0, 0);
+            AddSync(2017, 11, 11, 9, 4, 0, 0);
+            AddSync(2017, 11, 13, 10, 4, 0, 0);
+            AddSync(2017, 11, 15, 11, 4, 27, 27);
+            AddSync(2017, 11, 17, 15, 55, 0, 0);
+            AddSync(2017, 11, 19, 17, 0, 0, 0);
+            AddSync(2017, 11, 21, 17, 52, 0, 0);
+            AddSync(2017, 11, 23, 18, 43, 0, 0);
+            AddSync(2017, 11, 25, 19, 25, 20, 20);
+            AddSync(2017, 11, 27, 20, 44, 15, 15);
+            AddSync(2017, 11, 29, 21, 55, 0, 0);
+            AddSync(2017, 12, 1, 22, 54, 0, 0);
+            AddSync(2017, 12, 3, 23, 56, 13, 13);
+            AddSync(2017, 12, 6, 9, 27, 0, 0);
+            AddSync(2017, 12, 8, 13, 55, 0, 0);
+            AddSync(2017, 12, 10, 14, 23, 0, 0);
+            AddSync(2017, 12, 12, 18, 40, 0, 0);
+            AddSync(2017, 12, 14, 19, 42, 0, 0);
+            AddSync(2017, 12, 16, 20, 55, 110, 110);
+            AddSync(2017, 12, 18, 23, 15, 0, 0);
+            AddSync(2017, 12, 20, 23, 45, 15, 15);
+            AddSync(2017, 12, 23, 0, 45, 0, 0);
+            AddSync(2017, 12, 25, 3, 49, 0, 0);
+            AddSync(2017, 12, 27, 5, 0, 0, 0);
+            AddSync(2017, 12, 29, 7, 12, 0, 0);
+            AddSync(2017, 12, 31, 8, 30, 0, 0);
+            AddSync(2018, 1, 2, 10, 26, 0, 0);
+            AddSync(2018, 1, 4, 12, 50, 0, 0);
+            AddSync(2018, 1, 6, 14, 0, 0, 0);
+            AddSync(2018, 1, 8, 19, 0, 0, 0);
+            AddSync(2018, 1, 10, 19, 50, 0, 0);
+            AddSync(2018, 1, 12, 20, 43, 0, 0);
+            AddSync(2018, 1, 14, 21, 40, 0, 0);
+            AddSync(2018, 1, 16, 22, 30, 0, 0);
+            AddSync(2018, 1, 18, 23, 35, 0, 0);
+            AddSync(2018, 1, 21, 1, 5, 0, 0);
+            AddSync(2018, 1, 23, 3, 5, 28, 28);
+            AddSync(2018, 1, 25, 5, 0, 0, 0);
+            AddSync(2018, 1, 27, 10, 50, 0, 27);
+            AddSync(2018, 1, 29, 12, 18, 0, 0);
+            AddSync(2018, 1, 31, 15, 18, 0, 0);
+            AddSync(2018, 2, 2, 16, 20, 0, 0);
+            AddSync(2018, 2, 4, 17, 15, 0, 0);
+            AddSync(2018, 2, 6, 18, 08, 20, 20);
+            AddSync(2018, 2, 8, 19, 1, 0, 0);
+            AddSync(2018, 2, 10, 20, 14, 0, 0);
+            AddSync(2018, 2, 12, 21, 0, 25, 25);
+            AddSync(2018, 2, 14, 22, 43, 0, 0);
+            AddSync(2018, 2, 16, 23, 40, 0, 0);
+            AddSync(2018, 2, 19, 6, 35, 0, 0);
+            AddSync(2018, 2, 21, 8, 15, 0, 0);
+            AddSync(2018, 2, 23, 10, 50, 0, 0);
+            AddSync(2018, 2, 25, 12, 55, 32, 44);
+            AddSync(2018, 2, 27, 15, 40, 0, 0);
+            AddSync(2018, 3, 1, 17, 30, 0, 0);
+            AddSync(2018, 3, 3, 18, 20, 90, 90);
+            AddSync(2018, 3, 5, 22, 0, 0, 0);
+            AddSync(2018, 3, 8, 0, 30, 0, 0);
+            AddSync(2018, 3, 10, 3, 20, 0, 0);
+            AddSync(2018, 3, 12, 5, 40, 0, 0);
+            AddSync(2018, 3, 14, 7, 14, 0, 0);
+            AddSync(2018, 3, 16, 9, 15, -8, -8);
+            AddSync(2018, 3, 18, 11, 20, 0, 0);
+            AddSync(2018, 3, 20, 13, 0, 0, 0);
+            AddSync(2018, 3, 22, 14, 40, 0, 0);
+            AddSync(2018, 3, 24, 18, 0, 0, 0);
+            AddSync(2018, 3, 26, 20, 5, 0, 0);
+            AddSync(2018, 3, 28, 21, 30, 0, 0);
+            AddSync(2018, 3, 30, 22, 50, 0, 0);
+            AddSync(2018, 4, 2, 1, 35, 0, 0);
+            AddSync(2018, 4, 4, 6, 0, 0, 0);
+            AddSync(2018, 4, 6, 8, 0, 0, 0);
+            AddSync(2018, 4, 8, 21, 30, 105, 105);
+            AddSync(2018, 4, 11, 0, 45, 0, 0);
+            AddSync(2018, 4, 13, 2, 27, 30, 30);
+            AddSync(2018, 4, 15, 4, 3, 0, 0);
+            AddSync(2018, 4, 17, 5, 4, 0, 0);
+            AddSync(2018, 4, 19, 7, 1, 0, 0);
+            AddSync(2018, 4, 21, 19, 56, 0, 0);
+            AddSync(2018, 4, 23, 21, 20, 24, 24);
+            AddSync(2018, 4, 25, 22, 50, 0, 0);
+            AddSync(2018, 4, 28, 0, 10, 0, 0);
+            AddSync(2018, 4, 30, 1, 55, 0, 0);
+            AddSync(2018, 5, 2, 8, 16, 0, 0);
+            AddSync(2018, 5, 4, 9, 30, 0, 0);
+            AddSync(2018, 5, 6, 11, 15, 0, 0);
+            AddSync(2018, 5, 8, 12, 30, 0, 0);
+            AddSync(2018, 5, 10, 14, 40, 0, 0);
+            AddSync(2018, 5, 12, 15, 55, 0, 0);
+            AddSync(2018, 5, 14, 17, 30, 0, 0);
+            AddSync(2018, 5, 16, 19, 0, 60, 60);
+            AddSync(2018, 5, 18, 20, 20, 0, 0);
+            AddSync(2018, 5, 20, 21, 55, 0, 0);
+            AddSync(2018, 5, 22, 23, 0, 0, 0);
+            AddSync(2018, 5, 25, 0, 30, 0, 0);
+            AddSync(2018, 5, 27, 1, 50, 0, 0);
+
+            db.SaveChanges();
+
+            db.Database.ExecuteSqlCommand("DELETE FROM WarSyncs WHERE Verified = 1");
         }
     }
 }

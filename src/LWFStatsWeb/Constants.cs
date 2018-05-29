@@ -18,19 +18,11 @@ namespace LWFStatsWeb
 
         public const int WEIGHT_COMPARE = 30000;
 
-        public static DateTime MaxVisibleEndTime
+        public static DateTime MaxVisibleSearchTime
         {
             get
             {
-                return DateTime.UtcNow.AddHours(47.0 - HIDE_TIME);
-            }
-        }
-
-        public static DateTime EmptyStartTime
-        {
-            get
-            {
-                return new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified);
+                return DateTime.UtcNow.AddHours(-2);
             }
         }
 
