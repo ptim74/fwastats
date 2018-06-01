@@ -241,71 +241,70 @@ namespace LWFStatsWeb.Controllers
                                     results.Add(clanTag, result);
                                 }
 
-                                DateTime timestamp;
                                 try
                                 {
-                                    timestamp = dateZero.AddDays(Convert.ToDouble(row[0]));
-                                }
-                                catch(Exception)
-                                {
-                                    logger.LogError("Unable to convert to double: '{0}'", row[0]);
-                                    timestamp = new DateTime(1900, 1, 1);
-                                }
 
-                                //round to second to eliminate unnecessary updates
-                                timestamp = new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second);
-                                timestamp = timestamp.Subtract(Utils.EasternTimeZone.GetUtcOffset(timestamp));
-
-                                if (timestamp > result.Timestamp)
-                                {
-                                    result.Timestamp = timestamp;
-                                    result.TeamSize = resultDb.TeamSize;
-
-                                    var base1index = 11;
-                                    var maxweight = 110000;
-                                    var base1orth7 = Convert.ToInt32(row[base1index]);
-                                    if(base1orth7 < 10)
+                                    DateTime timestamp;
+                                    try
                                     {
-                                        base1index = 12;
-                                        maxweight = 130000;
-                                        result.TH12Count = Convert.ToInt32(row[6]);
-                                        result.TH11Count = Convert.ToInt32(row[7]);
-                                        result.TH10Count = Convert.ToInt32(row[8]);
-                                        result.TH9Count = Convert.ToInt32(row[9]);
-                                        result.TH8Count = Convert.ToInt32(row[10]);
-                                        result.TH7Count = Convert.ToInt32(row[11]);
+                                        timestamp = dateZero.AddDays(Convert.ToDouble(row[0]));
                                     }
-                                    else
+                                    catch (Exception)
                                     {
-                                        result.TH12Count = 0;
+                                        logger.LogError("Unable to convert to double: '{0}'", row[0]);
+                                        timestamp = new DateTime(1900, 1, 1);
+                                    }
+
+                                    //round to second to eliminate unnecessary updates
+                                    timestamp = new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second);
+                                    timestamp = timestamp.Subtract(Utils.EasternTimeZone.GetUtcOffset(timestamp));
+
+                                    if (timestamp > result.Timestamp)
+                                    {
+                                        result.Timestamp = timestamp;
+                                        result.TeamSize = resultDb.TeamSize;
+
+                                        try
+                                        {
+                                            result.TH12Count = Convert.ToInt32(row[5]);
+                                        }
+                                        catch (Exception)
+                                        {
+                                            result.TH12Count = 0;
+                                        }
                                         result.TH11Count = Convert.ToInt32(row[6]);
                                         result.TH10Count = Convert.ToInt32(row[7]);
                                         result.TH9Count = Convert.ToInt32(row[8]);
                                         result.TH8Count = Convert.ToInt32(row[9]);
                                         result.TH7Count = Convert.ToInt32(row[10]);
+
+                                        result.THSum = result.TH12Count * 12 + result.TH11Count * 11 + result.TH10Count * 10 + result.TH9Count * 9 + result.TH8Count * 8 + result.TH7Count * 7;
+                                        var totalWeight = 0;
+
+                                        int max = resultDb.TeamSize + 10;
+                                        for (int i = 11; i <= max; i++)
+                                        {
+                                            var weight = Convert.ToInt32(row[i]);
+                                            if (weight > 130000)
+                                                weight = 130000;
+                                            if (weight < 0)
+                                                weight = 0;
+                                            totalWeight += weight;
+                                            result.SetBase(i - 10, weight);
+                                        }
+
+                                        for (int i = resultDb.TeamSize + 1; i <= 50; i++)
+                                        {
+                                            result.SetBase(i, 0);
+                                        }
+
+                                        result.Weight = totalWeight;
                                     }
 
-                                    result.THSum = result.TH12Count * 12 + result.TH11Count * 11 + result.TH10Count * 10 + result.TH9Count * 9 + result.TH8Count * 8 + result.TH7Count * 7;
-                                    var totalWeight = 0;
-
-                                    int max = resultDb.TeamSize + base1index - 1;
-                                    for (int i = base1index; i <= max; i++)
-                                    {
-                                        var weight = Convert.ToInt32(row[i]);
-                                        if (weight > maxweight)
-                                            weight = maxweight;
-                                        if (weight < 0)
-                                            weight = 0;
-                                        totalWeight += weight;
-                                        result.SetBase(i - base1index - 1, weight);
-                                    }
-
-                                    for(int i = resultDb.TeamSize + 1; i <= 50; i++)
-                                    {
-                                        result.SetBase(i, 0);
-                                    }
-
-                                    result.Weight = totalWeight;
+                                }
+                                catch(Exception e)
+                                {
+                                    logger.LogError("ClanResult {0}: {1}", clanTag, e.ToString());
                                 }
                             }
                         }
