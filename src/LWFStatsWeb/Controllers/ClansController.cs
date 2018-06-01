@@ -23,36 +23,28 @@ namespace LWFStatsWeb.Controllers
         private readonly ApplicationDbContext db;
         private readonly IClashApi api;
         ILogger<ClansController> logger;
-        IOptions<WeightSubmitOptions> submitOptions;
         IGoogleSheetsService googleSheets;
         IClanLoader clanLoader;
         IOptions<WeightResultOptions> resultDatabase;
         WeightSubmitService submitService;
-        IOptions<GlobalOptions> globalOptions;
 
         public ClansController(
             ApplicationDbContext db,
             IClashApi api,
-            //IMemoryCache memoryCache,
             ILogger<ClansController> logger,
-            IOptions<WeightSubmitOptions> submitOptions,
             IGoogleSheetsService googleSheets,
             IClanLoader clanLoader,
             IOptions<WeightResultOptions> resultDatabase,
-            WeightSubmitService submitService,
-            IOptions<GlobalOptions> globalOptions
+            WeightSubmitService submitService
             )
         {
             this.db = db;
             this.api = api;
-            //this.memoryCache = memoryCache;
             this.logger = logger;
-            this.submitOptions = submitOptions;
             this.googleSheets = googleSheets;
             this.clanLoader = clanLoader;
             this.resultDatabase = resultDatabase;
             this.submitService = submitService;
-            this.globalOptions = globalOptions;
         }
 
         protected IndexViewModel GetClanList()
@@ -65,6 +57,7 @@ namespace LWFStatsWeb.Controllers
                 Name = c.Name,
                 Members = c.Members,
                 BadgeUrl = c.BadgeUrl,
+                Th12Count = c.Th12Count,
                 Th11Count = c.Th11Count,
                 Th10Count = c.Th10Count,
                 Th9Count = c.Th9Count,
@@ -270,6 +263,7 @@ namespace LWFStatsWeb.Controllers
                 }
             }
 
+            details.Clan.Th12Count = 0;
             details.Clan.Th11Count = 0;
             details.Clan.Th10Count = 0;
             details.Clan.Th9Count = 0;
@@ -283,6 +277,8 @@ namespace LWFStatsWeb.Controllers
                 if (member != null)
                 {
                     member.TownHallLevel = thlevel.TownHallLevel;
+                    if (member.TownHallLevel == 12)
+                        details.Clan.Th12Count++;
                     if (member.TownHallLevel == 11)
                         details.Clan.Th11Count++;
                     else if (member.TownHallLevel == 10)
@@ -311,6 +307,8 @@ namespace LWFStatsWeb.Controllers
                     }
                     else
                     {
+                        if (member.TownHallLevel == 12)
+                            details.Clan.EstimatedWeight += 125;
                         if (member.TownHallLevel == 11)
                             details.Clan.EstimatedWeight += 105;
                         else if (member.TownHallLevel == 10)
@@ -868,206 +866,6 @@ namespace LWFStatsWeb.Controllers
             submitService.Queue(submit);
         }
 
-        protected async Task<IActionResult> WeightSubmit(WeightViewModel weight)
-        {
-            var options = submitOptions.Value.SelectTeamSize(weight.Members.Count);
-            var results = resultDatabase.Value.SelectTeamSize(weight.Members.Count);
-
-            var responseSheetId = options.SheetId;
-
-            var model = new WeightSubmitModel()
-            {
-                Status = false,
-                ClanTag = weight.ClanTag,
-                ClanName = weight.ClanName,
-                ClanLink = weight.ClanLink,
-                ClanBadge = weight.ClanBadge
-            };
-
-            try
-            {
-                logger.LogInformation("Weight.Submit[{0}] {1}", options.TeamSize, weight.ClanLink);
-
-                var clanName = weight.ClanName;
-                var clans = await clanLoader.Load(Constants.LIST_FWA);
-                if(clans != null)
-                {
-                    var clan = clans.Where(c => c.Tag == weight.ClanTag).SingleOrDefault();
-                    if(clan != null)
-                    {
-                        clanName = clan.Name;
-                    }
-                }
-
-                var nameSection = new List<object> { clanName, "", "", weight.ClanTag };
-
-                var compositions = new Dictionary<int, int>();
-                var weightSection = new List<object>();
-                var tagSection = new List<object>();
-                var thSection = new List<object>();
-
-                for (int i = 0; i <= 11; i++)
-                    compositions.Add(i, 0);
-
-                foreach(var member in weight.Members)
-                {
-                    compositions[member.TownHallLevel]++;
-                    weightSection.Add(member.Weight);
-                    tagSection.Add(member.Tag);
-                    thSection.Add(member.TownHallLevel);
-                }
-
-                var compositionSection = new List<object>
-                {
-                    compositions[11],
-                    compositions[10],
-                    compositions[9],
-                    compositions[8],
-                    compositions[7] + compositions[6] + compositions[5] + compositions[4] + compositions[3]
-                };
-
-                var updateData = new Dictionary<string, IList<IList<object>>>
-                {
-                    { options.ClanNameRange, new List<IList<object>> { nameSection } },
-                    { options.CompositionRange, new List<IList<object>> { compositionSection } },
-                    { options.WeightRange, new List<IList<object>> { weightSection } },
-                    { options.TagRange, new List<IList<object>> { tagSection } },
-                    { options.THRange, new List<IList<object>> { thSection } }
-                };
-
-                await googleSheets.BatchUpdate(options.SheetId, "COLUMNS", updateData);
-
-                logger.LogInformation("Weight.SubmitRequest '{0}'", clanName);
-
-                var checkStatus = false;
-
-                try
-                {
-                    var submitRequest = WebRequest.Create(options.SubmitURL);
-                    submitRequest.Timeout = 20000;
-                    var submitResponse = await submitRequest.GetResponseAsync();
-
-                    using (var reader = new StreamReader(submitResponse.GetResponseStream()))
-                    {
-                        var data = await reader.ReadToEndAsync();
-                        try
-                        {
-                            dynamic json = JsonConvert.DeserializeObject(data);
-                            if(json is string)
-                            {
-                                //This is the value from StatusRange Cell
-                                model.Message = json as string;
-                                logger.LogInformation("Weight.SubmitResponse {0}", model.Message);
-                            }
-                            else
-                            {
-                                //Script error returned as json
-                                if(json.message != null || json.name != null)
-                                {
-                                    checkStatus = true;
-                                    string scriptError = string.Format("{0}: {1} (line {2} in '{3}')", json.name, json.message, json.lineNumber, json.fileName);
-                                    logger.LogInformation("Weight.SubmitScript{0}", scriptError);
-                                }
-                            }
-                        }
-                        catch(JsonReaderException)
-                        {
-                            //Script error returned as html
-                            checkStatus = true;
-                            logger.LogInformation("Weight.SubmitParsingError: {0}", data);
-                        }
-                    }
-                }
-                catch (WebException we)
-                {
-                    checkStatus = true;
-                    logger.LogInformation("Weight.SubmitErrorHandler: {0}", we.Message);
-                }
-
-                if(checkStatus)
-                {
-                    try
-                    {
-                        var statusData = await googleSheets.Get(options.SheetId, "ROWS", options.StatusRange);
-                        if (statusData != null && statusData.Count == 1 && statusData[0].Count == 1 && statusData[0][0] != null)
-                        {
-                            model.Message = statusData[0][0].ToString();
-                        }
-                        logger.LogInformation("Weight.SubmitCheckResponse {0}", model.Message);
-                    }
-                    catch (Exception e)
-                    {
-                        logger.LogError("Weight.SubmitCheckFailure: {0}", e.Message);
-                    }
-                }
-
-                if (string.IsNullOrEmpty(model.Message))
-                {
-                    model.Message = "Unknown error";
-                }
-                else
-                {
-                    if (model.Message.StartsWith(string.Format("Submitted '{0}'", clanName), StringComparison.OrdinalIgnoreCase))
-                    {
-                        model.Status = true;
-                        responseSheetId = results.SheetId;
-                        //await this.UpdatePendingSubmit(weight.Members.Count, weight.ClanTag);
-                        var result = db.WeightResults.SingleOrDefault(r => r.Tag == weight.ClanTag);
-                        if (result == null)
-                        {
-                            result = new WeightResult { Tag = weight.ClanTag, Timestamp = DateTime.MinValue };
-                            db.WeightResults.Add(result);
-                        }
-                        result.PendingResult = true;
-                        db.SaveChanges();
-                    }
-                }
-            }
-            catch(Exception e)
-            {
-                model.Message = e.Message;
-                logger.LogError("Weight.SubmitError {0}", e.ToString());
-            }
-            model.SheetUrl = $"https://docs.google.com/spreadsheets/d/{responseSheetId}";
-            return View("WeightSubmit", model);
-        }
-
-        protected async Task UpdatePendingSubmit(int teamSize, string id)
-        {
-            try
-            {
-                var results = resultDatabase.Value.SelectTeamSize(teamSize);
-                var tag = Utils.LinkIdToTag(id);
-
-                var pendingData = await googleSheets.Get(results.SheetId, "ROWS", results.PendingRange);
-                if (pendingData != null)
-                {
-                    foreach (var row in pendingData)
-                    {
-                        if (row.Count > 0)
-                        {
-                            var clanTag = Utils.LinkIdToTag((string)row[0]);
-                            if(tag.Equals(clanTag,StringComparison.OrdinalIgnoreCase))
-                            {
-                                var result = db.WeightResults.SingleOrDefault(r => r.Tag == tag);
-                                if (result == null)
-                                {
-                                    result = new WeightResult { Tag = clanTag, Timestamp = DateTime.MinValue };
-                                    db.WeightResults.Add(result);
-                                }
-                                result.PendingResult = true;
-                                db.SaveChanges();
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                logger.LogWarning("Weight.UpdatePendingSubmit: {0}",e.ToString());
-            }
-        }
-
         [HttpPost]
         [Route("Clan/{id}/Weight")]
         public async Task<IActionResult> Weight(string id, WeightViewModel model)
@@ -1080,19 +878,12 @@ namespace LWFStatsWeb.Controllers
             {
                 await SaveWeight(model);
 
-                if ( model.Command.Equals("submit", StringComparison.OrdinalIgnoreCase))
+                if (model.Command.Equals("submit", StringComparison.OrdinalIgnoreCase))
                 {
-                    if(globalOptions.Value.BackgroundSubmit)
-                    {
-                        var model2 = WeightData(id, model.WarID);
-                        model2.WeightSubmitQueued = true;
-                        await QueueWeightSubmit(model2);
-                        return View(model2);
-                    }
-                    else
-                    {
-                        return await WeightSubmit(WeightData(id, model.WarID));
-                    }
+                    var model2 = WeightData(id, model.WarID);
+                    model2.WeightSubmitQueued = true;
+                    await QueueWeightSubmit(model2);
+                    return View(model2);
                 }
             }
 

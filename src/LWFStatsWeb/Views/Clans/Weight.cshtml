@@ -124,6 +124,28 @@ else
         <tbody>
             @foreach (var member in Model.Members)
             {
+                var member_max = 0;
+                switch(member.TownHallLevel)
+                {
+                    case 12:
+                        member_max = 130000;
+                        break;
+                    case 11:
+                        member_max = 110000;
+                        break;
+                    case 10:
+                        member_max = 90000;
+                        break;
+                    case 9:
+                        member_max = 70000;
+                        break;
+                    case 8:
+                        member_max = 55000;
+                        break;
+                    default:
+                        member_max = 40000;
+                        break;
+                }
                 var member_class = member.InWar ? "success" : "danger";
                 var member_checked = member.InWar ? "checked" : "";
                 var member_pos = member_id + 1;
@@ -131,7 +153,11 @@ else
                     <td>@member_pos</td>
                     <td>
                         <input type="hidden" name="Members[@member_id].Tag" value="@member.Tag" />
-                        @if (member.TownHallLevel == 11)
+                        @if (member.TownHallLevel == 12)
+                        {
+                            <span class="label label-danger">@member.TownHallLevel</span>
+                        }
+                        else if (member.TownHallLevel == 11)
                         {
                             <span class="label label-primary">@member.TownHallLevel</span>
                         }
@@ -149,7 +175,7 @@ else
                         }
                         else
                         {
-                            <span class="label label-danger">@member.TownHallLevel</span>
+                            <span class="label label-default">@member.TownHallLevel</span>
                         }
                         @member.Name
                     </td>
@@ -160,7 +186,7 @@ else
                                     <span class="glyphicon glyphicon-minus"></span>
                                 </button>
                             </span>
-                            <input type="number" name="Members[@member_id].Weight" war-check="Members[@member_id].InWar" class="form-control input-number member-weight" value="@member.Weight" min="0" max="110000" step="1000">
+                            <input type="number" name="Members[@member_id].Weight" war-check="Members[@member_id].InWar" class="form-control input-number member-weight" value="@member.Weight" min="0" max="@member_max" step="1000">
                             <span class="input-group-btn">
                                 <button type="button" style="border-radius:0px;" class="btn btn-success btn-number" data-type="plus" data-field="Members[@member_id].Weight">
                                     <span class="glyphicon glyphicon-plus"></span>
@@ -171,9 +197,9 @@ else
                                     <span class="caret"></span>
                                 </button>
                                 <ul class="dropdown-menu" role="menu">
-                                    <li><a class="weight-multiply" multiplier="3" data-field="Members[@member_id].Weight">3x</a></li>
-                                    <li><a class="weight-multiply" multiplier="4" data-field="Members[@member_id].Weight">4x</a></li>
-                                    <li><a class="weight-multiply" multiplier="5" data-field="Members[@member_id].Weight">5x</a></li>
+                                    <li><a class="weight-multiply" multiplier="3" max="@member_max" data-field="Members[@member_id].Weight">3x</a></li>
+                                    <li><a class="weight-multiply" multiplier="4" max="@member_max" data-field="Members[@member_id].Weight">4x</a></li>
+                                    <li><a class="weight-multiply" multiplier="5" max="@member_max" data-field="Members[@member_id].Weight">5x</a></li>
                                 </ul>
                             </span>
                         </div>
@@ -312,7 +338,7 @@ else
             $('.member-weight').tooltip({
                 title: function () {
                     var valueCurrent = parseInt($(this).val());
-                    if (valueCurrent > 22000)
+                    if (valueCurrent > 26000)
                     {
                         var div5 = parseInt(valueCurrent / 5);
                         var div4 = parseInt(valueCurrent / 4);
@@ -337,9 +363,10 @@ else
                 var fieldName = $(this).attr('data-field');
                 var input = $("input[name='" + fieldName + "']");
                 var multiplier = parseInt($(this).attr('multiplier'));
+                var max = parseInt($(this).attr('max'));
                 var currentVal = parseInt(input.val());
                 var newVal = currentVal * multiplier;
-                if (newVal <= 110000)
+                if (newVal <= max)
                     input.val(newVal).change();
             });
 
@@ -404,6 +431,7 @@ else
 
             $('#war-members').text(members_in_war + ' / ' + members_total);
 
+            var th12_count = 0;
             var th11_count = 0;
             var th10_count = 0;
             var th9_count = 0;
@@ -417,7 +445,9 @@ else
                 if ($("input[name='" + checkName + "']").is(':checked'))
                 {
                     war_weight += member_weight;
-                    if (member_weight > 90000)
+                    if (member_weight > 110000)
+                        th12_count++;
+                    else if (member_weight > 90000)
                         th11_count++;
                     else if (member_weight > 70000)
                         th10_count++;
@@ -431,7 +461,7 @@ else
             });
 
             $('#war-weight').text(war_weight);
-            $('#war-composition').text(th11_count + ' / ' + th10_count + ' / ' + th9_count + ' / ' + th8_count + ' / ' + th7_count);
+            $('#war-composition').text(th12_count + ' / ' + th11_count + ' / ' + th10_count + ' / ' + th9_count + ' / ' + th8_count + ' / ' + th7_count);
 
             $('.btn-save').addClass((members_in_war == @Constants.WAR_SIZE1 || members_in_war == @Constants.WAR_SIZE2) ? 'btn-success' : 'btn-danger');
             $('.btn-save').removeClass((members_in_war == @Constants.WAR_SIZE1 || members_in_war == @Constants.WAR_SIZE2) ? 'btn-danger' : 'btn-success');

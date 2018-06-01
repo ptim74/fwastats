@@ -17,6 +17,7 @@ namespace LWFStatsWeb.Models
         public bool PendingResult { get; set; }
 
         public int TeamSize { get; set; }
+        public int TH12Count { get; set; }
         public int TH11Count { get; set; }
         public int TH10Count { get; set; }
         public int TH9Count { get; set; }
@@ -80,26 +81,6 @@ namespace LWFStatsWeb.Models
         public int Base50 { get; set; }
 
         public int Weight { get; set; }
-
-        // Extra properties for submit service
-        /*
-        [NotMapped]
-        public string SubmitName { get; set; }
-        [NotMapped]
-        public string SubmitMessage { get; set; }
-        [NotMapped]
-        public bool SubmitResult { get; set; }
-        [NotMapped]
-        public bool SubmitProcessed { get; set; }
-
-        public string LinkID
-        {
-            get
-            {
-                return Logic.Utils.TagToLinkId(Tag);
-            }
-        }
-        */
 
         public void SetBase(int n, int weight)
         {

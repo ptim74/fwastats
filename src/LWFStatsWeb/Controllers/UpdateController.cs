@@ -261,25 +261,43 @@ namespace LWFStatsWeb.Controllers
                                     result.Timestamp = timestamp;
                                     result.TeamSize = resultDb.TeamSize;
 
-                                    result.TH11Count = Convert.ToInt32(row[6]);
-                                    result.TH10Count = Convert.ToInt32(row[7]);
-                                    result.TH9Count = Convert.ToInt32(row[8]);
-                                    result.TH8Count = Convert.ToInt32(row[9]);
-                                    result.TH7Count = Convert.ToInt32(row[10]);
+                                    var base1index = 11;
+                                    var maxweight = 110000;
+                                    var base1orth7 = Convert.ToInt32(row[base1index]);
+                                    if(base1orth7 < 10)
+                                    {
+                                        base1index = 12;
+                                        maxweight = 130000;
+                                        result.TH12Count = Convert.ToInt32(row[6]);
+                                        result.TH11Count = Convert.ToInt32(row[7]);
+                                        result.TH10Count = Convert.ToInt32(row[8]);
+                                        result.TH9Count = Convert.ToInt32(row[9]);
+                                        result.TH8Count = Convert.ToInt32(row[10]);
+                                        result.TH7Count = Convert.ToInt32(row[11]);
+                                    }
+                                    else
+                                    {
+                                        result.TH12Count = 0;
+                                        result.TH11Count = Convert.ToInt32(row[6]);
+                                        result.TH10Count = Convert.ToInt32(row[7]);
+                                        result.TH9Count = Convert.ToInt32(row[8]);
+                                        result.TH8Count = Convert.ToInt32(row[9]);
+                                        result.TH7Count = Convert.ToInt32(row[10]);
+                                    }
 
-                                    result.THSum = result.TH11Count * 11 + result.TH10Count * 10 + result.TH9Count * 9 + result.TH8Count * 8 + result.TH7Count * 7;
+                                    result.THSum = result.TH12Count * 12 + result.TH11Count * 11 + result.TH10Count * 10 + result.TH9Count * 9 + result.TH8Count * 8 + result.TH7Count * 7;
                                     var totalWeight = 0;
 
-                                    int max = resultDb.TeamSize + 10;
-                                    for (int i = 11; i <= max; i++)
+                                    int max = resultDb.TeamSize + base1index - 1;
+                                    for (int i = base1index; i <= max; i++)
                                     {
                                         var weight = Convert.ToInt32(row[i]);
-                                        if (weight > 110000)
-                                            weight = 110000;
+                                        if (weight > maxweight)
+                                            weight = maxweight;
                                         if (weight < 0)
                                             weight = 0;
                                         totalWeight += weight;
-                                        result.SetBase(i - 10, weight);
+                                        result.SetBase(i - base1index - 1, weight);
                                     }
 
                                     for(int i = resultDb.TeamSize + 1; i <= 50; i++)
@@ -287,7 +305,6 @@ namespace LWFStatsWeb.Controllers
                                         result.SetBase(i, 0);
                                     }
 
-                                    //result.Weight = Convert.ToInt32(row[resultDb.TeamSize + 11]);
                                     result.Weight = totalWeight;
                                 }
                             }

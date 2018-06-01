@@ -151,11 +151,11 @@
 
                 <text>
                 var @data = google.visualization.arrayToDataTable([
-                    ['Weight', 'TH11', 'TH10', 'TH9', 'TH8']
+                    ['Weight', '12', '11', '10', '9', '8']
                 </text>
                 @foreach(var th in townhallCounters.Value)
                 {
-                    @: ,[@th.Weight.ToString().Replace(",","."), @th.TH11.ToString().Replace(",","."), @th.TH10.ToString().Replace(",", "."), @th.TH9.ToString().Replace(",", "."), @th.TH8.ToString().Replace(",", ".")]
+                    @: ,[@th.Weight.ToString().Replace(",","."), @th.TH12.ToString().Replace(",", "."), @th.TH11.ToString().Replace(",","."), @th.TH10.ToString().Replace(",", "."), @th.TH9.ToString().Replace(",", "."), @th.TH8.ToString().Replace(",", ".")]
                 }
                 <text>
                 ]);
@@ -173,11 +173,11 @@
 
             @foreach (var townhallCounters in Model.TownhallCounters)
             {
-                var teamSize = townhallCounters.Key;
-                int gridlines = teamSize / 10 + 1;
-                var data = "hdata" + teamSize;
-                var options = "hoptions" + teamSize;
-                var chart = "histogram" + teamSize;
+                    var teamSize = townhallCounters.Key;
+                    int gridlines = teamSize / 10 + 1;
+                    var data = "hdata" + teamSize;
+                    var options = "hoptions" + teamSize;
+                    var chart = "histogram" + teamSize;
 
                 <text>
                 var @data = google.visualization.arrayToDataTable([

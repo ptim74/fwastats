@@ -87,6 +87,7 @@ namespace LWFStatsWeb.Models
         public int WarCount { get; set; }
         public double MatchPercentage { get; set; }
         public double WinPercentage { get; set; }
+        public int Th12Count { get; set; }
         public int Th11Count { get; set; }
         public int Th10Count { get; set; }
         public int Th9Count { get; set; }

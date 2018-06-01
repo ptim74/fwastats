@@ -74,7 +74,6 @@ namespace LWFStatsWeb
             services.Configure<WeightDatabaseOptions>(Configuration.GetSection("WeightDatabase"));
             services.Configure<WeightResultOptions>(Configuration.GetSection("ResultDatabase"));
             services.Configure<GoogleServiceOptions>(Configuration.GetSection("GoogleService"));
-            services.Configure<GlobalOptions>(Configuration.GetSection("Options"));
 
             //services.Configure<GoogleOptions>(Configuration.GetSection("GoogleAuth"));
 
