@@ -341,6 +341,10 @@
                         {
                             <td class="text-primary"><b><a class="text-primary" asp-route-id="@clanEvent.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@clanEvent.Name</a></b> upgraded to TH<span>@clanEvent.Value</span></td>
                         }
+                        @if (clanEvent.EventType == PlayerEventType.NameChange)
+                        {
+                            <td class="text-warning"><b><a class="text-warning" asp-route-id="@clanEvent.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@clanEvent.Value</a></b> changed name to <b>@clanEvent.Name</b></td>
+                        }
                             <td>
                                 @clanEvent.TimeDesc
                             </td>

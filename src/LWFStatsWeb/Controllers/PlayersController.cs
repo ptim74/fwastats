@@ -119,6 +119,10 @@ namespace LWFStatsWeb.Controllers
                 {
                     e.Value = clanEvent.Event.RoleName;
                 }
+                else if (e.EventType == PlayerEventType.NameChange)
+                {
+                    e.Value = clanEvent.Event.StringValue;
+                }
                 else
                 {
                     e.Value = clanEvent.Event.Value.ToString();

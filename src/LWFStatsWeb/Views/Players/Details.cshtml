@@ -226,6 +226,10 @@
                                 {
                                     <td class="text-primary">Upgraded to TH<span>@clanEvent.Value</span></td>
                                 }
+                                 @if (clanEvent.EventType == PlayerEventType.NameChange)
+                                {
+                                    <td class="text-warning">Changed name from <b>@clanEvent.Value</b></td>
+                                }
                                 <td>@clanEvent.TimeDesc</td>
                             </tr>
                         }
