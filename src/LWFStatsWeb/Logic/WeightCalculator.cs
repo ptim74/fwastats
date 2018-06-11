@@ -11,6 +11,7 @@ namespace LWFStatsWeb.Logic
         public class Results
         {
             public string Tag { get; set; }
+            public int Th12Count { get; set; }
             public int Th11Count { get; set; }
             public int Th10Count { get; set; }
             public int Th9Count { get; set; }
@@ -41,6 +42,9 @@ namespace LWFStatsWeb.Logic
                 {
                     switch (th.TownHallLevel)
                     {
+                        case 12:
+                            ret.Th12Count = th.Count;
+                            break;
                         case 11:
                             ret.Th11Count = th.Count;
                             break;
@@ -61,8 +65,13 @@ namespace LWFStatsWeb.Logic
 
                 //Calculate estimated max weight
                 var availableMembers = Constants.WAR_SIZE1; //TODO
-                var thLevelMembers = ret.Th11Count < availableMembers ? ret.Th11Count : availableMembers;
-                var maxWeight = thLevelMembers * 105;
+
+                var thLevelMembers = ret.Th12Count < availableMembers ? ret.Th12Count : availableMembers;
+                var maxWeight = thLevelMembers * 125;
+                availableMembers -= thLevelMembers;
+
+                thLevelMembers = ret.Th11Count < availableMembers ? ret.Th11Count : availableMembers;
+                maxWeight += thLevelMembers * 105;
                 availableMembers -= thLevelMembers;
 
                 thLevelMembers = ret.Th10Count < availableMembers ? ret.Th10Count : availableMembers;
@@ -102,6 +111,10 @@ namespace LWFStatsWeb.Logic
 
                 thLevelMembers = ret.Th11Count < availableMembers ? ret.Th11Count : availableMembers;
                 minWeight += thLevelMembers * 105;
+                availableMembers -= thLevelMembers;
+
+                thLevelMembers = ret.Th12Count < availableMembers ? ret.Th12Count : availableMembers;
+                minWeight += thLevelMembers * 125;
                 availableMembers -= thLevelMembers;
 
                 ret.EstimatedWeight = (maxWeight + minWeight) / 2;
