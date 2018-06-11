@@ -21,6 +21,7 @@ namespace LWFStatsWeb.Controllers
         private readonly IClanUpdater updater;
         private readonly IClashApi api;
         private readonly IClanStatistics statistics;
+        private readonly IMemberUpdater memberUpdater;
         ILogger<UpdateController> logger;
         IGoogleSheetsService googleSheets;
         IOptions<WeightDatabaseOptions> weightDatabase;
@@ -29,11 +30,12 @@ namespace LWFStatsWeb.Controllers
         private static object lockObject = new object();
 
         public UpdateController(
-            ApplicationDbContext context, 
+            ApplicationDbContext context,
             IClanLoader loader,
             IClanUpdater updater,
             IClashApi api,
             IClanStatistics statistics,
+            IMemberUpdater memberUpdater,
             ILogger<UpdateController> logger,
             IGoogleSheetsService googleSheets,
             IOptions<WeightDatabaseOptions> weightDatabase,
@@ -44,6 +46,7 @@ namespace LWFStatsWeb.Controllers
             this.updater = updater;
             this.api = api;
             this.statistics = statistics;
+            this.memberUpdater = memberUpdater;
             this.logger = logger;
             this.googleSheets = googleSheets;
             this.weightDatabase = weightDatabase;
@@ -370,38 +373,10 @@ namespace LWFStatsWeb.Controllers
             try
             {
                 var newPlayer = await api.GetPlayer(playerTag);
-                playerName = $"{newPlayer.Name} / {newPlayer.ClanName}";
-                var oldPlayer = db.Players.SingleOrDefault(e => e.Tag == playerTag);
-                if (oldPlayer == null)
-                {
-                    newPlayer.LastUpdated = DateTime.UtcNow;
-                    db.Entry(newPlayer).State = EntityState.Added;
-                }
-                else
-                {
-                    if (oldPlayer.TownHallLevel != newPlayer.TownHallLevel)
-                        db.Add(new PlayerEvent {
-                            ClanTag = newPlayer.ClanTag,
-                            PlayerTag = newPlayer.Tag,
-                            EventDate = DateTime.UtcNow,
-                            EventType = PlayerEventType.Townhall,
-                            Value = newPlayer.TownHallLevel
-                        });
-
-                    oldPlayer.AttackWins = newPlayer.AttackWins;
-                    oldPlayer.BestTrophies = newPlayer.BestTrophies;
-                    oldPlayer.DefenseWins = newPlayer.DefenseWins;
-                    oldPlayer.TownHallLevel = newPlayer.TownHallLevel;
-                    oldPlayer.WarStars = newPlayer.WarStars;
-                    oldPlayer.LastUpdated = DateTime.UtcNow;
-
-                    db.Entry(oldPlayer).State = EntityState.Modified;
-                }
-
-                db.SaveChanges();
-
-                status.Message = playerName;
-                status.Status = true;
+                playerName = newPlayer.Name;
+                var memberStatus = memberUpdater.UpdatePlayer(newPlayer, false);
+                status.Message = memberStatus.Message;
+                status.Status = memberStatus.Status;
             }
             catch(Exception e)
             {
@@ -486,6 +461,24 @@ namespace LWFStatsWeb.Controllers
                         existingMember.Donations = member.Donations;
                         existingMember.DonationsReceived = member.DonationsReceived;
                         existingMember.ExpLevel = member.ExpLevel;
+                        if (existingMember.Name != member.Name)
+                        {
+                            db.PlayerEvents.Add(new PlayerEvent
+                            {
+                                ClanTag = clan.Tag,
+                                PlayerTag = member.Tag,
+                                EventDate = DateTime.UtcNow,
+                                EventType = PlayerEventType.NameChange,
+                                StringValue = existingMember.Name,
+                                Role = member.Role
+                            });
+
+                            var existingPlayer = db.Players.SingleOrDefault(p => p.Tag == member.Tag);
+                            if(existingPlayer != null)
+                            {
+                                existingPlayer.Name = member.Name;
+                            }
+                        }
                         existingMember.Name = member.Name;
                         existingMember.Trophies = member.Trophies;
                         if (existingMember.Role != member.Role)
@@ -520,6 +513,27 @@ namespace LWFStatsWeb.Controllers
                             });
 
                             otherClanMember.ClanTag = member.ClanTag;
+
+                            if (otherClanMember.Name != member.Name)
+                            {
+                                db.PlayerEvents.Add(new PlayerEvent
+                                {
+                                    ClanTag = otherClanMember.ClanTag,
+                                    PlayerTag = member.Tag,
+                                    EventDate = DateTime.UtcNow,
+                                    EventType = PlayerEventType.NameChange,
+                                    StringValue = otherClanMember.Name,
+                                    Role = member.Role
+                                });
+
+                                var existingPlayer = db.Players.SingleOrDefault(p => p.Tag == member.Tag);
+                                if (existingPlayer != null)
+                                {
+                                    existingPlayer.Name = member.Name;
+                                }
+
+                                otherClanMember.Name = member.Name;
+                            }
                         }
                         else
                         {

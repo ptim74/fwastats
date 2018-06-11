@@ -16,15 +16,18 @@ namespace LWFStatsWeb.Controllers
     {
         private readonly ApplicationDbContext db;
         private readonly IClashApi api;
+        private readonly IMemberUpdater memberUpdater;
         ILogger<PlayersController> logger;
 
         public PlayersController(
             ApplicationDbContext db,
             IClashApi api,
+            IMemberUpdater memberUpdater,
             ILogger<PlayersController> logger)
         {
             this.db = db;
             this.api = api;
+            this.memberUpdater = memberUpdater;
             this.logger = logger;
         }
 
@@ -101,11 +104,13 @@ namespace LWFStatsWeb.Controllers
                 Player = await api.GetPlayer(tag)
             };
 
+            memberUpdater.UpdatePlayer(ret.Player, true);
+
             var events = from e in db.PlayerEvents
                          join v in db.ClanValidities on e.ClanTag equals v.Tag
                          where e.PlayerTag == tag
                          orderby e.EventDate descending
-                         select new { Event = e, Name = v.Name };
+                         select new { Event = e, v.Name };
 
             foreach (var clanEvent in events.Take(100))
             {

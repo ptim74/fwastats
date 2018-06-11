@@ -14,7 +14,8 @@ namespace LWFStatsWeb.Models
         Stars = 3,
         Townhall = 4,
         Promote = 5,
-        Demote = 6
+        Demote = 6,
+        NameChange = 7
     }
 
     public class PlayerEvent
@@ -30,6 +31,9 @@ namespace LWFStatsWeb.Models
         public PlayerEventType EventType { get; set; }
 
         public int Value { get; set; }
+
+        [StringLength(10)]
+        public string StringValue { get; set; }
 
         public DateTime EventDate { get; set; }
 

@@ -101,6 +101,7 @@ namespace LWFStatsWeb
             // Clash related services
             services.AddTransient<IClanLoader, ClanLoader>();
             services.AddTransient<IClanUpdater, ClanUpdater>();
+            services.AddTransient<IMemberUpdater, MemberUpdater>();
             services.AddTransient<IClanStatistics, ClanStatistics>();
             services.AddTransient<IClashApi, ClashApi>();
             services.AddTransient<IGoogleSheetsService, GoogleSheetsService>();
