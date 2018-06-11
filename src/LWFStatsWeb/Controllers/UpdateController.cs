@@ -645,13 +645,13 @@ namespace LWFStatsWeb.Controllers
 
                     if (war.Members != null && war.Members.Count > 0)
                     {
-                        var warMembers = (from m in db.WarMembers where m.WarID == war.ID select new { m.Tag, m.OpponentAttacks, m.ID }).ToDictionary(m => m.Tag, m => new { m.ID, m.OpponentAttacks });
+                        var warMembers = (from m in db.WarMembers where m.WarID == war.ID select new { m.Tag, m.OpponentAttacks, m.ID, m.TownHallLevel }).ToDictionary(m => m.Tag, m => new { m.ID, m.OpponentAttacks, m.TownHallLevel });
                         foreach (var member in war.Members)
                         {
                             addedMembers.Add(member.Tag);
                             if (warMembers.TryGetValue(member.Tag, out var memberDetails))
                             {
-                                if (memberDetails.OpponentAttacks != member.OpponentAttacks)
+                                if (memberDetails.OpponentAttacks != member.OpponentAttacks || memberDetails.TownHallLevel != member.TownHallLevel)
                                 {
                                     member.ID = memberDetails.ID;
                                     db.Entry(member).State = EntityState.Modified;
