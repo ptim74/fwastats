@@ -12,5 +12,13 @@ namespace LWFStatsWeb.Models.ClanViewModels
         public int Weight { get; set; }
         public bool InWar { get; set; }
         public int TownHallLevel { get; set; }
+
+        public string LinkID
+        {
+            get
+            {
+                return Logic.Utils.TagToLinkId(Tag);
+            }
+        }
     }
 }
