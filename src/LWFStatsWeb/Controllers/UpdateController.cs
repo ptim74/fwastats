@@ -682,17 +682,19 @@ namespace LWFStatsWeb.Controllers
                             var clanPlayers = (from m in db.WarMembers from p in db.Players where m.WarID == war.ID && m.Tag == p.Tag && m.TownHallLevel > p.TownHallLevel select new { p, m }).ToList();
                             foreach (var player in clanPlayers)
                             {
-                                player.p.TownHallLevel = player.m.TownHallLevel;
-
-                                db.PlayerEvents.Add(new PlayerEvent
+                                if (!player.m.IsOpponent)
                                 {
-                                    ClanTag = clan.Tag,
-                                    PlayerTag = player.p.Tag,
-                                    EventDate = DateTime.UtcNow,
-                                    EventType = PlayerEventType.Townhall,
-                                    Value = player.p.TownHallLevel
-                                });
+                                    player.p.TownHallLevel = player.m.TownHallLevel;
 
+                                    db.PlayerEvents.Add(new PlayerEvent
+                                    {
+                                        ClanTag = clan.Tag,
+                                        PlayerTag = player.p.Tag,
+                                        EventDate = DateTime.UtcNow,
+                                        EventType = PlayerEventType.Townhall,
+                                        Value = player.p.TownHallLevel
+                                    });
+                                }
                             }
                         }
                     }
