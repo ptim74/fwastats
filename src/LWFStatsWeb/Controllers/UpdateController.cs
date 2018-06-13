@@ -155,7 +155,7 @@ namespace LWFStatsWeb.Controllers
                         timestamp = timestamp.Subtract(Utils.EasternTimeZone.GetUtcOffset(timestamp));
                     }
 
-                    if (weight <= 110)
+                    if (weight <= 200)
                         weight *= 1000;
 
                     tag = Utils.LinkIdToTag(tag);
