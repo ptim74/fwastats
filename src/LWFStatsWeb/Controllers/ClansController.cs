@@ -279,7 +279,7 @@ namespace LWFStatsWeb.Controllers
                     member.TownHallLevel = thlevel.TownHallLevel;
                     if (member.TownHallLevel == 12)
                         details.Clan.Th12Count++;
-                    if (member.TownHallLevel == 11)
+                    else if (member.TownHallLevel == 11)
                         details.Clan.Th11Count++;
                     else if (member.TownHallLevel == 10)
                         details.Clan.Th10Count++;
@@ -309,7 +309,7 @@ namespace LWFStatsWeb.Controllers
                     {
                         if (member.TownHallLevel == 12)
                             details.Clan.EstimatedWeight += 125;
-                        if (member.TownHallLevel == 11)
+                        else if (member.TownHallLevel == 11)
                             details.Clan.EstimatedWeight += 105;
                         else if (member.TownHallLevel == 10)
                             details.Clan.EstimatedWeight += 85;
