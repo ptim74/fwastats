@@ -293,6 +293,8 @@ namespace LWFStatsWeb.Controllers
                     }
                 }
                 db.SaveChanges();
+
+                logger.LogInformation("{0} weights processed", data.Count);
             }
         }
 
