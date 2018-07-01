@@ -238,7 +238,7 @@ namespace LWFStatsWeb.Controllers
             if (data != null)
             {
                 var weights = new Dictionary<string, Weight>();
-                if(fullUpdate) //Cache all weights when doing full update
+                if(fullUpdate || data.Count > 100) //Cache all weights when doing full update
                     weights = db.Weights.ToDictionary(w => w.Tag);
                 var updates = 0;
                 var dateZero = new DateTime(1899, 12, 30, 0, 0, 0);
