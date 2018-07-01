@@ -237,7 +237,9 @@ namespace LWFStatsWeb.Controllers
 
             if (data != null)
             {
-                var weights = db.Weights.ToDictionary(w => w.Tag);
+                var weights = new Dictionary<string, Weight>();
+                if(fullUpdate) //Cache all weights when doing full update
+                    weights = db.Weights.ToDictionary(w => w.Tag);
                 var updates = 0;
                 var dateZero = new DateTime(1899, 12, 30, 0, 0, 0);
 
@@ -260,6 +262,15 @@ namespace LWFStatsWeb.Controllers
 
                     if (!string.IsNullOrEmpty(tag))
                     {
+                        if(!fullUpdate)
+                        {
+                            if(!weights.ContainsKey(tag))
+                            {
+                                var w1 = db.Weights.SingleOrDefault(t => t.Tag == tag);
+                                if (w1 != null)
+                                    weights.Add(tag, w1);
+                            }
+                        }
                         if (weights.TryGetValue(tag, out var w))
                         {
                             if (weight != w.WarWeight && timestamp > w.LastModified)
