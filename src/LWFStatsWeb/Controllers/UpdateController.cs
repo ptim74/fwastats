@@ -10,6 +10,8 @@ using LWFStatsWeb.Logic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Firebase.Database.Query;
+using Firebase.Database;
 
 namespace LWFStatsWeb.Controllers
 {
@@ -28,6 +30,16 @@ namespace LWFStatsWeb.Controllers
         IOptions<WeightResultOptions> resultDatabase;
 
         private static object lockObject = new object();
+
+        class PlayerWeight
+        {
+            public string Tag { get; set; }
+            public string Th { get; set; }
+            public string Extra { get; set; }
+            public decimal? Loot { get; set; }
+            public DateTime? Time { get; set; }
+            public decimal? Wt { get; set; }
+        }
 
         public UpdateController(
             ApplicationDbContext context,
@@ -119,7 +131,7 @@ namespace LWFStatsWeb.Controllers
             db.SaveChanges();
         }
 
-        protected async Task UpdateWeights()
+        protected async Task UpdateWeightsOld()
         {
             var data = await googleSheets.Get(weightDatabase.Value.SheetId, "ROWS", weightDatabase.Value.Range);
             if (data != null)
@@ -189,6 +201,96 @@ namespace LWFStatsWeb.Controllers
                     }
 
                     if(updates > 100)
+                    {
+                        db.SaveChanges();
+                        updates = 0;
+                    }
+                }
+                db.SaveChanges();
+            }
+        }
+
+        protected async Task UpdateWeights()
+        {
+            var firebase = new FirebaseClient(weightDatabase.Value.Url);
+
+            var now = DateTime.UtcNow;
+
+            FirebaseQuery query = null;
+
+            //Full database search once per week or if sinceHours = 0
+            if(weightDatabase.Value.SinceHours == 0 || (now.DayOfWeek == DayOfWeek.Monday && now.Hour == 0 && now.Minute < 15))
+            {
+                logger.LogInformation("Full weight search");
+                query = firebase.Child(weightDatabase.Value.ResourceName);
+            }
+            else
+            {
+                var dateFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'";
+                var sinceDate = now.AddHours(-1 * weightDatabase.Value.SinceHours).ToString(dateFormat);
+
+                logger.LogInformation("Weight search from {0}", sinceDate);
+
+                query = firebase
+                    .Child(weightDatabase.Value.ResourceName)
+                    .OrderBy("time")
+                    .StartAt(sinceDate);
+            }
+
+            var data = await query.OnceAsync<PlayerWeight>();
+
+            if (data != null)
+            {
+                var weights = db.Weights.ToDictionary(w => w.Tag);
+                var updates = 0;
+                var dateZero = new DateTime(1899, 12, 30, 0, 0, 0);
+
+                foreach (var row in data)
+                {
+                    var tag = "";
+                    var weight = 0;
+                    DateTime timestamp = DateTime.MinValue;
+
+                    tag = row.Key;
+                    if (row.Object.Wt.HasValue)
+                        weight = Convert.ToInt32(row.Object.Wt);
+                    if (row.Object.Time.HasValue)
+                        timestamp = row.Object.Time.Value.ToUniversalTime();
+
+                    if (weight <= 200)
+                        weight *= 1000;
+
+                    tag = Utils.LinkIdToTag(tag);
+
+                    if (!string.IsNullOrEmpty(tag))
+                    {
+                        if (weights.TryGetValue(tag, out var w))
+                        {
+                            if (weight != w.WarWeight && timestamp > w.LastModified)
+                            {
+                                logger.LogInformation("UpdateWeight: {0} {1} -> {2} ({3} > {4})", tag, w.WarWeight, weight, timestamp, w.LastModified);
+                                w.WarWeight = weight;
+                                w.ExtWeight = weight;
+                                w.LastModified = timestamp;
+                                updates++;
+                            }
+                            else if (weight != w.ExtWeight)
+                            {
+                                w.ExtWeight = weight;
+                                updates++;
+                            }
+                        }
+                        else
+                        {
+                            logger.LogInformation("InsertWeight: {0} {1} ({2})", tag, weight, timestamp);
+                            var newWeight = new Weight { Tag = tag, WarWeight = weight, ExtWeight = weight, LastModified = timestamp };
+                            db.Weights.Add(newWeight);
+                            weights.Add(tag, newWeight);
+                            updates++;
+                        }
+                    }
+
+                    if (updates > 100)
                     {
                         db.SaveChanges();
                         updates = 0;
