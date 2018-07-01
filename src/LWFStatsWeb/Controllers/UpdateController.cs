@@ -210,16 +210,12 @@ namespace LWFStatsWeb.Controllers
             }
         }
 
-        protected async Task UpdateWeights()
+        protected async Task UpdateWeights(bool fullUpdate)
         {
             var firebase = new FirebaseClient(weightDatabase.Value.Url);
-
-            var now = DateTime.UtcNow;
-
             FirebaseQuery query = null;
 
-            //Full database search once per week or if sinceHours = 0
-            if(weightDatabase.Value.SinceHours == 0 || (now.DayOfWeek == DayOfWeek.Monday && now.Hour == 0 && now.Minute < 15))
+            if(fullUpdate)
             {
                 logger.LogInformation("Full weight search");
                 query = firebase.Child(weightDatabase.Value.ResourceName);
@@ -227,7 +223,7 @@ namespace LWFStatsWeb.Controllers
             else
             {
                 var dateFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'";
-                var sinceDate = now.AddHours(-1 * weightDatabase.Value.SinceHours).ToString(dateFormat);
+                var sinceDate = DateTime.UtcNow.AddHours(-1 * weightDatabase.Value.SinceHours).ToString(dateFormat);
 
                 logger.LogInformation("Weight search from {0}", sinceDate);
 
@@ -1084,7 +1080,21 @@ namespace LWFStatsWeb.Controllers
                 try
                 {
                     logger.LogInformation("Task.Weights");
-                    await this.UpdateWeights();
+                    await this.UpdateWeights(false);
+                }
+                catch (Exception e)
+                {
+                    model.Errors.Add(e.Message);
+                    logger.LogError(e.ToString());
+                }
+            }
+
+            if (task == "allweights")
+            {
+                try
+                {
+                    logger.LogInformation("Task.AllWeights");
+                    await this.UpdateWeights(true);
                 }
                 catch (Exception e)
                 {
@@ -1225,7 +1235,13 @@ namespace LWFStatsWeb.Controllers
             try
             {
                 logger.LogInformation("PerformFinished.Weights");
-                await this.UpdateWeights();
+                var fullUpdate = false;
+                if (weightDatabase.Value.SinceHours == 0)
+                    fullUpdate = true;
+                var now = DateTime.UtcNow;
+                if (now.DayOfWeek == DayOfWeek.Monday && now.Hour == 0 && now.Minute < 15)
+                    fullUpdate = true;
+                await this.UpdateWeights(fullUpdate);
             }
             catch (Exception e)
             {
