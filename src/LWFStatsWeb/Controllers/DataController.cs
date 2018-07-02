@@ -13,7 +13,7 @@ namespace LWFStatsWeb.Controllers
     public class DataController : Controller
     {
         private readonly ApplicationDbContext db;
-        ILogger<DataController> logger;
+        private readonly ILogger<DataController> logger;
 
         public DataController(
             ApplicationDbContext db,

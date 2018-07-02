@@ -33,7 +33,7 @@ namespace LWFStatsWeb.Logic
     {
         private readonly ApplicationDbContext db;
         private readonly IOptions<StatisicsOptions> options;
-        ILogger<ClanStatistics> logger;
+        private readonly ILogger<ClanStatistics> logger;
 
         public ClanStatistics(
             ApplicationDbContext db,
@@ -60,21 +60,19 @@ namespace LWFStatsWeb.Logic
 
             var syncTimes = db.WarSyncs.Select(s => s.Start).ToHashSet();
 
-            var cals = Calendar.Load(data);
-            foreach (var cal in cals)
-            {
-                foreach (var syncEvent in cal.Events.Where(a => a.Duration == syncDuration).OrderBy(a => a.Start))
-                {
-                    var eventStart = syncEvent.Start.AsUtc;
-                    var eventEnd = syncEvent.End.AsUtc;
+            var cal = Calendar.Load(data);
 
-                    if (!syncTimes.Contains(eventStart))
+            foreach (var syncEvent in cal.Events.Where(a => a.Duration == syncDuration).OrderBy(a => a.Start))
+            {
+                var eventStart = syncEvent.Start.AsUtc;
+                var eventEnd = syncEvent.End.AsUtc;
+
+                if (!syncTimes.Contains(eventStart))
+                {
+                    if (eventStart < DateTime.UtcNow)
                     {
-                        if (eventStart < DateTime.UtcNow)
-                        {
-                            var sync = new WarSync { Start = eventStart, Finish = eventEnd };
-                            db.WarSyncs.Add(sync);
-                        }
+                        var sync = new WarSync { Start = eventStart, Finish = eventEnd };
+                        db.WarSyncs.Add(sync);
                     }
                 }
             }

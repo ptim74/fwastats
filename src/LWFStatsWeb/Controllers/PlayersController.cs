@@ -17,7 +17,7 @@ namespace LWFStatsWeb.Controllers
         private readonly ApplicationDbContext db;
         private readonly IClashApi api;
         private readonly IMemberUpdater memberUpdater;
-        ILogger<PlayersController> logger;
+        private readonly ILogger<PlayersController> logger;
 
         public PlayersController(
             ApplicationDbContext db,
@@ -67,6 +67,7 @@ namespace LWFStatsWeb.Controllers
                 {
                     var clanNames = db.Clans.ToDictionary(c => c.Tag, c => c.Name);
 
+                    #pragma warning disable IDE0031
                     var players = from p in db.Players
                                   where p.Name.ToUpperInvariant().Contains(q.ToUpperInvariant())
                                   join im in db.Members on p.Tag equals im.Tag into InnerMembers
@@ -76,10 +77,11 @@ namespace LWFStatsWeb.Controllers
                                       Tag = p.Tag,
                                       Name = p.Name,
                                       LastSeen = p.LastUpdated,
-                                      ClanTag = m != null ? m.ClanTag : null
+                                      ClanTag = (m != null ? m.ClanTag : null)
                                   };
+                    #pragma warning restore IDE0031
 
-                    foreach(var player in players.OrderBy(p => p.Name.ToUpperInvariant()).Take(100))
+                    foreach (var player in players.OrderBy(p => p.Name.ToUpperInvariant()).Take(100))
                     {
                         if (!string.IsNullOrEmpty(player.ClanTag) && clanNames.ContainsKey(player.ClanTag))
                             player.ClanName = clanNames[player.ClanTag];

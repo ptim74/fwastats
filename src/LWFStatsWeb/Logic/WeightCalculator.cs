@@ -20,7 +20,7 @@ namespace LWFStatsWeb.Logic
             public int EstimatedWeight { get; set; }
         }
 
-        ApplicationDbContext db;
+        private readonly ApplicationDbContext db;
 
         public WeightCalculator(ApplicationDbContext db)
         {
@@ -32,7 +32,7 @@ namespace LWFStatsWeb.Logic
             var qthlevelq = (from m in db.Members
                      join p in db.Players on m.Tag equals p.Tag
                      group m by new { m.ClanTag, p.TownHallLevel } into g
-                     select new { ClanTag = g.Key.ClanTag, TownHallLevel = g.Key.TownHallLevel, Count = g.Count() }).ToLookup(t => t.ClanTag);
+                     select new { g.Key.ClanTag, g.Key.TownHallLevel, Count = g.Count() }).ToLookup(t => t.ClanTag);
 
             foreach(var thlevels in qthlevelq)
             {

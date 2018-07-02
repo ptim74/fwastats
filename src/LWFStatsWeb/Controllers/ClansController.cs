@@ -22,11 +22,11 @@ namespace LWFStatsWeb.Controllers
     {
         private readonly ApplicationDbContext db;
         private readonly IClashApi api;
-        ILogger<ClansController> logger;
-        IGoogleSheetsService googleSheets;
-        IClanLoader clanLoader;
-        IOptions<WeightResultOptions> resultDatabase;
-        WeightSubmitService submitService;
+        private readonly ILogger<ClansController> logger;
+        private readonly IGoogleSheetsService googleSheets;
+        private readonly IClanLoader clanLoader;
+        private readonly IOptions<WeightResultOptions> resultDatabase;
+        private readonly WeightSubmitService submitService;
 
         public ClansController(
             ApplicationDbContext db,

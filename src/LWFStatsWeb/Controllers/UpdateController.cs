@@ -29,7 +29,7 @@ namespace LWFStatsWeb.Controllers
         IOptions<WeightDatabaseOptions> weightDatabase;
         IOptions<WeightResultOptions> resultDatabase;
 
-        private static object lockObject = new object();
+        private static readonly object lockObject = new object();
 
         class PlayerWeight
         {

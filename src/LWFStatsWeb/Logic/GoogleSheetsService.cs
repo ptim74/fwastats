@@ -20,7 +20,7 @@ namespace LWFStatsWeb.Logic
 
     public class GoogleSheetsService : IGoogleSheetsService
     {
-        IOptions<GoogleServiceOptions> googleOptions;
+        private readonly IOptions<GoogleServiceOptions> googleOptions;
 
         public GoogleSheetsService(
             IOptions<GoogleServiceOptions> googleOptions)

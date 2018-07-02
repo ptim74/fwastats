@@ -33,7 +33,7 @@ namespace LWFStatsWeb.Logic
 
     public class ClashApi : IClashApi
     {
-        IOptions<ClashApiOptions> options;
+        private readonly IOptions<ClashApiOptions> options;
 
         public ClashApi(IOptions<ClashApiOptions> options)
         {

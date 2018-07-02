@@ -13,7 +13,7 @@ namespace LWFStatsWeb.Controllers
     public class SyncsController : Controller
     {
         private readonly ApplicationDbContext db;
-        ILogger<SyncsController> logger;
+        private readonly ILogger<SyncsController> logger;
 
         public SyncsController(
             ApplicationDbContext db,
@@ -76,7 +76,7 @@ namespace LWFStatsWeb.Controllers
             {
                 var q = from w in db.Wars
                     where w.PreparationStartTime >= s.Start && w.PreparationStartTime <= s.Finish && w.Synced == true && w.Friendly == false
-                    select new { ClanTag = w.ClanTag, Result = w.Result, OpponentTag = w.OpponentTag, OpponentName = w.OpponentName, OpponentBadge = w.OpponentBadgeUrl };
+                    select new { w.ClanTag, w.Result, w.OpponentTag, w.OpponentName, OpponentBadge = w.OpponentBadgeUrl };
 
                 foreach (var r in q)
                 {

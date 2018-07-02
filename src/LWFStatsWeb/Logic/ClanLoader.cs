@@ -31,8 +31,8 @@ namespace LWFStatsWeb.Logic
 
     public class ClanLoader : IClanLoader
     {
-        IOptions<ClanListOptions> options;
-        IGoogleSheetsService googleSheets;
+        private readonly IOptions<ClanListOptions> options;
+        private readonly IGoogleSheetsService googleSheets;
 
         public ClanLoader(
             IOptions<ClanListOptions> options,

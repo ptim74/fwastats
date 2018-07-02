@@ -11,7 +11,7 @@ namespace LWFStatsWeb.Controllers
     public class HomeController : Controller
     {
         private readonly ApplicationDbContext db;
-        ILogger<HomeController> logger;
+        private readonly ILogger<HomeController> logger;
 
         public HomeController(
             ApplicationDbContext db,

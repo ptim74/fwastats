@@ -19,7 +19,7 @@ using Microsoft.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using LWFStatsWeb.Formatters;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Hosting;
+//using Microsoft.Extensions.Hosting;
 
 namespace LWFStatsWeb
 {
@@ -106,7 +106,7 @@ namespace LWFStatsWeb
             services.AddTransient<IClashApi, ClashApi>();
             services.AddTransient<IGoogleSheetsService, GoogleSheetsService>();
             services.AddSingleton<WeightSubmitService>();
-            services.AddSingleton<IHostedService, HostedWebSubmitService>();
+            services.AddSingleton<Microsoft.Extensions.Hosting.IHostedService, HostedWebSubmitService>();
 
             // Caching
             services.AddMemoryCache();

@@ -24,11 +24,11 @@ namespace LWFStatsWeb.Services
         private SubmitEntry currentEntry = null;
         private SubmitEntry previousEntry = null;
 
-        ILogger<WeightSubmitService> logger;
-        IOptions<WeightSubmitOptions> submitOptions;
-        IGoogleSheetsService googleSheets;
-        IOptions<WeightResultOptions> resultDatabase;
-        IClanLoader clanLoader;
+        private readonly ILogger<WeightSubmitService> logger;
+        private readonly IOptions<WeightSubmitOptions> submitOptions;
+        private readonly IGoogleSheetsService googleSheets;
+        private readonly IOptions<WeightResultOptions> resultDatabase;
+        private readonly IClanLoader clanLoader;
 
         public WeightSubmitService(
             ILogger<WeightSubmitService> logger,
