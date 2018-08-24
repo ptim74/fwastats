@@ -523,6 +523,10 @@ namespace LWFStatsWeb.Controllers
                     db.Entry(clanMember).State = EntityState.Modified;
             }
 
+            db.Clans.Add(clan);
+
+            db.SaveChanges();
+
             if (clan.Wars != null)
             {
                 var existingWars = (from w in db.Wars where w.ClanTag == clan.Tag select w.ID).ToDictionary(w => w);
@@ -533,8 +537,6 @@ namespace LWFStatsWeb.Controllers
                         db.Wars.Add(clanWar);
                 }
             }
-
-            db.Clans.Add(clan);
 
             db.SaveChanges();
         }
@@ -919,6 +921,12 @@ namespace LWFStatsWeb.Controllers
                 logger.LogError("PerformTask.Error: {0}", e.ToString());
                 status.Message = string.Format("{0} {1} {2} Failed: {3}", task.ClanTag, task.ClanName, task.Mode, e.Message);
                 status.Status = false;
+                var inner = e.InnerException;
+                while(inner != null)
+                {
+                    logger.LogError("PerformTask.Inner: {0}", inner.Message);
+                    inner = inner.InnerException;
+                }
             }
 
             return status;
