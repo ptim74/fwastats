@@ -11,8 +11,7 @@ namespace LWFStatsWeb.Data.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "StringValue",
                 table: "PlayerEvents",
-                type: "TEXT",
-                maxLength: 10,
+                maxLength: 15,
                 nullable: true);
         }
 

@@ -13,12 +13,12 @@ namespace LWFStatsWeb.Models
     {
         [ForeignKey("Clan")]
         [DataMember]
-        [StringLength(10)]
+        [StringLength(15)]
         public string ClanTag { get; set; }
 
         [Key]
         [DataMember]
-        [StringLength(10)]
+        [StringLength(15)]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public string Tag { get; set; }
 
@@ -33,7 +33,7 @@ namespace LWFStatsWeb.Models
         public int Trophies { get; set; }
 
         [DataMember]
-        [StringLength(10)]
+        [StringLength(15)]
         public string Role { get; set; }
 
         [DataMember]

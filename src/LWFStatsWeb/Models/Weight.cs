@@ -10,7 +10,7 @@ namespace LWFStatsWeb.Models
     public class Weight
     {
         [Key]
-        [StringLength(10)]
+        [StringLength(15)]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public string Tag { get; set; }
         public int WarWeight { get; set; }

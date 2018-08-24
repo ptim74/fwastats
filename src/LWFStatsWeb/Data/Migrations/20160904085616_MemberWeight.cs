@@ -12,7 +12,7 @@ namespace LWFStatsWeb.Data.Migrations
                 name: "Weights",
                 columns: table => new
                 {
-                    Tag = table.Column<string>(maxLength: 10, nullable: false),
+                    Tag = table.Column<string>(maxLength: 15, nullable: false),
                     InWar = table.Column<bool>(nullable: false),
                     LastModified = table.Column<DateTime>(nullable: false),
                     WarWeight = table.Column<int>(nullable: false)

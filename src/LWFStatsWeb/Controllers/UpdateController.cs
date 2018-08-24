@@ -523,10 +523,6 @@ namespace LWFStatsWeb.Controllers
                     db.Entry(clanMember).State = EntityState.Modified;
             }
 
-            db.Clans.Add(clan);
-
-            db.SaveChanges();
-
             if (clan.Wars != null)
             {
                 var existingWars = (from w in db.Wars where w.ClanTag == clan.Tag select w.ID).ToDictionary(w => w);
@@ -537,6 +533,8 @@ namespace LWFStatsWeb.Controllers
                         db.Wars.Add(clanWar);
                 }
             }
+
+            db.Clans.Add(clan);
 
             db.SaveChanges();
         }

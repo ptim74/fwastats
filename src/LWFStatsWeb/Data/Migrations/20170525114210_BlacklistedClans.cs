@@ -12,7 +12,7 @@ namespace LWFStatsWeb.Data.Migrations
                 name: "BlacklistedClans",
                 columns: table => new
                 {
-                    Tag = table.Column<string>(maxLength: 10, nullable: false),
+                    Tag = table.Column<string>(maxLength: 15, nullable: false),
                     Name = table.Column<string>(maxLength: 50, nullable: true)
                 },
                 constraints: table =>

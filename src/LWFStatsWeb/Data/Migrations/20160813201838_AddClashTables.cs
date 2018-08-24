@@ -13,7 +13,7 @@ namespace LWFStatsWeb.Data.Migrations
                 name: "Clans",
                 columns: table => new
                 {
-                    Tag = table.Column<string>(maxLength: 10, nullable: false),
+                    Tag = table.Column<string>(maxLength: 15, nullable: false),
                     BadgeUrl = table.Column<string>(maxLength: 150, nullable: true),
                     ClanLevel = table.Column<int>(nullable: false),
                     ClanPoints = table.Column<int>(nullable: false),
@@ -24,7 +24,7 @@ namespace LWFStatsWeb.Data.Migrations
                     Members = table.Column<int>(nullable: false),
                     Name = table.Column<string>(maxLength: 50, nullable: true),
                     RequiredTrophies = table.Column<int>(nullable: false),
-                    Type = table.Column<string>(maxLength: 10, nullable: true),
+                    Type = table.Column<string>(maxLength: 15, nullable: true),
                     WarFrequency = table.Column<string>(maxLength: 20, nullable: true),
                     WarLosses = table.Column<int>(nullable: false),
                     WarTies = table.Column<int>(nullable: false),
@@ -40,7 +40,7 @@ namespace LWFStatsWeb.Data.Migrations
                 name: "ClanValidities",
                 columns: table => new
                 {
-                    Tag = table.Column<string>(maxLength: 10, nullable: false),
+                    Tag = table.Column<string>(maxLength: 15, nullable: false),
                     Group = table.Column<string>(maxLength: 10, nullable: true),
                     Name = table.Column<string>(maxLength: 50, nullable: true),
                     ValidFrom = table.Column<DateTime>(nullable: false),
@@ -58,7 +58,7 @@ namespace LWFStatsWeb.Data.Migrations
                     ID = table.Column<Guid>(nullable: false),
                     ClanGroup = table.Column<string>(maxLength: 10, nullable: true),
                     ClanName = table.Column<string>(maxLength: 50, nullable: true),
-                    ClanTag = table.Column<string>(maxLength: 10, nullable: true),
+                    ClanTag = table.Column<string>(maxLength: 15, nullable: true),
                     Mode = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
@@ -78,7 +78,7 @@ namespace LWFStatsWeb.Data.Migrations
                     ClanLevel = table.Column<int>(nullable: false),
                     ClanName = table.Column<string>(maxLength: 50, nullable: true),
                     ClanStars = table.Column<int>(nullable: false),
-                    ClanTag = table.Column<string>(maxLength: 10, nullable: true),
+                    ClanTag = table.Column<string>(maxLength: 15, nullable: true),
                     EndTime = table.Column<DateTime>(nullable: false),
                     Matched = table.Column<bool>(nullable: false),
                     OpponentBadgeUrl = table.Column<string>(maxLength: 150, nullable: true),
@@ -86,8 +86,8 @@ namespace LWFStatsWeb.Data.Migrations
                     OpponentLevel = table.Column<int>(nullable: false),
                     OpponentName = table.Column<string>(maxLength: 50, nullable: true),
                     OpponentStars = table.Column<int>(nullable: false),
-                    OpponentTag = table.Column<string>(maxLength: 10, nullable: true),
-                    Result = table.Column<string>(maxLength: 10, nullable: true),
+                    OpponentTag = table.Column<string>(maxLength: 15, nullable: true),
+                    Result = table.Column<string>(maxLength: 15, nullable: true),
                     Synced = table.Column<bool>(nullable: false),
                     TeamSize = table.Column<int>(nullable: false)
                 },
@@ -119,16 +119,16 @@ namespace LWFStatsWeb.Data.Migrations
                 name: "Members",
                 columns: table => new
                 {
-                    Tag = table.Column<string>(maxLength: 10, nullable: false),
+                    Tag = table.Column<string>(maxLength: 15, nullable: false),
                     BadgeUrl = table.Column<string>(maxLength: 150, nullable: true),
                     ClanRank = table.Column<int>(nullable: false),
-                    ClanTag = table.Column<string>(maxLength: 10, nullable: true),
+                    ClanTag = table.Column<string>(maxLength: 15, nullable: true),
                     Donations = table.Column<int>(nullable: false),
                     DonationsReceived = table.Column<int>(nullable: false),
                     ExpLevel = table.Column<int>(nullable: false),
                     LeagueName = table.Column<string>(maxLength: 30, nullable: true),
                     Name = table.Column<string>(maxLength: 50, nullable: true),
-                    Role = table.Column<string>(maxLength: 10, nullable: true),
+                    Role = table.Column<string>(maxLength: 15, nullable: true),
                     Trophies = table.Column<int>(nullable: false)
                 },
                 constraints: table =>

@@ -16,7 +16,7 @@ namespace LWFStatsWeb.Models
     public class UpdateTask
     {
         public Guid ID { get; set; }
-        [StringLength(10)]
+        [StringLength(15)]
         public string ClanTag { get; set; }
         [StringLength(50)]
         public string ClanName { get; set; }

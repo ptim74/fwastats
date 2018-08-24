@@ -18,7 +18,7 @@ namespace LWFStatsWeb.Models
 
         [Key]
         [DataMember]
-        [StringLength(10)]
+        [StringLength(15)]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public string Tag { get; set; }
 
@@ -36,7 +36,7 @@ namespace LWFStatsWeb.Models
 
         [NotMapped]
         [DataMember]
-        [StringLength(10)]
+        [StringLength(15)]
         public string Role { get; set; }
 
         [NotMapped]
@@ -95,7 +95,7 @@ namespace LWFStatsWeb.Models
         public string BadgeUrl { get; set; }
 
         [NotMapped]
-        [StringLength(10)]
+        [StringLength(15)]
         public string ClanTag { get; set; }
 
         [NotMapped]

@@ -18,7 +18,7 @@ namespace LWFStatsWeb.Data.Migrations
                         //.Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     Activity = table.Column<int>(nullable: false),
-                    ClanTag = table.Column<string>(maxLength: 10, nullable: true),
+                    ClanTag = table.Column<string>(maxLength: 15, nullable: true),
                     Donations = table.Column<int>(nullable: false),
                     EventDate = table.Column<DateTime>(nullable: false)
                 },

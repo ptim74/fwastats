@@ -7,6 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\Migrations\20180824224848_StringLengths.cs" />
+    <Compile Remove="Data\Migrations\20180824224848_StringLengths.Designer.cs" />
+    <Compile Remove="Data\Migrations\20180824230955_StringLengths.cs" />
+    <Compile Remove="Data\Migrations\20180824230955_StringLengths.Designer.cs" />
+    <Compile Remove="Data\Migrations\20180824232717_StringLengths.cs" />
+    <Compile Remove="Data\Migrations\20180824232717_StringLengths.Designer.cs" />
+    <Compile Remove="Data\Migrations\20180824233202_StringLengths.cs" />
+    <Compile Remove="Data\Migrations\20180824233202_StringLengths.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Properties\PublishProfiles\CustomProfile.pubxml" />
     <None Remove="Properties\PublishProfiles\localhost.pubxml" />
   </ItemGroup>

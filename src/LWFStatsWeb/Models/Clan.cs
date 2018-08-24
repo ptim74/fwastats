@@ -13,7 +13,7 @@ namespace LWFStatsWeb.Models
     {
         [Key]
         [DataMember]
-        [StringLength(10)]
+        [StringLength(15)]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         public string Tag { get; set; }
 
@@ -28,7 +28,7 @@ namespace LWFStatsWeb.Models
         public int ClanPoints { get; set; }
 
         [DataMember]
-        [StringLength(10)]
+        [StringLength(15)]
         public string Type { get; set; }
 
         [DataMember]

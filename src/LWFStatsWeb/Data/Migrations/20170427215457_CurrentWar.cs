@@ -17,9 +17,9 @@ namespace LWFStatsWeb.Data.Migrations
                         .Annotation("Sqlite:Autoincrement", true)
                         //.Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    AttackerTag = table.Column<string>(maxLength: 10, nullable: true),
+                    AttackerTag = table.Column<string>(maxLength: 15, nullable: true),
                     DefenderMapPosition = table.Column<int>(nullable: false),
-                    DefenderTag = table.Column<string>(maxLength: 10, nullable: true),
+                    DefenderTag = table.Column<string>(maxLength: 15, nullable: true),
                     DefenderTownHallLevel = table.Column<int>(nullable: false),
                     DestructionPercentage = table.Column<int>(nullable: false),
                     Order = table.Column<int>(nullable: false),
@@ -48,7 +48,7 @@ namespace LWFStatsWeb.Data.Migrations
                     MapPosition = table.Column<int>(nullable: false),
                     Name = table.Column<string>(maxLength: 50, nullable: true),
                     OpponentAttacks = table.Column<int>(nullable: false),
-                    Tag = table.Column<string>(maxLength: 10, nullable: true),
+                    Tag = table.Column<string>(maxLength: 15, nullable: true),
                     TownHallLevel = table.Column<int>(nullable: false),
                     WarID = table.Column<string>(maxLength: 30, nullable: true)
                 },

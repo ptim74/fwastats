@@ -18,7 +18,7 @@ namespace LWFStatsWeb.Models
         public string WarID { get; set; }
 
         [DataMember]
-        [StringLength(10)]
+        [StringLength(15)]
         public string Tag { get; set; }
 
         [DataMember]

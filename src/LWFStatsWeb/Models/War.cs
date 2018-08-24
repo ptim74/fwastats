@@ -18,7 +18,7 @@ namespace LWFStatsWeb.Models
         public string ID { get; set; }
 
         [DataMember]
-        [StringLength(10)]
+        [StringLength(15)]
         public string Result { get; set; }  // win
 
         [DataMember]
@@ -39,7 +39,7 @@ namespace LWFStatsWeb.Models
         [DataMember]
         public DateTime EndTime { get; set; }
 
-        [StringLength(10)]
+        [StringLength(15)]
         public string ClanTag { get; set; }
 
         [StringLength(50)]
@@ -53,7 +53,7 @@ namespace LWFStatsWeb.Models
         [StringLength(150)]
         public string ClanBadgeUrl { get; set; }
 
-        [StringLength(10)]
+        [StringLength(15)]
         public string OpponentTag { get; set; }
 
         [StringLength(50)]

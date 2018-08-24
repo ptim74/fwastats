@@ -22,17 +22,17 @@ namespace LWFStatsWeb.Models
     {
         public int ID { get; set; }
 
-        [StringLength(10)]
+        [StringLength(15)]
         public string ClanTag { get; set; }
 
-        [StringLength(10)]
+        [StringLength(15)]
         public string PlayerTag { get; set; }
 
         public PlayerEventType EventType { get; set; }
 
         public int Value { get; set; }
 
-        [StringLength(10)]
+        [StringLength(15)]
         public string StringValue { get; set; }
 
         public DateTime EventDate { get; set; }

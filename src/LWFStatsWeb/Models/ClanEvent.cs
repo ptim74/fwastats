@@ -10,7 +10,7 @@ namespace LWFStatsWeb.Models
     {
         public int ID { get; set; }
 
-        [StringLength(10)]
+        [StringLength(15)]
         public string ClanTag { get; set; }
 
         public int Donations { get; set; }

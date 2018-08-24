@@ -13,7 +13,7 @@ namespace LWFStatsWeb.Data.Migrations
                 name: "Players",
                 columns: table => new
                 {
-                    Tag = table.Column<string>(maxLength: 10, nullable: false),
+                    Tag = table.Column<string>(maxLength: 15, nullable: false),
                     AttackWins = table.Column<int>(nullable: false),
                     BestTrophies = table.Column<int>(nullable: false),
                     DefenseWins = table.Column<int>(nullable: false),
@@ -35,10 +35,10 @@ namespace LWFStatsWeb.Data.Migrations
                         .Annotation("Sqlite:Autoincrement", true)
                         //.Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn)
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    ClanTag = table.Column<string>(maxLength: 10, nullable: true),
+                    ClanTag = table.Column<string>(maxLength: 15, nullable: true),
                     EventDate = table.Column<DateTime>(nullable: false),
                     EventType = table.Column<int>(nullable: false),
-                    PlayerTag = table.Column<string>(maxLength: 10, nullable: true),
+                    PlayerTag = table.Column<string>(maxLength: 15, nullable: true),
                     Value = table.Column<int>(nullable: false)
                 },
                 constraints: table =>
