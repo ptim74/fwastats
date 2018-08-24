@@ -77,7 +77,7 @@ namespace LWFStatsWeb.Logic
                         if (row.Count > listOptions.TagColumn && listOptions.TagColumn >= 0)
                             tag = (string)row[listOptions.TagColumn];
                         if (row.Count > listOptions.NameColumn && listOptions.NameColumn >= 0)
-                            name = (string)row[listOptions.NameColumn];
+                            name = Convert.ToString(row[listOptions.NameColumn]);
 
                         if (tag != null && tag.StartsWith("#"))
                         {
