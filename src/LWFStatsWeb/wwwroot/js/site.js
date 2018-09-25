@@ -1,4 +1,5 @@
-﻿// Tablesorter
+﻿/* eslint-disable */
+// Tablesorter
 
 $(function () {
     $(".tablesorter").tablesorter();
