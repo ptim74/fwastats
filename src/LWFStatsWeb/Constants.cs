@@ -7,6 +7,7 @@ namespace LWFStatsWeb
 {
     public sealed class Constants
     {
+        public const string DONATION_TRACKER_SHEET_ID = "1bwCvrcZYevyL0TwvTy5FiA58ce1vpU_bqqMtpGOfwrQ";
         public const int CACHE_NORMAL = 1800;
         public const int CACHE_MIN = 60;
 

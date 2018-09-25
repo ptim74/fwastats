@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using LWFStatsWeb.Data;
 using LWFStatsWeb.Models.HomeViewModels;
 using Microsoft.Extensions.Logging;
+using LWFStatsWeb.Logic;
+using System.Threading.Tasks;
 
 namespace LWFStatsWeb.Controllers
 {
@@ -12,13 +14,16 @@ namespace LWFStatsWeb.Controllers
     {
         private readonly ApplicationDbContext db;
         private readonly ILogger<HomeController> logger;
+        IGoogleSheetsService googleSheets;
 
         public HomeController(
             ApplicationDbContext db,
-            ILogger<HomeController> logger)
+            ILogger<HomeController> logger,
+             IGoogleSheetsService googleSheets)
         {
             this.db = db;
             this.logger = logger;
+            this.googleSheets = googleSheets;
         }
 
         [ResponseCache(Duration = Constants.CACHE_NORMAL)]
@@ -249,10 +254,33 @@ namespace LWFStatsWeb.Controllers
             return View();
         }
 
-        public IActionResult Tracker()
+        public async Task<IActionResult> Tracker(string id)
         {
-            logger.LogInformation("Tracker");
-            return View();
+            var model = new TrackerViewModel();
+            var tag = Utils.LinkIdToTag(id);
+
+            logger.LogInformation("Tracker {0}", id);
+
+            try
+            {
+                if (!string.IsNullOrEmpty(tag))
+                {
+                    var clan = db.Clans.SingleOrDefault(c => c.Tag == tag);
+                    if (clan != null)
+                    {
+                        var data = new List<IList<object>> { new List<object> { clan.LinkID } };
+                        await googleSheets.Update(Constants.DONATION_TRACKER_SHEET_ID, "ROWS", "Setup!B2", data);
+                        model.ClanName = clan.Name;
+                        model.ClanTag = clan.Tag;
+                    }
+                }
+            }
+            catch(Exception e)
+            {
+                logger.LogError("Tracker.Error: {0}", e.ToString());
+            }
+
+            return View(model);
         }
     }
 }

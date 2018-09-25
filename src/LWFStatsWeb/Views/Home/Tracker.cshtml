@@ -1,6 +1,12 @@
-﻿
+﻿@model LWFStatsWeb.Models.HomeViewModels.TrackerViewModel
+
 @{
     ViewBag.Title = "Tracker";
+    var trackerUrl = "https://docs.google.com/spreadsheets/d/" + Constants.DONATION_TRACKER_SHEET_ID + "/copy";
+    if (Model != null && !string.IsNullOrEmpty(Model.ClanName))
+    {
+        trackerUrl += string.Concat("?title=", Uri.EscapeDataString(Model.ClanName + " Donations"));
+    }
 }
 
 <ol class="breadcrumb">
@@ -10,7 +16,7 @@
 
 <h3>Create Clash of Clans donation tracker in Google Sheets</h3>
 
-<p>Open <a href="https://docs.google.com/spreadsheets/d/1bwCvrcZYevyL0TwvTy5FiA58ce1vpU_bqqMtpGOfwrQ/edit#gid=0">Donation Tracker Template</a>.</p>
+<p>Open <a href="@trackerUrl">Donation Tracker Template</a>.</p>
 <p>Make a copy of the template (<b>File > Make a copy...</b>).</p>
 <p><img src="http://tracker.fwastats.com/tracker00.png" /></p>
 <p>Edit the name for the document and click <b>OK</b>.</p>
