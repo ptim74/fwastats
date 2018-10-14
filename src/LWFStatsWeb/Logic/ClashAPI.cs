@@ -25,7 +25,7 @@ namespace LWFStatsWeb.Logic
 
     public interface IClashApi
     {
-        Task<List<War>> GetClanWarlog(string clanTag);
+        Task<ICollection<War>> GetClanWarlog(string clanTag);
         Task<War> GetClanCurrentWar(string clanTag);
         Task<Clan> GetClan(string clanTag, bool withWarDetails, bool withCurrentWar);
         Task<Player> GetPlayer(string playerTag);
@@ -82,7 +82,7 @@ namespace LWFStatsWeb.Logic
             return JsonConvert.DeserializeObject<T>(pageData, settings);
         }
 
-        public async Task<List<War>> GetClanWarlog(string clanTag)
+        public async Task<ICollection<War>> GetClanWarlog(string clanTag)
         {
             var url = string.Format("clans/{0}/warlog", Uri.EscapeDataString(clanTag));
             var data = await Request<Warlog>(url);

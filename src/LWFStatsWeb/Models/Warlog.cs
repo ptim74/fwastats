@@ -10,6 +10,6 @@ namespace LWFStatsWeb.Models
     public class Warlog
     {
         [DataMember(Name = "items")]
-        public List<War> Wars { get; set; }
+        public ICollection<War> Wars { get; set; }
     }
 }

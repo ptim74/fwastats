@@ -22,6 +22,6 @@ namespace LWFStatsWeb.Models.SyncViewModels
             }
         }
 
-        public List<SyncIndexResult> Results { get; set; }
+        public ICollection<SyncIndexResult> Results { get; set; }
     }
 }

@@ -7,9 +7,9 @@ namespace LWFStatsWeb.Logic
 {
     public class MockClanLoader : IClanLoader
     {
-        public List<string> Errors { get; set; }
+        public ICollection<string> Errors { get; set; }
 
-        public Task<List<ClanObject>> Load(string listName)
+        public Task<ICollection<ClanObject>> Load(string listName)
         {
             Errors = new List<string>();
 
@@ -41,7 +41,7 @@ namespace LWFStatsWeb.Logic
             foreach (var clan in list)
                 clan.Group = listName;
 
-            return Task.FromResult(list);
+            return Task.FromResult<ICollection<ClanObject>>(list);
         }
     }
 }

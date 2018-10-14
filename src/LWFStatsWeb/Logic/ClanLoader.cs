@@ -24,9 +24,9 @@ namespace LWFStatsWeb.Logic
 
     public interface IClanLoader
     {
-        List<string> Errors { get; set; }
+        ICollection<string> Errors { get; set; }
 
-        Task<List<ClanObject>> Load(string listName);
+        Task<ICollection<ClanObject>> Load(string listName);
     }
 
     public class ClanLoader : IClanLoader
@@ -42,9 +42,9 @@ namespace LWFStatsWeb.Logic
             this.googleSheets = googleSheets;
         }
 
-        public List<string> Errors { get; set; }
+        public ICollection<string> Errors { get; set; }
 
-        private List<ClanObject> Objects { get; set; }
+        private ICollection<ClanObject> Objects { get; set; }
 
         protected async Task<string> LoadUrl(string url)
         {
@@ -56,7 +56,7 @@ namespace LWFStatsWeb.Logic
             }
         }
 
-        public async Task<List<ClanObject>> Load(string listName)
+        public async Task<ICollection<ClanObject>> Load(string listName)
         {
             Errors = new List<string>();
             Objects = new List<ClanObject>();

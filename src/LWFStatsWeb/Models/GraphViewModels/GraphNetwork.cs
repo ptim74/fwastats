@@ -7,8 +7,8 @@ namespace LWFStatsWeb.Models.GraphViewModels
 {
     public class GraphNetwork
     {
-        public List<GraphNode> Nodes { get; set; }
-        public List<GraphEdge> Edges { get; set; }
+        public ICollection<GraphNode> Nodes { get; set; }
+        public ICollection<GraphEdge> Edges { get; set; }
 
         public GraphNetwork()
         {

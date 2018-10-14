@@ -9,7 +9,7 @@ namespace LWFStatsWeb.Logic
 {
     public interface IClanUpdater
     {
-        List<UpdateTask> GetUpdates(List<ClanObject> newClans);
+        ICollection<UpdateTask> GetUpdates(ICollection<ClanObject> newClans);
     }
 
     public class ClanUpdater : IClanUpdater
@@ -21,7 +21,7 @@ namespace LWFStatsWeb.Logic
             this.db = db;
         }
 
-        public List<UpdateTask> GetUpdates(List<ClanObject> newClans)
+        public ICollection<UpdateTask> GetUpdates(ICollection<ClanObject> newClans)
         {
             var tasks = new List<UpdateTask>();
 
