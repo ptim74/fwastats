@@ -56,17 +56,22 @@ namespace LWFStatsWeb.Logic
             }
             catch (WebException e)
             {
-                using (var reader = new StreamReader(e.Response.GetResponseStream()))
+                Exception ret = e;
+                try
                 {
-                    var data = await reader.ReadToEndAsync();
-                    var error = JsonConvert.DeserializeObject<ClashApiError>(data);
-                    if(error != null)
+                    using (var reader = new StreamReader(e.Response.GetResponseStream())) //TODO: NullReferenceException
                     {
-                        var msg = $"API Error {e.Status}, Reason: {error.Reason}, Message: {error.Message}";
-                        throw new Exception(msg, e);
+                        var data = await reader.ReadToEndAsync();
+                        var error = JsonConvert.DeserializeObject<ClashApiError>(data);
+                        if (error != null)
+                        {
+                            var msg = $"API Error {e.Status}, Reason: {error.Reason}, Message: {error.Message}";
+                            ret = new Exception(msg, e);
+                        }
                     }
                 }
-                throw e;
+                catch (Exception) {}
+                throw ret;
             }
         }
 
