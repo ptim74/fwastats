@@ -243,7 +243,7 @@ namespace LWFStatsWeb.Controllers
                 var updates = 0;
                 var dateZero = new DateTime(1899, 12, 30, 0, 0, 0);
 
-                foreach (var row in data)
+                foreach (var row in data.Where(r => r.Object != null))
                 {
                     var tag = "";
                     var weight = 0;
