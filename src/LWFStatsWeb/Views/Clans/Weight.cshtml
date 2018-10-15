@@ -215,6 +215,10 @@ else
         </tbody>
     </table>
 
+    <div>
+        <a class="small" asp-area="" asp-controller="Clans" asp-action="WeightForm" asp-route-id="@Model.ClanLink" asp-route-warid="@Model.WarID">...</a>
+    </div>
+
     <div style="position:fixed;bottom:0px;left:0px;width:100%;height:50px;background-color:black;color:white;z-index:1030;">
         <div class="container">
             <div class="row" style="margin:5px;">
@@ -253,6 +257,7 @@ else
                 <p id="submit-details">Please wait...</p>
             </div>
             <div class="modal-footer">
+                <a id="backup-submit-button" class="btn btn-primary hidden" asp-area="" asp-controller="Clans" asp-action="WeightForm" asp-route-id="@Model.ClanLink" asp-route-warid="@Model.WarID">Submit with Google Forms</a>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>
@@ -404,6 +409,7 @@ else
                         } else {
                             $("#submitModalTitle").text("Submit failed");
                             $("#submitModalHeader").addClass("modal-header-danger");
+                            $("#backup-submit-button").removeClass("hidden");
                         }
                         $("#submitModalHeader").removeClass("modal-header-primary");
                         $("#submitModalAnimation").removeClass("loader");
@@ -417,6 +423,7 @@ else
                     $("#submitModalHeader").removeClass("modal-header-primary");
                     $("#submitModalAnimation").removeClass("loader");
                     $("#submit-details").text(textStatus + ": " + error);
+                    $("#backup-submit-button").removeClass("hidden");
                 });
         }
 

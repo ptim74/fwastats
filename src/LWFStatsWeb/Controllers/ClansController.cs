@@ -758,6 +758,93 @@ namespace LWFStatsWeb.Controllers
             return View(model);
         }
 
+        [Route("Clan/{id}/WeightForm")]
+        [Route("Clan/{id}/WeightForm/{WarID}")]
+        [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
+        public IActionResult WeightForm(string id, long WarID)
+        {
+            logger.LogInformation("Weight {0}", id);
+
+            var model = WeightData(id, WarID);
+
+            if (model.Members.Count != Constants.WAR_SIZE1 && model.Members.Count != Constants.WAR_SIZE2)
+                throw new Exception("Select 40 or 50 members");
+
+            var form_id = "1FAIpQLSedVrXwPzJTqDQDFlo9gfcJIfYJoAAfAB_gzrhjpiQJX_UMpg";
+            if (model.Members.Count == Constants.WAR_SIZE1)
+                form_id = "1FAIpQLScdEkL00W-SICrzMyQsCW2qPPR4hn1yThVBU1fqyZtDhUrSVQ";
+
+            var url = string.Format("https://docs.google.com/forms/d/e/{0}/viewform?usp=pp_url", form_id);
+
+            var ids = new List<int>
+            {
+                1984567353,
+                1690011935,
+                403343332,
+                370160221,
+                1607084216,
+                1882413334,
+                1543939269,
+                685739330,
+                463435811,
+                898718070,
+                1948329846,
+                383495722,
+                2020682725,
+                331529930,
+                1050253465,
+                819675385,
+                760895081,
+                244948353,
+                1506790920,
+                915825883,
+                258936521,
+                742699705,
+                1367988689,
+                1491884247,
+                167280690,
+                1877792108,
+                185518162,
+                226536694,
+                1109192970,
+                888631196,
+                1119555861,
+                51377383,
+                1284290519,
+                500778845,
+                61565236,
+                895253717,
+                1530094428,
+                917968866,
+                1120193979,
+                38604784,
+                985340327,
+                1823279444,
+                1688094775,
+                189936802,
+                1650758928,
+                1048120044,
+                1541727037,
+                628819663,
+                1485246803,
+                612547503,
+                1154234695,
+                2118269445,
+                1326597082
+            };
+
+            int i = 0;
+
+            url += string.Format("&entry.{0}={1}",ids[i++], Uri.EscapeDataString(model.ClanName));
+            url += string.Format("&entry.{0}={1}", ids[i++], "FWAStatsPrefilled");
+            url += string.Format("&entry.{0}={1}", ids[i++], Uri.EscapeDataString(model.ClanTag));
+
+            foreach(var m in model.Members)
+                url += string.Format("&entry.{0}={1}", ids[i++], m.Weight);
+
+            return Redirect(url);
+        }
+
         [Route("Clan/{id}/WeightStatus")]
         [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult WeightStatus(string id)
