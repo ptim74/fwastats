@@ -763,7 +763,7 @@ namespace LWFStatsWeb.Controllers
         [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult WeightForm(string id, long WarID)
         {
-            logger.LogInformation("Weight {0}", id);
+            logger.LogInformation("WeightForm {0}", id);
 
             var model = WeightData(id, WarID);
 
