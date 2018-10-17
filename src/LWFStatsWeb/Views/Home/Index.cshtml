@@ -164,7 +164,7 @@
                     isStacked: 'absolute',
                     legend: {position: 'top', maxLines: 3},
                     chartArea: { left: 35, top: 15, width: '250', height: '170' },
-                    vAxis: { maxValue: @teamSize, gridlines: { count: @gridlines } }
+                    vAxis: { gridlines: { count: @gridlines }, viewWindow: { min: 0, max: @teamSize }}
                 };
 
                 new google.visualization.AreaChart(document.getElementById('@chart')).draw(@data, @options);
