@@ -694,7 +694,7 @@ namespace LWFStatsWeb.Controllers
                 }
             }
 
-            //db.SaveChanges(); //clan and members
+            db.SaveChanges(); //clan and members
 
             if (clan.Wars != null)
             {
@@ -746,7 +746,7 @@ namespace LWFStatsWeb.Controllers
                                 war.StartTime = existingWar.StartTime;
                             }
 
-                            db.Entry(war).State = EntityState.Modified;
+                            db.Entry(war).State = EntityState.Modified; //TODO:  The instance of entity type 'WarMember' cannot be tracked because another instance with the same key value for {'ID'} is already being tracked.
                         }
                     }
                     else
@@ -779,7 +779,7 @@ namespace LWFStatsWeb.Controllers
                                 if (memberDetails.OpponentAttacks != member.OpponentAttacks || memberDetails.TownHallLevel != member.TownHallLevel)
                                 {
                                     member.ID = memberDetails.ID;
-                                    db.Entry(member).State = EntityState.Modified;
+                                    db.Entry(member).State = EntityState.Modified; //TODO:  The instance of entity type 'WarMember' cannot be tracked because another instance with the same key value for {'ID'} is already being tracked.
                                 }
                             }
                             else
