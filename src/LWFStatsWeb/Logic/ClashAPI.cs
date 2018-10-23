@@ -11,6 +11,15 @@ using System.Threading.Tasks;
 
 namespace LWFStatsWeb.Logic
 {
+    public class ClashApiException : Exception
+    {
+        public ClashApiException(string message) : base(message)
+        {
+        }
+        public ClashApiException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
+    }
     public class ClashApiError
     {
         public string Reason { get; set; }
@@ -71,7 +80,7 @@ namespace LWFStatsWeb.Logic
                     }
                 }
                 catch (Exception) {}
-                throw ret;
+                throw new ClashApiException(string.Format("Failed to get '{0}'", page), e);
             }
         }
 
