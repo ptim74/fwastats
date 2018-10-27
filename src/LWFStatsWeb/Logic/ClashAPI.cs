@@ -35,7 +35,7 @@ namespace LWFStatsWeb.Logic
     public interface IClashApi
     {
         Task<ICollection<War>> GetClanWarlog(string clanTag);
-        Task<War> GetClanCurrentWar(string clanTag);
+        //Task<War> GetClanCurrentWar(string clanTag);
         Task<Clan> GetClan(string clanTag, bool withWarDetails, bool withCurrentWar);
         Task<Player> GetPlayer(string playerTag);
     }
@@ -105,11 +105,25 @@ namespace LWFStatsWeb.Logic
             return data.Wars;
         }
 
-        public async Task<War> GetClanCurrentWar(string clanTag)
+        protected async Task<War> GetClanCurrentWar(string clanTag)
         {
             var url = string.Format("clans/{0}/currentwar", Uri.EscapeDataString(clanTag));
             var data = await Request<War>(url);
             return data;
+        }
+
+        protected async Task<WarLeague> GetClanCurrentLeague(string clanTag)
+        {
+            try
+            {
+                var url = string.Format("clans/{0}/currentwar/leaguegroup", Uri.EscapeDataString(clanTag));
+                var data = await Request<WarLeague>(url);
+                return data;
+            }
+            catch(Exception e)
+            {
+                return null;
+            }
         }
 
         public async Task<Clan> GetClan(string clanTag, bool withWarDetails, bool withCurrentWar)
@@ -123,6 +137,22 @@ namespace LWFStatsWeb.Logic
             if(data.IsWarLogPublic && withCurrentWar)
             {
                 var currentWar = await GetClanCurrentWar(clanTag);
+                var league = await GetClanCurrentLeague(clanTag);
+
+                data.InLeague = false;
+
+                if (currentWar != null && league != null && league.Clans != null)
+                {
+                    currentWar.FixData(currentWar.EndTime);
+                    foreach(var clan in league.Clans)
+                    {
+                        if (clan.Tag == currentWar.OpponentTag)
+                            data.InLeague = true;
+                    }
+                }
+
+                if (data.InLeague)
+                    currentWar = null;
 
                 if (currentWar != null)
                 {
@@ -132,8 +162,8 @@ namespace LWFStatsWeb.Logic
                     if (!string.IsNullOrEmpty(currentWar.State) && currentWar.State.Equals("warEnded"))
                     {
                         var prevWar = data.Wars.SingleOrDefault( w => 
-                            w.EndTime >= currentWar.EndTime.AddMinutes(-1) && 
-                            w.EndTime <= currentWar.EndTime.AddMinutes(1) &&
+                            w.EndTime >= currentWar.EndTime.AddMinutes(-10) && 
+                            w.EndTime <= currentWar.EndTime.AddMinutes(10) &&
                             w.OpponentTag == currentWar.OpponentTag &&
                             w.TeamSize == currentWar.TeamSize
                             );

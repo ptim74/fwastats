@@ -36,6 +36,7 @@ namespace LWFStatsWeb.Models.HomeViewModels
         public double WinPercentage { get; set; }
         public int TeamSize40Wars { get; set; }
         public int TeamSize50Wars { get; set; }
+        public int ClansInLeague { get; set; }
     }
 
     public class ClanDetails

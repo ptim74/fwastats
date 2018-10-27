@@ -95,6 +95,8 @@ namespace LWFStatsWeb.Models
         public int ThLowCount { get; set; }
         public int EstimatedWeight { get; set; }
 
+        public bool InLeague { get; set; }
+
         public void FixData()
         {
             if(BadgeUrls != null)

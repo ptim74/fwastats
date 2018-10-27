@@ -41,7 +41,7 @@ namespace LWFStatsWeb.Controllers
 
             try
             {
-                var validClans = db.Clans.Select(c => new { c.Tag, c.Group, c.Members }).ToList();
+                var validClans = db.Clans.Select(c => new { c.Tag, c.Group, c.Members, c.InLeague }).ToList();
 
                 var recentSyncs = db.WarSyncs.Where(w => w.Finish < DateTime.UtcNow && w.Verified == true).OrderByDescending(w => w.Start).Take(10).ToList();
 
@@ -61,6 +61,8 @@ namespace LWFStatsWeb.Controllers
                 {
                     model.Counters.ClanCount++;
                     model.Counters.MemberCount += clan.Members;
+                    if (clan.InLeague)
+                        model.Counters.ClansInLeague++;
                 }
 
                 var lastSync = recentSyncs.FirstOrDefault();

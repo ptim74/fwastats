@@ -557,6 +557,7 @@ namespace LWFStatsWeb.Controllers
             existingClan.WarTies = clan.WarTies;
             existingClan.WarWins = clan.WarWins;
             existingClan.WarWinStreak = clan.WarWinStreak;
+            existingClan.InLeague = clan.InLeague;
 
             if (clan.MemberList != null)
             {
