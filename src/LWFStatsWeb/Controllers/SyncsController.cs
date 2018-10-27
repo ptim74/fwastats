@@ -55,7 +55,8 @@ namespace LWFStatsWeb.Controllers
                     Name = clan.Name,
                     BadgeUrl = clan.BadgeUrl,
                     Results = new List<SyncIndexResult>(),
-                    HiddenLog = !clan.IsWarLogPublic
+                    HiddenLog = !clan.IsWarLogPublic,
+                    InLeague = clan.InLeague
                 };
                 clans.Add(clan.Tag, clanDetail);
             }

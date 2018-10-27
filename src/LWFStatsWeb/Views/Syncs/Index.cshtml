@@ -52,6 +52,10 @@
                     {
                         <small class="label label-warning">H<span class="hidden-xs">idden log</span></small>
                     }
+                    @if (clan.InLeague)
+                    {
+                        <small class="label label-primary">L<span class="hidden-xs">eague</span></small>
+                    }
                 </td>
                 @foreach (var warResult in clan.Results)
                 {

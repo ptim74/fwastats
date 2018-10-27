@@ -13,6 +13,7 @@ namespace LWFStatsWeb.Models.SyncViewModels
         public bool New { get; set; }
         public bool Departed { get; set; }
         public bool HiddenLog { get; set; }
+        public bool InLeague { get; set; }
 
         public string LinkID
         {
