@@ -117,6 +117,11 @@ namespace LWFStatsWeb.Models
                 }
             }
 
+            this.FixWars();
+        }
+
+        public void FixWars()
+        {
             if (Wars != null)
             {
                 var previousEndDate = DateTime.UtcNow.AddYears(-2);

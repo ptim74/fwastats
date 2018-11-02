@@ -109,6 +109,8 @@ namespace LWFStatsWeb.Logic
         {
             var url = string.Format("clans/{0}/currentwar", Uri.EscapeDataString(clanTag));
             var data = await Request<War>(url);
+            if (data != null)
+                data.FixData(DateTime.MinValue);
             return data;
         }
 
@@ -120,7 +122,7 @@ namespace LWFStatsWeb.Logic
                 var data = await Request<WarLeague>(url);
                 return data;
             }
-            catch(Exception e)
+            catch(Exception)
             {
                 return null;
             }
@@ -134,7 +136,9 @@ namespace LWFStatsWeb.Logic
             if (data.IsWarLogPublic && withWarDetails)
                 data.Wars = await GetClanWarlog(clanTag);
 
-            if(data.IsWarLogPublic && withCurrentWar)
+            data.FixData();
+
+            if (data.IsWarLogPublic && withCurrentWar)
             {
                 var currentWar = await GetClanCurrentWar(clanTag);
                 var league = await GetClanCurrentLeague(clanTag);
@@ -143,7 +147,6 @@ namespace LWFStatsWeb.Logic
 
                 if (currentWar != null && league != null && league.Clans != null)
                 {
-                    currentWar.FixData(currentWar.EndTime);
                     foreach(var clan in league.Clans)
                     {
                         if (clan.Tag == currentWar.OpponentTag)
@@ -169,7 +172,6 @@ namespace LWFStatsWeb.Logic
                             );
                         if (prevWar != null)
                         {
-                            currentWar.FixData(DateTime.MinValue);
                             prevWar.Members = currentWar.Members;
                             if (prevWar.Members != null)
                                 foreach (var member in prevWar.Members)
@@ -185,11 +187,10 @@ namespace LWFStatsWeb.Logic
                     else if (!string.IsNullOrEmpty(currentWar.State) && !currentWar.State.Equals("notInWar"))
                     {
                         data.Wars.Add(currentWar);
+                        data.FixWars();
                     }
                 }
             }
-
-            data.FixData();
 
             return data;
         }
