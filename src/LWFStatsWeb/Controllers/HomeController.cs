@@ -7,6 +7,7 @@ using LWFStatsWeb.Models.HomeViewModels;
 using Microsoft.Extensions.Logging;
 using LWFStatsWeb.Logic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Diagnostics;
 
 namespace LWFStatsWeb.Controllers
 {
@@ -247,6 +248,13 @@ namespace LWFStatsWeb.Controllers
         public IActionResult Error(int id)
         {
             logger.LogError("Error.{0}", id);
+
+            try
+            {
+                var feature = this.HttpContext.Features.Get<IExceptionHandlerFeature>();
+                logger.LogError("Error.Details: {0}", feature.Error.ToString());
+            }
+            catch (Exception) { }
 
             ViewData["Message"] = "Sorry, an error occurred while processing your request.";
 

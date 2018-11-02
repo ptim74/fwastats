@@ -28,6 +28,7 @@ namespace LWFStatsWeb.Controllers
         IGoogleSheetsService googleSheets;
         IOptions<WeightDatabaseOptions> weightDatabase;
         IOptions<WeightResultOptions> resultDatabase;
+        private readonly IOptions<StatisicsOptions> options;
 
         private static readonly object lockObject = new object();
 
@@ -51,7 +52,8 @@ namespace LWFStatsWeb.Controllers
             ILogger<UpdateController> logger,
             IGoogleSheetsService googleSheets,
             IOptions<WeightDatabaseOptions> weightDatabase,
-            IOptions<WeightResultOptions> resultDatabase)
+            IOptions<WeightResultOptions> resultDatabase,
+            IOptions<StatisicsOptions> options)
         {
             this.db = context;
             this.loader = loader;
@@ -63,6 +65,7 @@ namespace LWFStatsWeb.Controllers
             this.googleSheets = googleSheets;
             this.weightDatabase = weightDatabase;
             this.resultDatabase = resultDatabase;
+            this.options = options;
         }
 
         protected async Task<IndexViewModel> GetUpdates()
@@ -527,7 +530,9 @@ namespace LWFStatsWeb.Controllers
             {
                 var existingWars = (from w in db.Wars where w.ClanTag == clan.Tag select w.ID).ToDictionary(w => w);
 
-                foreach (var clanWar in clan.Wars)
+                var keepWarsSince = DateTime.UtcNow.AddDays(-1.0 * options.Value.Wars);
+
+                foreach (var clanWar in clan.Wars.Where(w => w.EndTime > keepWarsSince))
                 {
                     if (!existingWars.ContainsKey(clanWar.ID))
                         db.Wars.Add(clanWar);
@@ -699,7 +704,7 @@ namespace LWFStatsWeb.Controllers
 
             if (clan.Wars != null)
             {
-                var clanWars = (from w in db.Wars where w.ClanTag == clan.Tag select new { w.ID, w.Result, w.PreparationStartTime, w.StartTime, w.EndTime, w.OpponentTag, w.TeamSize, w.Friendly, w.Matched, w.Synced }).ToDictionary(w => w.ID);
+                var clanWars = (from w in db.Wars where w.ClanTag == clan.Tag select w).ToDictionary(w => w.ID);
 
                 //Clean invalid wars
                 var deleteInvalidWars = new List<string>();
@@ -719,7 +724,9 @@ namespace LWFStatsWeb.Controllers
                 }
                 //clean end
 
-                foreach (var war in clan.Wars)
+                var keepWarsSince = DateTime.UtcNow.AddDays(-1.0 * options.Value.Wars);
+
+                foreach (var war in clan.Wars.Where(w => w.EndTime > keepWarsSince))
                 {
                     var earliestEndTime = war.EndTime.AddHours(-3); //Prepare for maintenance break
                     var latestEndTime = war.EndTime.AddMinutes(1); //Prepare for 1 sec off
@@ -754,18 +761,26 @@ namespace LWFStatsWeb.Controllers
                     {
                         if (!war.Result.Equals(existingWar.Result) || war.Result.Equals("inWar"))
                         {
-                            war.Matched = existingWar.Matched;
-                            war.Synced = existingWar.Synced;
-                            if (war.PreparationStartTime == DateTime.MinValue)
-                            {
-                                war.PreparationStartTime = existingWar.PreparationStartTime;
-                            }
-                            if (war.StartTime == DateTime.MinValue)
-                            {
-                                war.StartTime = existingWar.StartTime;
-                            }
-
-                            db.Entry(war).State = EntityState.Modified; //TODO:  The instance of entity type 'WarMember' cannot be tracked because another instance with the same key value for {'ID'} is already being tracked.
+                            existingWar.ClanAttacks = war.ClanAttacks;
+                            existingWar.ClanBadgeUrl = war.ClanBadgeUrl;
+                            existingWar.ClanDestructionPercentage = war.ClanDestructionPercentage;
+                            existingWar.ClanExpEarned = war.ClanExpEarned;
+                            existingWar.ClanLevel = war.ClanLevel;
+                            existingWar.ClanName = war.ClanName;
+                            existingWar.ClanStars = war.ClanStars;
+                            //existingWar.EndTime = war.EndTime;
+                            existingWar.Friendly = war.Friendly;
+                            existingWar.OpponentBadgeUrl = war.OpponentBadgeUrl;
+                            existingWar.OpponentDestructionPercentage = war.OpponentDestructionPercentage;
+                            existingWar.OpponentLevel = war.OpponentLevel;
+                            existingWar.OpponentName = war.OpponentName;
+                            existingWar.OpponentStars = war.OpponentStars;
+                            if (war.PreparationStartTime > existingWar.PreparationStartTime)
+                                existingWar.PreparationStartTime = war.PreparationStartTime;
+                            existingWar.Result = war.Result;
+                            if (war.StartTime > existingWar.StartTime)
+                                existingWar.StartTime = war.StartTime;
+                            existingWar.TeamSize = war.TeamSize;
                         }
                     }
                     else
@@ -789,17 +804,24 @@ namespace LWFStatsWeb.Controllers
 
                     if (war.Members != null && war.Members.Count > 0)
                     {
-                        var warMembers = (from m in db.WarMembers where m.WarID == war.ID select new { m.Tag, m.OpponentAttacks, m.ID, m.TownHallLevel }).ToDictionary(m => m.Tag, m => new { m.ID, m.OpponentAttacks, m.TownHallLevel });
+                        //var warMembers = (from m in db.WarMembers where m.WarID == war.ID select new { m.Tag, m.OpponentAttacks, m.ID, m.TownHallLevel }).ToDictionary(m => m.Tag, m => new { m.ID, m.OpponentAttacks, m.TownHallLevel });
+                        //For some reason we got duplicates...
+                        var warMembers = new Dictionary<string, WarMember>();
+                        foreach(var m in db.WarMembers.Where(m => m.WarID == war.ID))
+                        {
+                            if (warMembers.ContainsKey(m.Tag))
+                                db.WarMembers.Remove(m);
+                            else
+                                warMembers.Add(m.Tag, m);
+                        }
+
                         foreach (var member in war.Members)
                         {
                             addedMembers.Add(member.Tag);
                             if (warMembers.TryGetValue(member.Tag, out var memberDetails))
                             {
-                                if (memberDetails.OpponentAttacks != member.OpponentAttacks || memberDetails.TownHallLevel != member.TownHallLevel)
-                                {
-                                    member.ID = memberDetails.ID;
-                                    db.Entry(member).State = EntityState.Modified; //TODO:  The instance of entity type 'WarMember' cannot be tracked because another instance with the same key value for {'ID'} is already being tracked.
-                                }
+                                memberDetails.OpponentAttacks = member.OpponentAttacks;
+                                memberDetails.TownHallLevel = member.TownHallLevel;
                             }
                             else
                             {
@@ -833,7 +855,16 @@ namespace LWFStatsWeb.Controllers
 
                     if (war.Attacks != null && war.Attacks.Count > 0)
                     {
-                        var warAttacks = (from a in db.WarAttacks where a.WarID == war.ID select a.Order).ToDictionary(m => m);
+                        //var warAttacks = (from a in db.WarAttacks where a.WarID == war.ID select a.Order).ToDictionary(m => m);
+                        //For some reason we got duplicates...
+                        var warAttacks = new Dictionary<int, WarAttack>();
+                        foreach (var a in db.WarAttacks.Where(a => a.WarID == war.ID))
+                        {
+                            if (warAttacks.ContainsKey(a.Order))
+                                db.WarAttacks.Remove(a);
+                            else
+                                warAttacks.Add(a.Order, a);
+                        }
                         foreach (var attack in war.Attacks)
                         {
                             addedAttacks.Add(attack.Order);
