@@ -100,9 +100,18 @@ namespace LWFStatsWeb.Logic
         {
             var url = string.Format("clans/{0}/warlog", Uri.EscapeDataString(clanTag));
             var data = await Request<Warlog>(url);
-            if (data == null)
+            if (data == null || data.Wars == null)
                 return null;
-            return data.Wars;
+
+            var ret = new List<War>();
+            foreach(var war in data.Wars)
+            {
+                war.FixData(DateTime.MinValue);
+                if (!string.IsNullOrEmpty(war.Result) && !string.IsNullOrEmpty(war.OpponentTag)) // Bug in Supercell API
+                    ret.Add(war);
+            }
+
+            return ret;
         }
 
         protected async Task<War> GetClanCurrentWar(string clanTag)

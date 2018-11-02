@@ -701,6 +701,24 @@ namespace LWFStatsWeb.Controllers
             {
                 var clanWars = (from w in db.Wars where w.ClanTag == clan.Tag select new { w.ID, w.Result, w.PreparationStartTime, w.StartTime, w.EndTime, w.OpponentTag, w.TeamSize, w.Friendly, w.Matched, w.Synced }).ToDictionary(w => w.ID);
 
+                //Clean invalid wars
+                var deleteInvalidWars = new List<string>();
+                foreach (var w in clanWars)
+                {
+                    if (w.Value.Result == null || w.Value.OpponentTag == null)
+                        deleteInvalidWars.Add(w.Key);
+                }
+
+                foreach(var k in deleteInvalidWars)
+                {
+                    var war = db.Wars.SingleOrDefault(w => w.ID == k);
+                    if (war != null)
+                        db.Wars.Remove(war);
+                    db.SaveChanges();
+                    clanWars.Remove(k);
+                }
+                //clean end
+
                 foreach (var war in clan.Wars)
                 {
                     var earliestEndTime = war.EndTime.AddHours(-3); //Prepare for maintenance break
