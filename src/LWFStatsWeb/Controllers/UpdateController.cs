@@ -97,12 +97,7 @@ namespace LWFStatsWeb.Controllers
 
         protected async Task DeleteTasks()
         {
-            foreach(var task in db.UpdateTasks)
-            {
-                db.UpdateTasks.Remove(task);
-            }
-
-            await db.SaveChangesAsync();
+            await db.Database.ExecuteSqlCommandAsync("DELETE FROM UpdateTasks");
         }
 
         protected async Task UpdateBlacklisted()
@@ -757,6 +752,18 @@ namespace LWFStatsWeb.Controllers
                                          select w).FirstOrDefault();
                     }
 
+                    if (duplicate != null)
+                    {
+                        if (war.PreparationStartTime == DateTime.MinValue)
+                        {
+                            war.PreparationStartTime = duplicate.PreparationStartTime;
+                        }
+                        if (war.StartTime == DateTime.MinValue)
+                        {
+                            war.StartTime = duplicate.StartTime;
+                        }
+                    }
+
                     if (clanWars.TryGetValue(war.ID, out var existingWar))
                     {
                         existingWar.ClanAttacks = war.ClanAttacks;
@@ -775,6 +782,8 @@ namespace LWFStatsWeb.Controllers
                         existingWar.OpponentStars = war.OpponentStars;
                         if (war.PreparationStartTime > existingWar.PreparationStartTime)
                             existingWar.PreparationStartTime = war.PreparationStartTime;
+                        if (existingWar.PreparationStartTime == DateTime.MinValue)
+                            existingWar.PreparationStartTime = existingWar.SearchTime;
                         existingWar.Result = war.Result;
                         if (war.StartTime > existingWar.StartTime)
                             existingWar.StartTime = war.StartTime;
@@ -782,28 +791,34 @@ namespace LWFStatsWeb.Controllers
                     }
                     else
                     {
+                        var tmpAttacks = war.Attacks;
+                        var tmpMembers = war.Members;
+
+                        //Detach child objects
+                        war.Attacks = null;
+                        war.Members = null;
+
                         db.Wars.Add(war);
+                        db.SaveChanges();
+                        db.Entry(war).State = EntityState.Detached;
+
+                        //Attach child objects
+                        war.Attacks = tmpAttacks;
+                        war.Members = tmpMembers;
                     }
 
-                    if(duplicate != null)
+                    if (duplicate != null)
                     {
-                        if (war.PreparationStartTime == DateTime.MinValue)
-                        {
-                            war.PreparationStartTime = duplicate.PreparationStartTime;
-                        }
-                        if (war.StartTime == DateTime.MinValue)
-                        {
-                            war.StartTime = duplicate.StartTime;
-                        }
+                        db.Database.ExecuteSqlCommand("UPDATE WarMembers SET WarID = {0} WHERE WarID = {1}", war.ID, duplicate.ID);
+                        db.Database.ExecuteSqlCommand("UPDATE WarAttacks SET WarID = {0} WHERE WarID = {1}", war.ID, duplicate.ID);
+                        db.Wars.Remove(duplicate);
                     }
-
-                    var addedMembers = new HashSet<string>();
 
                     if (war.Members != null && war.Members.Count > 0)
                     {
                         //For some reason we got duplicates...
                         var warMembers = new Dictionary<string, WarMember>();
-                        foreach(var m in db.WarMembers.Where(m => m.WarID == war.ID))
+                        foreach (var m in db.WarMembers.Where(m => m.WarID == war.ID))
                         {
                             if (warMembers.ContainsKey(m.Tag))
                                 db.WarMembers.Remove(m);
@@ -813,7 +828,6 @@ namespace LWFStatsWeb.Controllers
 
                         foreach (var member in war.Members)
                         {
-                            addedMembers.Add(member.Tag);
                             if (warMembers.TryGetValue(member.Tag, out var memberDetails))
                             {
                                 memberDetails.OpponentAttacks = member.OpponentAttacks;
@@ -847,14 +861,11 @@ namespace LWFStatsWeb.Controllers
                         }
                     }
 
-                    var addedAttacks = new HashSet<int>();
-
                     if (war.Attacks != null && war.Attacks.Count > 0)
                     {
-                        //var warAttacks = (from a in db.WarAttacks where a.WarID == war.ID select a.Order).ToDictionary(m => m);
                         //For some reason we got duplicates...
                         var warAttacks = new Dictionary<int, WarAttack>();
-                        foreach (var a in db.WarAttacks.Where(a => a.WarID == war.ID))
+                        foreach (var a in db.WarAttacks.Where(m => m.WarID == war.ID))
                         {
                             if (warAttacks.ContainsKey(a.Order))
                                 db.WarAttacks.Remove(a);
@@ -863,55 +874,9 @@ namespace LWFStatsWeb.Controllers
                         }
                         foreach (var attack in war.Attacks)
                         {
-                            addedAttacks.Add(attack.Order);
-                            if (!warAttacks.ContainsKey(attack.Order))
+                            if(!warAttacks.ContainsKey(attack.Order))
                                 db.WarAttacks.Add(attack);
                         }
-                    }
-
-                    if (duplicate != null)
-                    {
-                        var existingMembers = db.WarMembers.Where(w => w.WarID == war.ID).ToList();
-                        foreach (var existingMember in existingMembers)
-                        {
-                            if (!addedMembers.Contains(existingMember.Tag))
-                                addedMembers.Add(existingMember.Tag);
-                        }
-                        var duplicateMembers = db.WarMembers.Where(w => w.WarID == duplicate.ID).ToList();
-                        foreach (var member in duplicateMembers)
-                        {
-                            if (addedMembers.Contains(member.Tag))
-                            {
-                                db.WarMembers.Remove(member);
-                            }
-                            else
-                            {
-                                member.WarID = war.ID;
-                            }
-
-                        }
-
-                        var existingAttacks = db.WarAttacks.Where(w => w.WarID == war.ID).ToList();
-                        foreach (var existingAttack in existingAttacks)
-                        {
-                            if (!addedAttacks.Contains(existingAttack.Order))
-                                addedAttacks.Add(existingAttack.Order);
-                        }
-                        var duplicateAttacks = db.WarAttacks.Where(w => w.WarID == duplicate.ID).ToList();
-                        foreach (var attack in duplicateAttacks)
-                        {
-                            if (addedAttacks.Contains(attack.Order))
-                            {
-                                db.WarAttacks.Remove(attack);
-                            }
-                            else
-                            {
-                                attack.WarID = war.ID;
-                            }
-
-                        }
-
-                        db.Wars.Remove(duplicate);
                     }
                 }
             }
