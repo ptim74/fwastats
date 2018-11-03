@@ -304,10 +304,17 @@ namespace LWFStatsWeb.Logic
             }
 
             var keepInvalidWarsSince = DateTime.UtcNow.AddDays(-1.0);
-
+            //Endtime is in past but war is not finished -> delete
             db.Database.ExecuteSqlCommand("DELETE FROM WarMembers WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} AND Result IN({1},{2}))", keepInvalidWarsSince, "preparation", "inWar");
             db.Database.ExecuteSqlCommand("DELETE FROM WarAttacks WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} AND Result IN({1},{2}))", keepInvalidWarsSince, "preparation", "inWar");
             db.Database.ExecuteSqlCommand("DELETE FROM Wars WHERE EndTime < {0} AND Result IN({1},{2})", keepInvalidWarsSince, "preparation", "inWar");
+
+            db.Database.ExecuteSqlCommand("DELETE FROM WarMembers WHERE WarID IS NULL");
+            db.Database.ExecuteSqlCommand("DELETE FROM WarAttacks WHERE WarID IS NULL");
+
+            db.Database.ExecuteSqlCommand("DELETE FROM WarMembers WHERE WarID NOT IN ( SELECT ID FROM Wars )");
+            db.Database.ExecuteSqlCommand("DELETE FROM WarAttacks WHERE WarID NOT IN ( SELECT ID FROM Wars )");
+
         }
     }
 }

@@ -759,29 +759,26 @@ namespace LWFStatsWeb.Controllers
 
                     if (clanWars.TryGetValue(war.ID, out var existingWar))
                     {
-                        if (!war.Result.Equals(existingWar.Result) || war.Result.Equals("inWar"))
-                        {
-                            existingWar.ClanAttacks = war.ClanAttacks;
-                            existingWar.ClanBadgeUrl = war.ClanBadgeUrl;
-                            existingWar.ClanDestructionPercentage = war.ClanDestructionPercentage;
-                            existingWar.ClanExpEarned = war.ClanExpEarned;
-                            existingWar.ClanLevel = war.ClanLevel;
-                            existingWar.ClanName = war.ClanName;
-                            existingWar.ClanStars = war.ClanStars;
-                            //existingWar.EndTime = war.EndTime;
-                            existingWar.Friendly = war.Friendly;
-                            existingWar.OpponentBadgeUrl = war.OpponentBadgeUrl;
-                            existingWar.OpponentDestructionPercentage = war.OpponentDestructionPercentage;
-                            existingWar.OpponentLevel = war.OpponentLevel;
-                            existingWar.OpponentName = war.OpponentName;
-                            existingWar.OpponentStars = war.OpponentStars;
-                            if (war.PreparationStartTime > existingWar.PreparationStartTime)
-                                existingWar.PreparationStartTime = war.PreparationStartTime;
-                            existingWar.Result = war.Result;
-                            if (war.StartTime > existingWar.StartTime)
-                                existingWar.StartTime = war.StartTime;
-                            existingWar.TeamSize = war.TeamSize;
-                        }
+                        existingWar.ClanAttacks = war.ClanAttacks;
+                        existingWar.ClanBadgeUrl = war.ClanBadgeUrl;
+                        existingWar.ClanDestructionPercentage = war.ClanDestructionPercentage;
+                        existingWar.ClanExpEarned = war.ClanExpEarned;
+                        existingWar.ClanLevel = war.ClanLevel;
+                        existingWar.ClanName = war.ClanName;
+                        existingWar.ClanStars = war.ClanStars;
+                        //existingWar.EndTime = war.EndTime;
+                        existingWar.Friendly = war.Friendly;
+                        existingWar.OpponentBadgeUrl = war.OpponentBadgeUrl;
+                        existingWar.OpponentDestructionPercentage = war.OpponentDestructionPercentage;
+                        existingWar.OpponentLevel = war.OpponentLevel;
+                        existingWar.OpponentName = war.OpponentName;
+                        existingWar.OpponentStars = war.OpponentStars;
+                        if (war.PreparationStartTime > existingWar.PreparationStartTime)
+                            existingWar.PreparationStartTime = war.PreparationStartTime;
+                        existingWar.Result = war.Result;
+                        if (war.StartTime > existingWar.StartTime)
+                            existingWar.StartTime = war.StartTime;
+                        existingWar.TeamSize = war.TeamSize;
                     }
                     else
                     {
