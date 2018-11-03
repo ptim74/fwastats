@@ -782,7 +782,7 @@ namespace LWFStatsWeb.Controllers
                     }
                     else
                     {
-                        db.Entry(war).State = EntityState.Added;
+                        db.Wars.Add(war);
                     }
 
                     if(duplicate != null)
@@ -801,7 +801,6 @@ namespace LWFStatsWeb.Controllers
 
                     if (war.Members != null && war.Members.Count > 0)
                     {
-                        //var warMembers = (from m in db.WarMembers where m.WarID == war.ID select new { m.Tag, m.OpponentAttacks, m.ID, m.TownHallLevel }).ToDictionary(m => m.Tag, m => new { m.ID, m.OpponentAttacks, m.TownHallLevel });
                         //For some reason we got duplicates...
                         var warMembers = new Dictionary<string, WarMember>();
                         foreach(var m in db.WarMembers.Where(m => m.WarID == war.ID))
@@ -822,7 +821,7 @@ namespace LWFStatsWeb.Controllers
                             }
                             else
                             {
-                                db.Entry(member).State = EntityState.Added;
+                                db.WarMembers.Add(member);   
                             }
                         }
 
@@ -866,7 +865,7 @@ namespace LWFStatsWeb.Controllers
                         {
                             addedAttacks.Add(attack.Order);
                             if (!warAttacks.ContainsKey(attack.Order))
-                                db.Entry(attack).State = EntityState.Added;
+                                db.WarAttacks.Add(attack);
                         }
                     }
 
@@ -883,7 +882,7 @@ namespace LWFStatsWeb.Controllers
                         {
                             if (addedMembers.Contains(member.Tag))
                             {
-                                db.Entry(member).State = EntityState.Deleted;
+                                db.WarMembers.Remove(member);
                             }
                             else
                             {
@@ -903,7 +902,7 @@ namespace LWFStatsWeb.Controllers
                         {
                             if (addedAttacks.Contains(attack.Order))
                             {
-                                db.Entry(attack).State = EntityState.Deleted;
+                                db.WarAttacks.Remove(attack);
                             }
                             else
                             {
@@ -912,8 +911,7 @@ namespace LWFStatsWeb.Controllers
 
                         }
 
-                        var duplicateWar = new War { ID = duplicate.ID };
-                        db.Entry(duplicateWar).State = EntityState.Deleted;
+                        db.Wars.Remove(duplicate);
                     }
                 }
             }

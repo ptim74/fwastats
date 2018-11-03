@@ -44,7 +44,7 @@ namespace LWFStatsWeb.Logic
                     if (!updateOnly)
                     {
                         newPlayer.LastUpdated = DateTime.UtcNow;
-                        db.Entry(newPlayer).State = EntityState.Added;
+                        db.Players.Add(newPlayer);
                         db.SaveChanges();
                     }
                 }

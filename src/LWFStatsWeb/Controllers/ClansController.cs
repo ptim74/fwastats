@@ -902,7 +902,7 @@ namespace LWFStatsWeb.Controllers
                     if (weight == null)
                     {
                         weight = new Weight { Tag = member.Tag, WarWeight = member.Weight, InWar = member.InWar, LastModified = DateTime.UtcNow };
-                        db.Add(weight);
+                        db.Weights.Add(weight);
                     }
                     else
                     {
@@ -911,7 +911,6 @@ namespace LWFStatsWeb.Controllers
                             weight.WarWeight = member.Weight;
                             weight.InWar = member.InWar;
                             weight.LastModified = DateTime.UtcNow;
-                            db.Entry(weight).State = EntityState.Modified;
                         }
                     }
                 }
