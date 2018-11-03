@@ -302,6 +302,12 @@ namespace LWFStatsWeb.Logic
 
                 db.Database.ExecuteSqlCommand("DELETE FROM ClanValidities WHERE ValidTo < {0}", keepWarsSince);
             }
+
+            var keepInvalidWarsSince = DateTime.UtcNow.AddDays(-1.0);
+
+            db.Database.ExecuteSqlCommand("DELETE FROM WarMembers WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} AND Result IN({1},{2}))", keepInvalidWarsSince, "preparation", "inWar");
+            db.Database.ExecuteSqlCommand("DELETE FROM WarAttacks WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} AND Result IN({1},{2}))", keepInvalidWarsSince, "preparation", "inWar");
+            db.Database.ExecuteSqlCommand("DELETE FROM Wars WHERE EndTime < {0} AND Result IN({1},{2})", keepInvalidWarsSince, "preparation", "inWar");
         }
     }
 }
