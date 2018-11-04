@@ -154,6 +154,7 @@ namespace LWFStatsWeb.Logic
 
                 data.InLeague = false;
 
+                //Check if current war is one of the league opponents
                 if (currentWar != null && league != null && league.Clans != null)
                 {
                     foreach(var clan in league.Clans)
@@ -161,6 +162,13 @@ namespace LWFStatsWeb.Logic
                         if (clan.Tag == currentWar.OpponentTag)
                             data.InLeague = true;
                     }
+                }
+
+                //Hide league status after one day of last war
+                if(data.InLeague && currentWar != null && currentWar.EndTime < DateTime.UtcNow.AddDays(-1))
+                {
+                    data.InLeague = false;
+                    currentWar = null;
                 }
 
                 if (data.InLeague)
