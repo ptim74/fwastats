@@ -430,6 +430,10 @@ namespace LWFStatsWeb.Controllers
                     }
                 }
             }
+            else
+            {
+                throw new Exception("War not found.");
+            }
 
             return View(war);
         }
