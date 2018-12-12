@@ -87,7 +87,7 @@ namespace LWFStatsWeb
 
                 options.FormatterMappings.SetMediaTypeMappingForFormat("csv", MediaTypeHeaderValue.Parse("text/csv"));
                 options.FormatterMappings.SetMediaTypeMappingForFormat("xml", new MediaTypeHeaderValue("application/xml"));
-            });
+            }).SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             //services.AddMvc(options =>
             //{
