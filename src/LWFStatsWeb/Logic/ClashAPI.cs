@@ -68,13 +68,16 @@ namespace LWFStatsWeb.Logic
             request.Headers[HttpRequestHeader.AcceptEncoding] = "gzip";
             try
             {
-                var response = await request.GetResponseAsync();
-                var responseStream = GetUncompressedResponseStream(response);
-
-                using (var reader = new StreamReader(responseStream))
+                using (var response = await request.GetResponseAsync())
                 {
-                    var data = await reader.ReadToEndAsync();
-                    return data;
+                    using (var responseStream = GetUncompressedResponseStream(response))
+                    {
+                        using (var reader = new StreamReader(responseStream))
+                        {
+                            var data = await reader.ReadToEndAsync();
+                            return data;
+                        }
+                    }
                 }
             }
             catch (WebException e)
@@ -82,22 +85,26 @@ namespace LWFStatsWeb.Logic
                 Exception ret = e;
                 try
                 {
-                    var response = await request.GetResponseAsync();
-                    var responseStream = GetUncompressedResponseStream(response);
-
-                    using (var reader = new StreamReader(responseStream)) //TODO: NullReferenceException
+                    using (var response = await request.GetResponseAsync())
                     {
-                        var data = await reader.ReadToEndAsync();
-                        var error = JsonConvert.DeserializeObject<ClashApiError>(data);
-                        if (error != null)
+                        using (var responseStream = GetUncompressedResponseStream(response))
                         {
-                            var msg = $"API Error {e.Status}, Reason: {error.Reason}, Message: {error.Message}";
-                            ret = new Exception(msg, e);
+
+                            using (var reader = new StreamReader(responseStream)) //TODO: NullReferenceException
+                            {
+                                var data = await reader.ReadToEndAsync();
+                                var error = JsonConvert.DeserializeObject<ClashApiError>(data);
+                                if (error != null)
+                                {
+                                    var msg = $"API Error {e.Status}, Reason: {error.Reason}, Message: {error.Message}";
+                                    ret = new Exception(msg, e);
+                                }
+                            }
                         }
                     }
                 }
                 catch (Exception) {}
-                throw new ClashApiException(string.Format("Failed to get '{0}'", page), e);
+                throw new ClashApiException(string.Format("Failed to get '{0}'", page), ret);
             }
         }
 
