@@ -7,6 +7,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -43,68 +44,57 @@ namespace LWFStatsWeb.Logic
 
     public class ClashApi : IClashApi
     {
+        private readonly IHttpClientFactory clientFactory;
         private readonly IOptions<ClashApiOptions> options;
 
-        public ClashApi(IOptions<ClashApiOptions> options)
+        public ClashApi(
+            IOptions<ClashApiOptions> options,
+            IHttpClientFactory clientFactory)
         {
             this.options = options;
+            this.clientFactory = clientFactory;
         }
 
-        private Stream GetUncompressedResponseStream(WebResponse response)
+        private async Task<Stream> GetUncompressedResponseStream(HttpResponseMessage response)
         {
-            var encoding = response.Headers[HttpRequestHeader.ContentEncoding];
-            Stream responseStream = response.GetResponseStream();
-            if (string.Equals(encoding, "gzip", StringComparison.InvariantCultureIgnoreCase))
-                responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
+            Stream responseStream = await response.Content.ReadAsStreamAsync();
+            if (response.Content.Headers.Contains("Content-Encoding"))
+                foreach (var encoding in response.Content.Headers.GetValues("Content-Encoding"))
+                    if ("gzip".Equals(encoding))
+                        responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
             return responseStream;
         }
 
         private async Task<string> Request(string page)
         {
             var url = string.Format("{0}/{1}", options.Value.Url, page);
-            var request = WebRequest.Create(url);
-            if(!string.IsNullOrEmpty(options.Value.Token))
-                request.Headers[HttpRequestHeader.Authorization] = string.Format("Bearer {0}", options.Value.Token);
-            request.Headers[HttpRequestHeader.AcceptEncoding] = "gzip";
+            var client = clientFactory.CreateClient();
+
             try
             {
-                using (var response = await request.GetResponseAsync())
+                using (var request = new HttpRequestMessage(HttpMethod.Get, url))
                 {
-                    using (var responseStream = GetUncompressedResponseStream(response))
-                    {
-                        using (var reader = new StreamReader(responseStream))
-                        {
-                            var data = await reader.ReadToEndAsync();
-                            return data;
-                        }
-                    }
-                }
-            }
-            catch (WebException e)
-            {
-                Exception ret = e;
-                try
-                {
-                    using (var response = await request.GetResponseAsync())
-                    {
-                        using (var responseStream = GetUncompressedResponseStream(response))
-                        {
+                    request.Headers.Add("Authorization", string.Format("Bearer {0}", options.Value.Token));
+                    request.Headers.Add("Accept-Encoding", "gzip");
+                    var x = request.Headers.AcceptEncoding;
 
-                            using (var reader = new StreamReader(responseStream)) //TODO: NullReferenceException
+                    using (var response = await client.SendAsync(request))
+                    {
+                        response.EnsureSuccessStatusCode();
+                        using (var responseStream = await GetUncompressedResponseStream(response))
+                        {
+                            using (var reader = new StreamReader(responseStream))
                             {
                                 var data = await reader.ReadToEndAsync();
-                                var error = JsonConvert.DeserializeObject<ClashApiError>(data);
-                                if (error != null)
-                                {
-                                    var msg = $"API Error {e.Status}, Reason: {error.Reason}, Message: {error.Message}";
-                                    ret = new Exception(msg, e);
-                                }
+                                return data;
                             }
                         }
                     }
                 }
-                catch (Exception) {}
-                throw new ClashApiException(string.Format("Failed to get '{0}'", page), ret);
+            } 
+            catch(Exception e)
+            {
+                throw new ClashApiException(string.Format("Failed to get '{0}'", page), e);
             }
         }
 

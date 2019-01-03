@@ -111,6 +111,8 @@ namespace LWFStatsWeb
             // Caching
             services.AddMemoryCache();
 
+            services.AddHttpClient();
+
             //services.AddLogging();
 
             //services.AddAuthorization(options =>
