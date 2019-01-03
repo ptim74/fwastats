@@ -53,7 +53,8 @@ namespace LWFStatsWeb.Logic
         {
             var url = string.Format("{0}/{1}", options.Value.Url, page);
             var request = WebRequest.Create(url);
-            request.Headers["Authorization"] = string.Format("Bearer {0}", options.Value.Token);
+            if(!string.IsNullOrEmpty(options.Value.Token))
+                request.Headers["Authorization"] = string.Format("Bearer {0}", options.Value.Token);
             try
             {
                 var response = await request.GetResponseAsync();
@@ -98,7 +99,7 @@ namespace LWFStatsWeb.Logic
 
         public async Task<ICollection<War>> GetClanWarlog(string clanTag)
         {
-            var url = string.Format("clans/{0}/warlog", Uri.EscapeDataString(clanTag));
+            var url = string.Format("clans/{0}/warlog", Uri.EscapeDataString(clanTag.ToUpperInvariant()));
             var data = await Request<Warlog>(url);
             if (data == null || data.Wars == null)
                 return null;
@@ -116,7 +117,7 @@ namespace LWFStatsWeb.Logic
 
         protected async Task<War> GetClanCurrentWar(string clanTag)
         {
-            var url = string.Format("clans/{0}/currentwar", Uri.EscapeDataString(clanTag));
+            var url = string.Format("clans/{0}/currentwar", Uri.EscapeDataString(clanTag.ToUpperInvariant()));
             var data = await Request<War>(url);
             if (data != null)
                 data.FixData(DateTime.MinValue);
@@ -127,7 +128,7 @@ namespace LWFStatsWeb.Logic
         {
             try
             {
-                var url = string.Format("clans/{0}/currentwar/leaguegroup", Uri.EscapeDataString(clanTag));
+                var url = string.Format("clans/{0}/currentwar/leaguegroup", Uri.EscapeDataString(clanTag.ToUpperInvariant()));
                 var data = await Request<WarLeague>(url);
                 return data;
             }
@@ -139,7 +140,7 @@ namespace LWFStatsWeb.Logic
 
         public async Task<Clan> GetClan(string clanTag, bool withWarDetails, bool withCurrentWar)
         {
-            var url = string.Format("clans/{0}", Uri.EscapeDataString(clanTag));
+            var url = string.Format("clans/{0}", Uri.EscapeDataString(clanTag.ToUpperInvariant()));
             var data = await Request<Clan>(url);
 
             if (data.IsWarLogPublic && withWarDetails)
@@ -214,7 +215,7 @@ namespace LWFStatsWeb.Logic
 
         public async Task<Player> GetPlayer(string playerTag)
         {
-            var url = string.Format("players/{0}", Uri.EscapeDataString(playerTag));
+            var url = string.Format("players/{0}", Uri.EscapeDataString(playerTag.ToUpperInvariant()));
             var data = await Request<Player>(url);
 
             data.FixData();
