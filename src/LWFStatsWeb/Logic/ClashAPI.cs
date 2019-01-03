@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -49,16 +50,28 @@ namespace LWFStatsWeb.Logic
             this.options = options;
         }
 
+        private Stream GetUncompressedResponseStream(WebResponse response)
+        {
+            var encoding = response.Headers[HttpRequestHeader.ContentEncoding];
+            Stream responseStream = response.GetResponseStream();
+            if (string.Equals(encoding, "gzip", StringComparison.InvariantCultureIgnoreCase))
+                responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
+            return responseStream;
+        }
+
         private async Task<string> Request(string page)
         {
             var url = string.Format("{0}/{1}", options.Value.Url, page);
             var request = WebRequest.Create(url);
             if(!string.IsNullOrEmpty(options.Value.Token))
-                request.Headers["Authorization"] = string.Format("Bearer {0}", options.Value.Token);
+                request.Headers[HttpRequestHeader.Authorization] = string.Format("Bearer {0}", options.Value.Token);
+            request.Headers[HttpRequestHeader.AcceptEncoding] = "gzip";
             try
             {
                 var response = await request.GetResponseAsync();
-                using (var reader = new StreamReader(response.GetResponseStream()))
+                var responseStream = GetUncompressedResponseStream(response);
+
+                using (var reader = new StreamReader(responseStream))
                 {
                     var data = await reader.ReadToEndAsync();
                     return data;
@@ -69,7 +82,10 @@ namespace LWFStatsWeb.Logic
                 Exception ret = e;
                 try
                 {
-                    using (var reader = new StreamReader(e.Response.GetResponseStream())) //TODO: NullReferenceException
+                    var response = await request.GetResponseAsync();
+                    var responseStream = GetUncompressedResponseStream(response);
+
+                    using (var reader = new StreamReader(responseStream)) //TODO: NullReferenceException
                     {
                         var data = await reader.ReadToEndAsync();
                         var error = JsonConvert.DeserializeObject<ClashApiError>(data);
