@@ -76,16 +76,27 @@ namespace LWFStatsWeb.Logic
                 {
                     request.Headers.Add("Authorization", string.Format("Bearer {0}", options.Value.Token));
                     request.Headers.Add("Accept-Encoding", "gzip");
-                    var x = request.Headers.AcceptEncoding;
 
                     using (var response = await client.SendAsync(request))
                     {
-                        response.EnsureSuccessStatusCode();
                         using (var responseStream = await GetUncompressedResponseStream(response))
                         {
                             using (var reader = new StreamReader(responseStream))
                             {
                                 var data = await reader.ReadToEndAsync();
+                                if(!response.IsSuccessStatusCode)
+                                {
+                                    var error = JsonConvert.DeserializeObject<ClashApiError>(data);
+                                    if (error != null)
+                                    {
+                                        var msg = $"API Error {response.ReasonPhrase}, Reason: {error.Reason}, Message: {error.Message}";
+                                        throw new Exception(msg);
+                                    }
+                                    else
+                                    {
+                                        throw new Exception($"HTTP Error {response.ReasonPhrase}");
+                                    }
+                                }
                                 return data;
                             }
                         }
