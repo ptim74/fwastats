@@ -187,6 +187,8 @@ namespace LWFStatsWeb.Logic
                         if (clan.Tag == currentWar.OpponentTag)
                             data.InLeague = true;
                     }
+                    if (league.State == "inWar" && currentWar.State == "notInWar")
+                        data.InLeague = true;
                 }
 
                 //Hide league status after one day of last war
