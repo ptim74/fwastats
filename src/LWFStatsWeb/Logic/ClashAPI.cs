@@ -192,11 +192,13 @@ namespace LWFStatsWeb.Logic
                 }
 
                 //Hide league status after one day of last war
+                /*
                 if(data.InLeague && currentWar != null && currentWar.EndTime < DateTime.UtcNow.AddDays(-1))
                 {
                     data.InLeague = false;
                     currentWar = null;
                 }
+                */
 
                 if (data.InLeague)
                     currentWar = null;
