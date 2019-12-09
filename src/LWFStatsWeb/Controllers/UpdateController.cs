@@ -355,6 +355,9 @@ namespace LWFStatsWeb.Controllers
 
                                 try
                                 {
+                                    int dataOffset = 0;
+                                    if (row.Count > (resultDb.TeamSize + 15))
+                                        dataOffset = 3;
 
                                     DateTime timestamp;
                                     try
@@ -378,19 +381,22 @@ namespace LWFStatsWeb.Controllers
 
                                         //TODO
                                         result.TH13Count = 0;
+                                        if (dataOffset > 0)
+                                            result.TH13Count = Convert.ToInt32(row[7]);
+
                                         try
                                         {
-                                            result.TH12Count = Convert.ToInt32(row[5]);
+                                            result.TH12Count = Convert.ToInt32(row[5 + dataOffset]);
                                         }
                                         catch (Exception)
                                         {
                                             result.TH12Count = 0;
                                         }
-                                        result.TH11Count = Convert.ToInt32(row[6]);
-                                        result.TH10Count = Convert.ToInt32(row[7]);
-                                        result.TH9Count = Convert.ToInt32(row[8]);
-                                        result.TH8Count = Convert.ToInt32(row[9]);
-                                        result.TH7Count = Convert.ToInt32(row[10]);
+                                        result.TH11Count = Convert.ToInt32(row[6 + dataOffset]);
+                                        result.TH10Count = Convert.ToInt32(row[7 + dataOffset]);
+                                        result.TH9Count = Convert.ToInt32(row[8 + dataOffset]);
+                                        result.TH8Count = Convert.ToInt32(row[9 + dataOffset]);
+                                        result.TH7Count = Convert.ToInt32(row[10 + dataOffset]);
 
                                         result.THSum = result.TH13Count * 13 + result.TH12Count * 12 + result.TH11Count * 11 + result.TH10Count * 10 + result.TH9Count * 9 + result.TH8Count * 8 + result.TH7Count * 7;
                                         var totalWeight = 0;
@@ -398,7 +404,7 @@ namespace LWFStatsWeb.Controllers
                                         int max = resultDb.TeamSize + 10;
                                         for (int i = 11; i <= max; i++)
                                         {
-                                            var weight = Convert.ToInt32(row[i]);
+                                            var weight = Convert.ToInt32(row[i + dataOffset]);
                                             if (weight > 130000)
                                                 weight = 130000;
                                             if (weight < 0)
