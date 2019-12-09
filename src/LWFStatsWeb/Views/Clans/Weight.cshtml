@@ -160,7 +160,7 @@ else
                         <input type="hidden" name="Members[@member_id].Tag" value="@member.Tag" />
                         @if (member.TownHallLevel == 13)
                         {
-                            <span class="label label-danger">@member.TownHallLevel</span>
+                            <span class="label label-info">@member.TownHallLevel</span>
                         }
                         else if (member.TownHallLevel == 12)
                         {
@@ -172,15 +172,15 @@ else
                         }
                         else if (member.TownHallLevel == 10)
                         {
-                            <span class="label label-info">@member.TownHallLevel</span>
+                            <span class="label label-danger">@member.TownHallLevel</span>
                         }
                         else if (member.TownHallLevel == 9)
                         {
-                            <span class="label label-warning">@member.TownHallLevel</span>
+                            <span class="label label-default">@member.TownHallLevel</span>
                         }
                         else
                         {
-                            <span class="label label-default">@member.TownHallLevel</span>
+                            <span class="label label-warning">@member.TownHallLevel</span>
                         }
                         <a asp-route-id="@member.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@member.Name</a>
                     </td>
