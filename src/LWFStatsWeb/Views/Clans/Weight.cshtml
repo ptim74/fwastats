@@ -129,8 +129,11 @@ else
                 var member_max = 0;
                 switch(member.TownHallLevel)
                 {
-                    case 12:
+                    case 13:
                         member_max = 130000;
+                        break;
+                    case 12:
+                        member_max = 120000;
                         break;
                     case 11:
                         member_max = 110000;
@@ -155,23 +158,23 @@ else
                     <td>@member_pos</td>
                     <td>
                         <input type="hidden" name="Members[@member_id].Tag" value="@member.Tag" />
-                        @if (member.TownHallLevel == 12)
+                        @if (member.TownHallLevel == 13)
                         {
                             <span class="label label-danger">@member.TownHallLevel</span>
                         }
-                        else if (member.TownHallLevel == 11)
+                        else if (member.TownHallLevel == 12)
                         {
                             <span class="label label-primary">@member.TownHallLevel</span>
                         }
-                        else if (member.TownHallLevel == 10)
+                        else if (member.TownHallLevel == 11)
                         {
                             <span class="label label-success">@member.TownHallLevel</span>
                         }
-                        else if (member.TownHallLevel == 9)
+                        else if (member.TownHallLevel == 10)
                         {
                             <span class="label label-info">@member.TownHallLevel</span>
                         }
-                        else if (member.TownHallLevel == 8)
+                        else if (member.TownHallLevel == 9)
                         {
                             <span class="label label-warning">@member.TownHallLevel</span>
                         }
@@ -440,6 +443,7 @@ else
 
             $('#war-members').text(members_in_war + ' / ' + members_total);
 
+            var th13_count = 0;
             var th12_count = 0;
             var th11_count = 0;
             var th10_count = 0;
@@ -454,7 +458,9 @@ else
                 if ($("input[name='" + checkName + "']").is(':checked'))
                 {
                     war_weight += member_weight;
-                    if (member_weight > 110000)
+                    if (member_weight > 120000)
+                        th13_count++;
+                    else if (member_weight > 110000)
                         th12_count++;
                     else if (member_weight > 90000)
                         th11_count++;
@@ -470,7 +476,7 @@ else
             });
 
             $('#war-weight').text(war_weight);
-            $('#war-composition').text(th12_count + ' / ' + th11_count + ' / ' + th10_count + ' / ' + th9_count + ' / ' + th8_count + ' / ' + th7_count);
+            $('#war-composition').text(th13_count + ' / ' + th12_count + ' / ' + th11_count + ' / ' + th10_count + ' / ' + th9_count + ' / ' + th8_count + ' / ' + th7_count);
 
             $('.btn-save').addClass((members_in_war == @Constants.WAR_SIZE1 || members_in_war == @Constants.WAR_SIZE2) ? 'btn-success' : 'btn-danger');
             $('.btn-save').removeClass((members_in_war == @Constants.WAR_SIZE1 || members_in_war == @Constants.WAR_SIZE2) ? 'btn-danger' : 'btn-success');

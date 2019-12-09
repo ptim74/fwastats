@@ -263,6 +263,7 @@ namespace LWFStatsWeb.Controllers
                 }
             }
 
+            details.Clan.Th13Count = 0;
             details.Clan.Th12Count = 0;
             details.Clan.Th11Count = 0;
             details.Clan.Th10Count = 0;
@@ -277,7 +278,9 @@ namespace LWFStatsWeb.Controllers
                 if (member != null)
                 {
                     member.TownHallLevel = thlevel.TownHallLevel;
-                    if (member.TownHallLevel == 12)
+                    if (member.TownHallLevel == 13)
+                        details.Clan.Th13Count++;
+                    else if (member.TownHallLevel == 12)
                         details.Clan.Th12Count++;
                     else if (member.TownHallLevel == 11)
                         details.Clan.Th11Count++;
@@ -307,7 +310,9 @@ namespace LWFStatsWeb.Controllers
                     }
                     else
                     {
-                        if (member.TownHallLevel == 12)
+                        if (member.TownHallLevel == 13)
+                            details.Clan.EstimatedWeight += 135;
+                        else if (member.TownHallLevel == 12)
                             details.Clan.EstimatedWeight += 125;
                         else if (member.TownHallLevel == 11)
                             details.Clan.EstimatedWeight += 105;

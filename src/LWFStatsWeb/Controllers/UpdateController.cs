@@ -376,6 +376,8 @@ namespace LWFStatsWeb.Controllers
                                         result.Timestamp = timestamp;
                                         result.TeamSize = resultDb.TeamSize;
 
+                                        //TODO
+                                        result.TH13Count = 0;
                                         try
                                         {
                                             result.TH12Count = Convert.ToInt32(row[5]);
@@ -390,7 +392,7 @@ namespace LWFStatsWeb.Controllers
                                         result.TH8Count = Convert.ToInt32(row[9]);
                                         result.TH7Count = Convert.ToInt32(row[10]);
 
-                                        result.THSum = result.TH12Count * 12 + result.TH11Count * 11 + result.TH10Count * 10 + result.TH9Count * 9 + result.TH8Count * 8 + result.TH7Count * 7;
+                                        result.THSum = result.TH13Count * 13 + result.TH12Count * 12 + result.TH11Count * 11 + result.TH10Count * 10 + result.TH9Count * 9 + result.TH8Count * 8 + result.TH7Count * 7;
                                         var totalWeight = 0;
 
                                         int max = resultDb.TeamSize + 10;

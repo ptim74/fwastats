@@ -8,6 +8,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\Migrations\20191201185253_TH13.cs" />
+    <Compile Remove="Data\Migrations\20191201185253_TH13.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BuildBundlerMinifier" Version="2.8.391" />
     <PackageReference Include="FirebaseDatabase.net" Version="3.3.3" />
     <PackageReference Include="Google.Apis.Sheets.v4" Version="1.36.1.1439" />
