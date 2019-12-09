@@ -57,6 +57,7 @@ namespace LWFStatsWeb.Controllers
                 Name = c.Name,
                 Members = c.Members,
                 BadgeUrl = c.BadgeUrl,
+                Th13Count = c.Th13Count,
                 Th12Count = c.Th12Count,
                 Th11Count = c.Th11Count,
                 Th10Count = c.Th10Count,
