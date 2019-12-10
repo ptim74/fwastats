@@ -642,6 +642,11 @@ namespace LWFStatsWeb.Controllers
 
             if (war == null) //All clan members
             {
+                if(model.Wars != null && model.Wars.Count > 0 )
+                {
+                    model.OpponentName = model.Wars.First().OpponentName;
+                }
+
                 var members = db.Members.Where(m => m.ClanTag == tag).OrderBy(m => m.ClanRank).ToList();
 
                 var weights = (from m in db.Members where m.ClanTag == tag join w in db.Weights on m.Tag equals w.Tag select w).ToDictionary(w => w.Tag);
@@ -668,6 +673,9 @@ namespace LWFStatsWeb.Controllers
             }
             else //clan members of war
             {
+                model.OpponentTag = war.OpponentTag;
+                model.OpponentName = war.OpponentName;
+
                 var members = db.WarMembers.Where(m => m.WarID == war.ID && m.IsOpponent == false).OrderBy(m => m.MapPosition).ToList();
 
                 var weights = (from m in db.WarMembers join w in db.Weights on m.Tag equals w.Tag where m.WarID == war.ID select w).ToDictionary(w => w.Tag);
@@ -780,9 +788,9 @@ namespace LWFStatsWeb.Controllers
             if (model.Members.Count != Constants.WAR_SIZE1 && model.Members.Count != Constants.WAR_SIZE2)
                 throw new Exception("Select 40 or 50 members");
 
-            var form_id = "1FAIpQLSedVrXwPzJTqDQDFlo9gfcJIfYJoAAfAB_gzrhjpiQJX_UMpg";
+            var form_id = "1FAIpQLSfckkdP851e2Ri_nHtO0XEWe2u3o0aA4NbJrMub06-zRkCzTQ";
             if (model.Members.Count == Constants.WAR_SIZE1)
-                form_id = "1FAIpQLScdEkL00W-SICrzMyQsCW2qPPR4hn1yThVBU1fqyZtDhUrSVQ";
+                form_id = "1FAIpQLSfYtzGV7C7VHWQs0Z7r0aAOTtNR-9IbraAyvAEaNApIQNsiQQ";
 
             var url = string.Format("https://docs.google.com/forms/d/e/{0}/viewform?usp=pp_url", form_id);
 
@@ -840,17 +848,26 @@ namespace LWFStatsWeb.Controllers
                 612547503,
                 1154234695,
                 2118269445,
-                1326597082
+                1326597082,
+                2128262510
             };
 
             int i = 0;
 
-            url += string.Format("&entry.{0}={1}",ids[i++], Uri.EscapeDataString(model.ClanName));
+            url += string.Format("&entry.{0}={1}",ids[i++], Uri.EscapeDataString("'" + model.ClanName));
             url += string.Format("&entry.{0}={1}", ids[i++], "FWAStatsPrefilled");
             url += string.Format("&entry.{0}={1}", ids[i++], Uri.EscapeDataString(model.ClanTag));
 
             foreach(var m in model.Members)
                 url += string.Format("&entry.{0}={1}", ids[i++], m.Weight);
+
+            if (!string.IsNullOrEmpty(model.OpponentName))
+            {
+                if (model.Members.Count == Constants.WAR_SIZE1)
+                    url += string.Format("&entry.{0}={1}", 790268828, Uri.EscapeDataString(model.OpponentName));
+                else
+                    url += string.Format("&entry.{0}={1}", ids[i++], Uri.EscapeDataString(model.OpponentName));
+            }
 
             return Redirect(url);
         }
