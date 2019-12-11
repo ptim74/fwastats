@@ -381,24 +381,13 @@ namespace LWFStatsWeb.Controllers
 
                                         //TODO
                                         result.TH13Count = 0;
-                                        if (dataOffset > 0)
-                                            result.TH13Count = Convert.ToInt32(row[7]);
+                                        result.TH12Count = 0;
+                                        result.TH11Count = 0;
+                                        result.TH10Count = 0;
+                                        result.TH9Count = 0;
+                                        result.TH8Count = 0;
+                                        result.TH7Count = 0;
 
-                                        try
-                                        {
-                                            result.TH12Count = Convert.ToInt32(row[5 + dataOffset]);
-                                        }
-                                        catch (Exception)
-                                        {
-                                            result.TH12Count = 0;
-                                        }
-                                        result.TH11Count = Convert.ToInt32(row[6 + dataOffset]);
-                                        result.TH10Count = Convert.ToInt32(row[7 + dataOffset]);
-                                        result.TH9Count = Convert.ToInt32(row[8 + dataOffset]);
-                                        result.TH8Count = Convert.ToInt32(row[9 + dataOffset]);
-                                        result.TH7Count = Convert.ToInt32(row[10 + dataOffset]);
-
-                                        result.THSum = result.TH13Count * 13 + result.TH12Count * 12 + result.TH11Count * 11 + result.TH10Count * 10 + result.TH9Count * 9 + result.TH8Count * 8 + result.TH7Count * 7;
                                         var totalWeight = 0;
 
                                         int max = resultDb.TeamSize + 10;
@@ -410,6 +399,22 @@ namespace LWFStatsWeb.Controllers
                                             if (weight < 0)
                                                 weight = 0;
                                             totalWeight += weight;
+
+                                            if (weight > 120000)
+                                                result.TH13Count++;
+                                            else if (weight > 110000)
+                                                result.TH12Count++;
+                                            else if (weight > 90000)
+                                                result.TH11Count++;
+                                            else if (weight > 70000)
+                                                result.TH10Count++;
+                                            else if (weight > 55000)
+                                                result.TH9Count++;
+                                            else if (weight > 40000)
+                                                result.TH8Count++;
+                                            else
+                                                result.TH7Count++;
+
                                             result.SetBase(i - 10, weight);
                                         }
 
@@ -417,6 +422,8 @@ namespace LWFStatsWeb.Controllers
                                         {
                                             result.SetBase(i, 0);
                                         }
+
+                                        result.THSum = result.TH13Count * 13 + result.TH12Count * 12 + result.TH11Count * 11 + result.TH10Count * 10 + result.TH9Count * 9 + result.TH8Count * 8 + result.TH7Count * 7;
 
                                         result.Weight = totalWeight;
                                     }
