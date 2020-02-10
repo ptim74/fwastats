@@ -606,6 +606,7 @@ namespace LWFStatsWeb.Controllers
                                 existingPlayer.Name = member.Name;
                             }
                         }
+                        existingMember.LeagueName = member.LeagueName;
                         existingMember.Name = member.Name;
                         existingMember.Trophies = member.Trophies;
                         if (existingMember.Role != member.Role)
