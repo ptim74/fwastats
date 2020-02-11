@@ -43,18 +43,18 @@
     <tbody>
         @foreach (var member in Model.Members)
         {
-            <tr>
-                <td>@member.Name</td>
-                @foreach (var war in Model.Wars)
-                {
-                    <td style="white-space: nowrap">
+        <tr>
+            <td><a asp-route-id="@member.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@member.Name</a></td>
+            @foreach (var war in Model.Wars)
+            {
+                <td style="white-space: nowrap">
                     @if (member.Attacks.TryGetValue(war.ID, out attacks))
                     {
                         foreach (var attack in attacks)
                         {
                             @for (var starCount = 0; starCount < attack.Stars; starCount++)
                             {
-                                <text>⭐</text> 
+                                <text>⭐</text>
                             }
                             if (attack.Stars == 0)
                             {
@@ -73,9 +73,9 @@
                     {
                         <span class="label label-danger">Opt Out</span>
                     }
-                    </td>
-                }
-            </tr>
+                </td>
+            }
+        </tr>
         }
     </tbody>
 </table>

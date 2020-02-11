@@ -37,6 +37,14 @@ namespace LWFStatsWeb.Models.ClanViewModels
         public string Tag { get; set; }
         public string Name { get; set; }
         public IDictionary<string,ICollection<WarAttack>> Attacks { get; set; }
+
+        public string LinkID
+        {
+            get
+            {
+                return Logic.Utils.TagToLinkId(Tag);
+            }
+        }
     }
 
 }
