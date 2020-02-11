@@ -76,13 +76,12 @@ namespace LWFStatsWeb.Controllers
 
             var tag = Utils.LinkIdToTag(id);
 
-            var maxEndDate = DateTime.UtcNow.AddDays(1);
+            var maxPrepDate = Constants.MaxVisibleSearchTime;
 
             if (warNo <= 0)
                 warNo = 1;
 
-            //var warId = (from w in db.Wars where w.ClanTag == tag join m in db.WarMembers on w.ID equals m.WarID where w.EndTime < maxEndDate select w.ID).Max();
-            var warId = db.Wars.Where(w => w.ClanTag == tag && w.EndTime < maxEndDate).OrderByDescending(w => w.EndTime).Skip(warNo - 1).Select(w => w.ID).FirstOrDefault();
+            var warId = db.Wars.Where(w => w.ClanTag == tag && w.PreparationStartTime < maxPrepDate).OrderByDescending(w => w.EndTime).Skip(warNo - 1).Select(w => w.ID).FirstOrDefault();
 
             var opponent = db.Wars.Where(w => w.ID == warId).Select(w => new { Tag = w.OpponentTag, Name = w.OpponentName }).FirstOrDefault();
 
