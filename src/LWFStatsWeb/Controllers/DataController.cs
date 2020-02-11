@@ -129,7 +129,7 @@ namespace LWFStatsWeb.Controllers
                         member.Defender1Position = row.Opponent.MapPosition;
                         member.Defender1TownHall = row.Opponent.TownHallLevel;
                         member.Stars1 = row.Attack.Stars;
-                        member.DesctuctionPercentage1 = row.Attack.DestructionPercentage;
+                        member.DestructionPercentage1 = row.Attack.DestructionPercentage;
                     }
                     else if (member.Attacks == 2)
                     {
@@ -138,7 +138,7 @@ namespace LWFStatsWeb.Controllers
                         member.Defender2Position = row.Opponent.MapPosition;
                         member.Defender2TownHall = row.Opponent.TownHallLevel;
                         member.Stars2 = row.Attack.Stars;
-                        member.DesctuctionPercentage2 = row.Attack.DestructionPercentage;
+                        member.DestructionPercentage2 = row.Attack.DestructionPercentage;
                     }
                 }
             }
