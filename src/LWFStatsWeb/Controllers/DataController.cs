@@ -70,14 +70,21 @@ namespace LWFStatsWeb.Controllers
 
         [FormatFilter]
         [Route("Clan/{id}/WarMembers.{format}")]
-        public IActionResult WarMembers(string id)
+        public IActionResult WarMembers(string id, int warNo)
         {
             logger.LogInformation("WarMembers {0}", id);
 
             var tag = Utils.LinkIdToTag(id);
 
             var maxEndDate = DateTime.UtcNow.AddDays(1);
-            var warId = (from w in db.Wars where w.ClanTag == tag join m in db.WarMembers on w.ID equals m.WarID where w.EndTime < maxEndDate select w.ID).Max();
+
+            if (warNo <= 0)
+                warNo = 1;
+
+            //var warId = (from w in db.Wars where w.ClanTag == tag join m in db.WarMembers on w.ID equals m.WarID where w.EndTime < maxEndDate select w.ID).Max();
+            var warId = db.Wars.Where(w => w.ClanTag == tag && w.EndTime < maxEndDate).OrderByDescending(w => w.EndTime).Skip(warNo - 1).Select(w => w.ID).FirstOrDefault();
+
+            var opponent = db.Wars.Where(w => w.ID == warId).Select(w => new { Tag = w.OpponentTag, Name = w.OpponentName }).FirstOrDefault();
 
             var members = from m in db.WarMembers
                           where m.WarID == warId && m.IsOpponent == false
@@ -97,8 +104,44 @@ namespace LWFStatsWeb.Controllers
                     Name = row.Member.Name,
                     Tag = row.Member.Tag,
                     TownHall = row.Player.TownHallLevel,
-                    Weight = row.Weight != null ? row.Weight.WarWeight : 0
+                    Weight = row.Weight != null ? row.Weight.WarWeight : 0,
+                    Attacks = 0,
+                    OpponentTag = opponent.Tag,
+                    OpponentName = opponent.Name
                 });
+            }
+
+            var attacks = from a in db.WarAttacks
+                          where a.WarID == warId && a.IsOpponent == false
+                          join o in db.WarMembers.Where(m => m.WarID == warId && m.IsOpponent == true) on a.DefenderTag equals o.Tag
+                          orderby a.Order
+                          select new { Attack = a, Opponent = o };
+
+            foreach(var row in attacks)
+            {
+                var member = data.Where(d => d.Tag == row.Attack.AttackerTag).FirstOrDefault();
+                if(member != null)
+                {
+                    member.Attacks++;
+                    if (member.Attacks == 1)
+                    {
+                        member.Defender1Tag = row.Opponent.Tag;
+                        member.Defender1Name = row.Opponent.Name;
+                        member.Defender1Position = row.Opponent.MapPosition;
+                        member.Defender1TownHall = row.Opponent.TownHallLevel;
+                        member.Stars1 = row.Attack.Stars;
+                        member.DesctuctionPercentage1 = row.Attack.DestructionPercentage;
+                    }
+                    else if (member.Attacks == 2)
+                    {
+                        member.Defender2Tag = row.Opponent.Tag;
+                        member.Defender2Name = row.Opponent.Name;
+                        member.Defender2Position = row.Opponent.MapPosition;
+                        member.Defender2TownHall = row.Opponent.TownHallLevel;
+                        member.Stars2 = row.Attack.Stars;
+                        member.DesctuctionPercentage2 = row.Attack.DestructionPercentage;
+                    }
+                }
             }
 
             return Ok(data);

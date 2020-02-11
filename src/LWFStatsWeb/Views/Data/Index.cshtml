@@ -52,22 +52,26 @@
         </tr>
         <tr>
             <th>URL</th>
-            <td>@Url.Action("WarMembers", new { id = "CLANTAG", format = "FORMAT" })</td>
+            <td>@Url.Action("WarMembers", new { id = "CLANTAG", format = "FORMAT" })?warNo=1</td>
         </tr>
         <tr>
             <th>Sample CSV</th>
-            @{ sample_url = Url.Action("WarMembers", new { id = sample_clan, format = "csv" }); }
+            @{ sample_url = Url.Action("WarMembers", new { id = sample_clan, format = "csv", warNo = 1 }); }
             <td><a href="@sample_url">@sample_url</a></td>
         </tr>
         <tr>
             <th>Sample JSON</th>
-            @{ sample_url = Url.Action("WarMembers", new { id = sample_clan, format = "json" }); }
+            @{ sample_url = Url.Action("WarMembers", new { id = sample_clan, format = "json", warNo = 1 }); }
             <td><a href="@sample_url">@sample_url</a></td>
         </tr>
         <tr>
             <th>Sample XML</th>
-            @{ sample_url = Url.Action("WarMembers", new { id = sample_clan, format = "xml" }); }
+            @{ sample_url = Url.Action("WarMembers", new { id = sample_clan, format = "xml", warNo = 1 }); }
             <td><a href="@sample_url">@sample_url</a></td>
+        </tr>
+        <tr>
+            <th>Parameters</th>
+            <td>warNo: 1 = latest war, 2 = second latest war</td>
         </tr>
     </tbody>
 </table>
