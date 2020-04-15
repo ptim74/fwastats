@@ -49,13 +49,10 @@ namespace LWFStatsWeb
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<ApplicationDbContext>(options => {
-                //options.EnableSensitiveDataLogging(true);
                 var connectionType = Configuration.GetConnectionString("Default");
                 var connectionString = Configuration.GetConnectionString(connectionType);
                 if (connectionType.Equals("SQLite"))
                     options.UseSqlite(connectionString);
-                //else if (connectionType.Equals("MySQL"))
-                //    options.UseMySql(connectionString);
                 else if (connectionType.Equals("SqlServer"))
                     options.UseSqlServer(connectionString);
                 else
@@ -75,8 +72,6 @@ namespace LWFStatsWeb
             services.Configure<WeightResultOptions>(Configuration.GetSection("ResultDatabase"));
             services.Configure<GoogleServiceOptions>(Configuration.GetSection("GoogleService"));
 
-            //services.Configure<GoogleOptions>(Configuration.GetSection("GoogleAuth"));
-
             var csvFormatterOptions = new CsvFormatterOptions();
 
             services.AddMvc(options =>
@@ -88,11 +83,6 @@ namespace LWFStatsWeb
                 options.FormatterMappings.SetMediaTypeMappingForFormat("csv", MediaTypeHeaderValue.Parse("text/csv"));
                 options.FormatterMappings.SetMediaTypeMappingForFormat("xml", new MediaTypeHeaderValue("application/xml"));
             }).SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
-
-            //services.AddMvc(options =>
-            //{
-            //    options.Filters.Add(new RequireHttpsAttribute());
-            //});
 
             // Add application services.
             services.AddTransient<IEmailSender, AuthMessageSender>();
@@ -112,14 +102,6 @@ namespace LWFStatsWeb
             services.AddMemoryCache();
 
             services.AddHttpClient();
-
-            //services.AddLogging();
-
-            //services.AddAuthorization(options =>
-            //{
-            //    options.AddPolicy("AdministratorOnly", policy => policy.RequireRole("Administrator"));
-            //    options.AddPolicy("EmployeeId", policy => policy.RequireClaim("EmployeeId", "123", "456"));
-            //});
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -147,10 +129,6 @@ namespace LWFStatsWeb
             app.UseStaticFiles();
 
             app.UseAuthentication();
-
-            // Add external authentication middleware below. To configure them please see http://go.microsoft.com/fwlink/?LinkID=532715
-
-            //app.UseGoogleAuthentication();
 
             app.UseMvc(routes =>
             {

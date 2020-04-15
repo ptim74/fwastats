@@ -48,20 +48,5 @@ namespace LWFStatsWeb.Controllers
 
             return Json($"code: {code}, state: {state}");
         }
-
-        /*
-        [HttpPost]
-        public ActionResult Callback([FromBody] CallbackViewModel model)
-        {
-            var clanTracker = new ClanTracker
-            {
-                ClanTag = "",
-                ClientId = options.Value.ClientId,
-                Id = model.Webhook.Id,
-                Token = model.Webhook.Token
-            };
-            return Json("Not implemented yet");
-        }*/
-
     }
 }
