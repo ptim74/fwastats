@@ -103,7 +103,9 @@ namespace LWFStatsWeb.Services
         {
             logger.LogInformation("Weight.SubmitRequest '{0}'", entry.Request.ClanName);
             entry.Status.UpdatePhase(SubmitPhase.Running);
-            if(GetChangesCount(entry.Request.ClanTag) < Constants.MIN_WEIGHT_CHANGES_ON_SUBMIT)
+            var changes = GetChangesCount(entry.Request.ClanTag);
+            logger.LogInformation("Weight.SubmitChanges {0}", changes);
+            if (changes < Constants.MIN_WEIGHT_CHANGES_ON_SUBMIT)
             {
                 entry.Status.Message = "Too few weight changes since last submit.";
                 logger.LogInformation("Weight.SubmitResponse {0}", entry.Status.Message);
