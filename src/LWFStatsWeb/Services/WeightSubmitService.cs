@@ -1,6 +1,8 @@
 ﻿using LWFStatsWeb.Data;
 using LWFStatsWeb.Logic;
 using LWFStatsWeb.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -30,13 +32,18 @@ namespace LWFStatsWeb.Services
         private readonly IOptions<WeightResultOptions> resultDatabase;
         private readonly IClanLoader clanLoader;
 
+        private readonly IServiceScopeFactory scopeFactory;
+
+
         public WeightSubmitService(
+            IServiceScopeFactory scopeFactory,
             ILogger<WeightSubmitService> logger,
             IOptions<WeightSubmitOptions> submitOptions,
             IGoogleSheetsService googleSheets,
             IOptions<WeightResultOptions> resultDatabase,
             IClanLoader clanLoader)
         {
+            this.scopeFactory = scopeFactory;
             this.logger = logger;
             this.submitOptions = submitOptions;
             this.googleSheets = googleSheets;
@@ -96,6 +103,12 @@ namespace LWFStatsWeb.Services
         {
             logger.LogInformation("Weight.SubmitRequest '{0}'", entry.Request.ClanName);
             entry.Status.UpdatePhase(SubmitPhase.Running);
+            if(GetChangesCount(entry.Request.ClanTag) < Constants.MIN_WEIGHT_CHANGES_ON_SUBMIT)
+            {
+                entry.Status.Message = "Too few weight changes since last submit.";
+                entry.Status.UpdatePhase(SubmitPhase.Failed);
+                return;
+            }
             entry.Status.Message = "Calling Submit Script";
             entry.Request.Mode = "submit";
             var submitResponse = await NewSubmit(entry.Request);
@@ -106,6 +119,36 @@ namespace LWFStatsWeb.Services
                 logger.LogWarning("Submit took {0} seconds", runningSecs);
             var submitPhase = submitResponse.Status ? SubmitPhase.Succeeded : SubmitPhase.Failed;
             entry.Status.UpdatePhase(submitPhase);
+            if (submitResponse.Status)
+                await UpdateOnSuccess(entry.Request.ClanTag);
+        }
+
+        protected int GetChangesCount(string tag)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var q = from m in db.Members where m.ClanTag == tag join w in db.Weights on m.Tag equals w.Tag select w;
+                int changes = 0;
+                foreach (var w in q)
+                    if (w.WarWeight != w.SyncWeight)
+                        changes++;
+                return changes;
+            }
+        }
+
+        protected async Task UpdateOnSuccess(string tag)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                var q = from m in db.Members where m.ClanTag == tag join w in db.Weights on m.Tag equals w.Tag select w;
+                foreach (var w in q)
+                    w.SyncWeight = w.WarWeight;
+
+                await db.SaveChangesAsync();
+            }
         }
 
         protected async Task<SubmitResponse> NewSubmit(SubmitRequest request)

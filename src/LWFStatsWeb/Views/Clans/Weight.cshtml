@@ -414,7 +414,8 @@ else
                         } else {
                             $("#submitModalTitle").text("Submit failed");
                             $("#submitModalHeader").addClass("modal-header-danger");
-                            $("#backup-submit-button").removeClass("hidden");
+                            if (data.text != "Too few weight changes since last submit.")
+                                $("#backup-submit-button").removeClass("hidden");
                         }
                         $("#submitModalHeader").removeClass("modal-header-primary");
                         $("#submitModalAnimation").removeClass("loader");
