@@ -106,6 +106,7 @@ namespace LWFStatsWeb.Services
             if(GetChangesCount(entry.Request.ClanTag) < Constants.MIN_WEIGHT_CHANGES_ON_SUBMIT)
             {
                 entry.Status.Message = "Too few weight changes since last submit.";
+                logger.LogInformation("Weight.SubmitResponse {0}", entry.Status.Message);
                 entry.Status.UpdatePhase(SubmitPhase.Failed);
                 return;
             }
