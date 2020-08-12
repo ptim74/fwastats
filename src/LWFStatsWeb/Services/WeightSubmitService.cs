@@ -103,7 +103,7 @@ namespace LWFStatsWeb.Services
         {
             logger.LogInformation("Weight.SubmitRequest '{0}'", entry.Request.ClanName);
             entry.Status.UpdatePhase(SubmitPhase.Running);
-            var changes = GetChangesCount(entry.Request.ClanTag);
+            var changes = GetChangesCount(entry.Request);
             logger.LogInformation("Weight.SubmitChanges {0}", changes);
             if (changes < Constants.MIN_WEIGHT_CHANGES_ON_SUBMIT)
             {
@@ -123,32 +123,40 @@ namespace LWFStatsWeb.Services
             var submitPhase = submitResponse.Status ? SubmitPhase.Succeeded : SubmitPhase.Failed;
             entry.Status.UpdatePhase(submitPhase);
             if (submitResponse.Status)
-                await UpdateOnSuccess(entry.Request.ClanTag);
+                await UpdateOnSuccess(entry.Request);
         }
 
-        protected int GetChangesCount(string tag)
+        protected int GetChangesCount(SubmitRequest request)
         {
             using (var scope = scopeFactory.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                var q = from m in db.Members where m.ClanTag == tag join w in db.Weights on m.Tag equals w.Tag select w;
+
                 int changes = 0;
-                foreach (var w in q)
-                    if (w.WarWeight != w.SyncWeight)
+
+                foreach(var m in request.Members)
+                {
+                    var weight = db.Weights.Where(w => w.Tag == m.Tag).SingleOrDefault();
+                    if (weight == null || weight.SyncWeight != weight.WarWeight)
                         changes++;
+                }
+
                 return changes;
             }
         }
 
-        protected async Task UpdateOnSuccess(string tag)
+        protected async Task UpdateOnSuccess(SubmitRequest request)
         {
             using (var scope = scopeFactory.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-                var q = from m in db.Members where m.ClanTag == tag join w in db.Weights on m.Tag equals w.Tag select w;
-                foreach (var w in q)
-                    w.SyncWeight = w.WarWeight;
+                foreach (var m in request.Members)
+                {
+                    var weight = db.Weights.Where(w => w.Tag == m.Tag).SingleOrDefault();
+                    if(weight != null)
+                        weight.SyncWeight = weight.WarWeight;
+                }
 
                 await db.SaveChangesAsync();
             }
