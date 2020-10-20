@@ -71,11 +71,11 @@ namespace LWFStatsWeb.Logic
                 var availableMembers = Constants.WAR_SIZE1; //TODO
 
                 var thLevelMembers = ret.Th13Count < availableMembers ? ret.Th13Count : availableMembers;
-                var maxWeight = thLevelMembers * 135;
+                var maxWeight = thLevelMembers * 125;
                 availableMembers -= thLevelMembers;
 
                 thLevelMembers = ret.Th12Count < availableMembers ? ret.Th12Count : availableMembers;
-                maxWeight += thLevelMembers * 125;
+                maxWeight += thLevelMembers * 115;
                 availableMembers -= thLevelMembers;
 
                 thLevelMembers = ret.Th11Count < availableMembers ? ret.Th11Count : availableMembers;
@@ -122,11 +122,11 @@ namespace LWFStatsWeb.Logic
                 availableMembers -= thLevelMembers;
 
                 thLevelMembers = ret.Th12Count < availableMembers ? ret.Th12Count : availableMembers;
-                minWeight += thLevelMembers * 125;
+                minWeight += thLevelMembers * 115;
                 availableMembers -= thLevelMembers;
 
                 thLevelMembers = ret.Th13Count < availableMembers ? ret.Th13Count : availableMembers;
-                minWeight += thLevelMembers * 135;
+                minWeight += thLevelMembers * 125;
                 availableMembers -= thLevelMembers;
 
                 ret.EstimatedWeight = (maxWeight + minWeight) / 2;

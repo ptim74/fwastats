@@ -312,9 +312,9 @@ namespace LWFStatsWeb.Controllers
                     else
                     {
                         if (member.TownHallLevel == 13)
-                            details.Clan.EstimatedWeight += 135;
-                        else if (member.TownHallLevel == 12)
                             details.Clan.EstimatedWeight += 125;
+                        else if (member.TownHallLevel == 12)
+                            details.Clan.EstimatedWeight += 115;
                         else if (member.TownHallLevel == 11)
                             details.Clan.EstimatedWeight += 105;
                         else if (member.TownHallLevel == 10)
