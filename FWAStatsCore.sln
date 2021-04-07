@@ -4,7 +4,7 @@ VisualStudioVersion = 15.0.26228.4
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{044E23FD-3F03-4D14-875A-15D4D004209F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LWFStatsWeb", "src\LWFStatsWeb\LWFStatsWeb.csproj", "{E429977D-E430-4C0E-8730-1FA4BA25A091}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FWAStatsWeb", "src\FWAStatsWeb\FWAStatsWeb.csproj", "{E429977D-E430-4C0E-8730-1FA4BA25A091}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
