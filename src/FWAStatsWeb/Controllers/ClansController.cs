@@ -4,18 +4,18 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using LWFStatsWeb.Data;
-using LWFStatsWeb.Models;
-using LWFStatsWeb.Models.ClanViewModels;
-using LWFStatsWeb.Logic;
+using FWAStatsWeb.Data;
+using FWAStatsWeb.Models;
+using FWAStatsWeb.Models.ClanViewModels;
+using FWAStatsWeb.Logic;
 using System.IO;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net;
 using Newtonsoft.Json;
-using LWFStatsWeb.Services;
+using FWAStatsWeb.Services;
 
-namespace LWFStatsWeb.Controllers
+namespace FWAStatsWeb.Controllers
 {
     [ResponseCache(Duration = Constants.CACHE_NORMAL)]
     public class ClansController : Controller

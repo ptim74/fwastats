@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace LWFStatsWeb.Models.ManageViewModels
+namespace FWAStatsWeb.Models.ManageViewModels
 {
     public class ConfigureTwoFactorViewModel
     {

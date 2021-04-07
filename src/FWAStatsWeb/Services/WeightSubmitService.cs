@@ -1,6 +1,6 @@
-﻿using LWFStatsWeb.Data;
-using LWFStatsWeb.Logic;
-using LWFStatsWeb.Models;
+﻿using FWAStatsWeb.Data;
+using FWAStatsWeb.Logic;
+using FWAStatsWeb.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -18,7 +18,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace LWFStatsWeb.Services
+namespace FWAStatsWeb.Services
 {
     public class WeightSubmitService
     {

@@ -1,6 +1,6 @@
-﻿using LWFStatsWeb.Data;
-using LWFStatsWeb.Models;
-using LWFStatsWeb.Models.TrackerViewModels;
+﻿using FWAStatsWeb.Data;
+using FWAStatsWeb.Models;
+using FWAStatsWeb.Models.TrackerViewModels;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -11,7 +11,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LWFStatsWeb.Logic
+namespace FWAStatsWeb.Logic
 {
     public interface ITrackerUtility
     {

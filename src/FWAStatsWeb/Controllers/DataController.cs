@@ -1,13 +1,13 @@
-﻿using LWFStatsWeb.Data;
-using LWFStatsWeb.Logic;
-using LWFStatsWeb.Models.DataViewModels;
+﻿using FWAStatsWeb.Data;
+using FWAStatsWeb.Logic;
+using FWAStatsWeb.Models.DataViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LWFStatsWeb.Controllers
+namespace FWAStatsWeb.Controllers
 {
     [ResponseCache(Duration = Constants.CACHE_NORMAL)]
     public class DataController : Controller

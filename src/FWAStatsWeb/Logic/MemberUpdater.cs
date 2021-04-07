@@ -1,12 +1,12 @@
-﻿using LWFStatsWeb.Data;
-using LWFStatsWeb.Models;
+﻿using FWAStatsWeb.Data;
+using FWAStatsWeb.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LWFStatsWeb.Logic
+namespace FWAStatsWeb.Logic
 {
     public class MemberUpdateResponse
     {

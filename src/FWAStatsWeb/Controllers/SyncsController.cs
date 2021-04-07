@@ -2,12 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using LWFStatsWeb.Models.SyncViewModels;
-using LWFStatsWeb.Data;
-using LWFStatsWeb.Models;
+using FWAStatsWeb.Models.SyncViewModels;
+using FWAStatsWeb.Data;
+using FWAStatsWeb.Models;
 using Microsoft.Extensions.Logging;
 
-namespace LWFStatsWeb.Controllers
+namespace FWAStatsWeb.Controllers
 {
     [ResponseCache(Duration = Constants.CACHE_NORMAL)]
     public class SyncsController : Controller

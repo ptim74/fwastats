@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
-using LWFStatsWeb.Data;
-using LWFStatsWeb.Models.HomeViewModels;
+using FWAStatsWeb.Data;
+using FWAStatsWeb.Models.HomeViewModels;
 using Microsoft.Extensions.Logging;
-using LWFStatsWeb.Logic;
+using FWAStatsWeb.Logic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Diagnostics;
 
-namespace LWFStatsWeb.Controllers
+namespace FWAStatsWeb.Controllers
 {
     public class HomeController : Controller
     {

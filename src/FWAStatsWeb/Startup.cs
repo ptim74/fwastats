@@ -8,20 +8,20 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using LWFStatsWeb.Data;
-using LWFStatsWeb.Models;
-using LWFStatsWeb.Services;
-using LWFStatsWeb.Logic;
+using FWAStatsWeb.Data;
+using FWAStatsWeb.Models;
+using FWAStatsWeb.Services;
+using FWAStatsWeb.Logic;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using NLog.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using Microsoft.AspNetCore.Mvc.Formatters;
-using LWFStatsWeb.Formatters;
+using FWAStatsWeb.Formatters;
 using Microsoft.AspNetCore.Identity;
 //using Microsoft.Extensions.Hosting;
 
-namespace LWFStatsWeb
+namespace FWAStatsWeb
 {
     public class Startup
     {

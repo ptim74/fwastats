@@ -3,17 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using LWFStatsWeb.Models;
-using LWFStatsWeb.Models.UpdateViewModels;
-using LWFStatsWeb.Data;
-using LWFStatsWeb.Logic;
+using FWAStatsWeb.Models;
+using FWAStatsWeb.Models.UpdateViewModels;
+using FWAStatsWeb.Data;
+using FWAStatsWeb.Logic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Firebase.Database.Query;
 using Firebase.Database;
 
-namespace LWFStatsWeb.Controllers
+namespace FWAStatsWeb.Controllers
 {
     [ResponseCache(NoStore = true)]
     public class UpdateController : Controller

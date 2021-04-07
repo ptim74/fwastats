@@ -1,11 +1,11 @@
-﻿using LWFStatsWeb.Data;
-using LWFStatsWeb.Models;
+﻿using FWAStatsWeb.Data;
+using FWAStatsWeb.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LWFStatsWeb.Logic
+namespace FWAStatsWeb.Logic
 {
     public interface IClanUpdater
     {

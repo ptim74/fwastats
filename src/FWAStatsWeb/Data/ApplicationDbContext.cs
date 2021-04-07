@@ -4,9 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using LWFStatsWeb.Models;
+using FWAStatsWeb.Models;
 
-namespace LWFStatsWeb.Data
+namespace FWAStatsWeb.Data
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {

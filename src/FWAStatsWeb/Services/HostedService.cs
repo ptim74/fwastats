@@ -7,7 +7,7 @@ using System.Threading;
 
 // https://gist.github.com/davidfowl/a7dd5064d9dcf35b6eae1a7953d615e3
 
-namespace LWFStatsWeb.Services
+namespace FWAStatsWeb.Services
 {
     public abstract class HostedService : IHostedService
     {

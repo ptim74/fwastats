@@ -1,7 +1,7 @@
-﻿using LWFStatsWeb.Data;
-using LWFStatsWeb.Logic;
-using LWFStatsWeb.Models;
-using LWFStatsWeb.Models.TrackerViewModels;
+﻿using FWAStatsWeb.Data;
+using FWAStatsWeb.Logic;
+using FWAStatsWeb.Models;
+using FWAStatsWeb.Models.TrackerViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LWFStatsWeb.Controllers
+namespace FWAStatsWeb.Controllers
 {
     [ResponseCache(Duration = Constants.CACHE_MIN)]
     public class TrackerController : Controller

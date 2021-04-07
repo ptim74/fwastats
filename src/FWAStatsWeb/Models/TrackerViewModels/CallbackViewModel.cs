@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LWFStatsWeb.Models.TrackerViewModels
+namespace FWAStatsWeb.Models.TrackerViewModels
 {
     public class CallbackViewModel
     {

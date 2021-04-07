@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace LWFStatsWeb.Data.Migrations
+namespace FWAStatsWeb.Data.Migrations
 {
     public partial class NoChanges : Migration
     {

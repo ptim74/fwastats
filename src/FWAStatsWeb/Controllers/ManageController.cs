@@ -6,11 +6,11 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using LWFStatsWeb.Models;
-using LWFStatsWeb.Models.ManageViewModels;
-using LWFStatsWeb.Services;
+using FWAStatsWeb.Models;
+using FWAStatsWeb.Models.ManageViewModels;
+using FWAStatsWeb.Services;
 
-namespace LWFStatsWeb.Controllers
+namespace FWAStatsWeb.Controllers
 {
     [Authorize]
     public class ManageController : Controller

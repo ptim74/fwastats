@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LWFStatsWeb.Models.AccountViewModels
+namespace FWAStatsWeb.Models.AccountViewModels
 {
     public class ResetPasswordViewModel
     {

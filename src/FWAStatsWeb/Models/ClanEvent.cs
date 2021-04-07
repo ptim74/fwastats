@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LWFStatsWeb.Models
+namespace FWAStatsWeb.Models
 {
     public class ClanEvent
     {

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 
-namespace LWFStatsWeb.Models.ManageViewModels
+namespace FWAStatsWeb.Models.ManageViewModels
 {
     public class ManageLoginsViewModel
     {

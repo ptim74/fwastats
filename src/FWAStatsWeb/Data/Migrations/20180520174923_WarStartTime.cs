@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace LWFStatsWeb.Data.Migrations
+namespace FWAStatsWeb.Data.Migrations
 {
     public partial class WarStartTime : Migration
     {

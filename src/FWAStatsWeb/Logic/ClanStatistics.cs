@@ -1,6 +1,6 @@
 ﻿using Ical.Net;
-using LWFStatsWeb.Data;
-using LWFStatsWeb.Models;
+using FWAStatsWeb.Data;
+using FWAStatsWeb.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -11,7 +11,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace LWFStatsWeb.Logic
+namespace FWAStatsWeb.Logic
 {
     public class StatisicsOptions
     {

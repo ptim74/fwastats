@@ -1,4 +1,4 @@
-@model LWFStatsWeb.Models.ClanViewModels.WeightViewModel
+@model FWAStatsWeb.Models.ClanViewModels.WeightViewModel
 
 @{
     ViewBag.Title = Model.ClanName + " Weight";
@@ -14,7 +14,7 @@
     }
     else
     {
-        resultMessage = string.Format("Clan weight submitted {0}.", LWFStatsWeb.Logic.Utils.TimeSpanToString(DateTime.UtcNow.Subtract(Model.WeightSubmitDate)));
+        resultMessage = string.Format("Clan weight submitted {0}.", FWAStatsWeb.Logic.Utils.TimeSpanToString(DateTime.UtcNow.Subtract(Model.WeightSubmitDate)));
         if (Model.WeightSubmitDate == DateTime.MinValue)
         {
             resultMessage = "Weight submit results not found.";

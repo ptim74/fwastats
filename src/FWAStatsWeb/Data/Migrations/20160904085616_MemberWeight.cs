@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace LWFStatsWeb.Data.Migrations
+namespace FWAStatsWeb.Data.Migrations
 {
     public partial class MemberWeight : Migration
     {

@@ -7,7 +7,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
-namespace LWFStatsWeb.Models
+namespace FWAStatsWeb.Models
 {
     [DataContract]
     public class War

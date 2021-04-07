@@ -1,4 +1,4 @@
-﻿using LWFStatsWeb.Models;
+﻿using FWAStatsWeb.Models;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace LWFStatsWeb.Logic
+namespace FWAStatsWeb.Logic
 {
     public class ClanListOptions : List<ClanListDetails>
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
 
-namespace LWFStatsWeb.Models.DataViewModels
+namespace FWAStatsWeb.Models.DataViewModels
 {
     [XmlRoot("WarMembers")]
     public class WarMembers : List<WarMemberModel>

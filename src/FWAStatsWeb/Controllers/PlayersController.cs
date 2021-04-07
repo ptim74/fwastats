@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using LWFStatsWeb.Models.PlayerViewModels;
-using LWFStatsWeb.Data;
-using LWFStatsWeb.Models;
-using LWFStatsWeb.Logic;
+using FWAStatsWeb.Models.PlayerViewModels;
+using FWAStatsWeb.Data;
+using FWAStatsWeb.Models;
+using FWAStatsWeb.Logic;
 using Microsoft.Extensions.Logging;
 
-namespace LWFStatsWeb.Controllers
+namespace FWAStatsWeb.Controllers
 {
     [ResponseCache(Duration = Constants.CACHE_NORMAL)]
     public class PlayersController : Controller

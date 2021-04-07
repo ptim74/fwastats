@@ -8,11 +8,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Logging;
-using LWFStatsWeb.Models;
-using LWFStatsWeb.Models.AccountViewModels;
-using LWFStatsWeb.Services;
+using FWAStatsWeb.Models;
+using FWAStatsWeb.Models.AccountViewModels;
+using FWAStatsWeb.Services;
 
-namespace LWFStatsWeb.Controllers
+namespace FWAStatsWeb.Controllers
 {
     [Authorize]
     public class AccountController : Controller

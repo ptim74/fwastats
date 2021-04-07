@@ -1,4 +1,4 @@
-﻿using LWFStatsWeb.Models;
+﻿using FWAStatsWeb.Models;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
@@ -11,7 +11,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LWFStatsWeb.Logic
+namespace FWAStatsWeb.Logic
 {
     public class ClashApiException : Exception
     {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace LWFStatsWeb.Models.UpdateViewModels
+namespace FWAStatsWeb.Models.UpdateViewModels
 {
     public class PlayerUpdateTask
     {

@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
-using LWFStatsWeb.Data;
+using FWAStatsWeb.Data;
 
-namespace LWFStatsWeb.Data.Migrations
+namespace FWAStatsWeb.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
     [Migration("20161019183921_Players")]
@@ -16,7 +16,7 @@ namespace LWFStatsWeb.Data.Migrations
             modelBuilder
                 .HasAnnotation("ProductVersion", "1.0.1");
 
-            modelBuilder.Entity("LWFStatsWeb.Models.ApplicationUser", b =>
+            modelBuilder.Entity("FWAStatsWeb.Models.ApplicationUser", b =>
                 {
                     b.Property<string>("Id");
 
@@ -65,7 +65,7 @@ namespace LWFStatsWeb.Data.Migrations
                     b.ToTable("AspNetUsers");
                 });
 
-            modelBuilder.Entity("LWFStatsWeb.Models.Clan", b =>
+            modelBuilder.Entity("FWAStatsWeb.Models.Clan", b =>
                 {
                     b.Property<string>("Tag")
                         .HasAnnotation("MaxLength", 10);
@@ -116,7 +116,7 @@ namespace LWFStatsWeb.Data.Migrations
                     b.ToTable("Clans");
                 });
 
-            modelBuilder.Entity("LWFStatsWeb.Models.ClanValidity", b =>
+            modelBuilder.Entity("FWAStatsWeb.Models.ClanValidity", b =>
                 {
                     b.Property<string>("Tag")
                         .HasAnnotation("MaxLength", 10);
@@ -140,7 +140,7 @@ namespace LWFStatsWeb.Data.Migrations
                     b.ToTable("ClanValidities");
                 });
 
-            modelBuilder.Entity("LWFStatsWeb.Models.Member", b =>
+            modelBuilder.Entity("FWAStatsWeb.Models.Member", b =>
                 {
                     b.Property<string>("Tag")
                         .HasAnnotation("MaxLength", 10);
@@ -181,7 +181,7 @@ namespace LWFStatsWeb.Data.Migrations
                     b.ToTable("Members");
                 });
 
-            modelBuilder.Entity("LWFStatsWeb.Models.Player", b =>
+            modelBuilder.Entity("FWAStatsWeb.Models.Player", b =>
                 {
                     b.Property<string>("Tag")
                         .HasAnnotation("MaxLength", 10);
@@ -206,7 +206,7 @@ namespace LWFStatsWeb.Data.Migrations
                     b.ToTable("Players");
                 });
 
-            modelBuilder.Entity("LWFStatsWeb.Models.PlayerEvent", b =>
+            modelBuilder.Entity("FWAStatsWeb.Models.PlayerEvent", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd();
@@ -232,7 +232,7 @@ namespace LWFStatsWeb.Data.Migrations
                     b.ToTable("PlayerEvents");
                 });
 
-            modelBuilder.Entity("LWFStatsWeb.Models.UpdateTask", b =>
+            modelBuilder.Entity("FWAStatsWeb.Models.UpdateTask", b =>
                 {
                     b.Property<Guid>("ID")
                         .ValueGeneratedOnAdd();
@@ -253,7 +253,7 @@ namespace LWFStatsWeb.Data.Migrations
                     b.ToTable("UpdateTasks");
                 });
 
-            modelBuilder.Entity("LWFStatsWeb.Models.War", b =>
+            modelBuilder.Entity("FWAStatsWeb.Models.War", b =>
                 {
                     b.Property<string>("ID")
                         .HasAnnotation("MaxLength", 30);
@@ -314,7 +314,7 @@ namespace LWFStatsWeb.Data.Migrations
                     b.ToTable("Wars");
                 });
 
-            modelBuilder.Entity("LWFStatsWeb.Models.WarSync", b =>
+            modelBuilder.Entity("FWAStatsWeb.Models.WarSync", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd();
@@ -338,7 +338,7 @@ namespace LWFStatsWeb.Data.Migrations
                     b.ToTable("WarSyncs");
                 });
 
-            modelBuilder.Entity("LWFStatsWeb.Models.Weight", b =>
+            modelBuilder.Entity("FWAStatsWeb.Models.Weight", b =>
                 {
                     b.Property<string>("Tag")
                         .HasAnnotation("MaxLength", 10);
@@ -461,9 +461,9 @@ namespace LWFStatsWeb.Data.Migrations
                     b.ToTable("AspNetUserTokens");
                 });
 
-            modelBuilder.Entity("LWFStatsWeb.Models.Member", b =>
+            modelBuilder.Entity("FWAStatsWeb.Models.Member", b =>
                 {
-                    b.HasOne("LWFStatsWeb.Models.Clan", "Clan")
+                    b.HasOne("FWAStatsWeb.Models.Clan", "Clan")
                         .WithMany("MemberList")
                         .HasForeignKey("ClanTag");
                 });
@@ -478,7 +478,7 @@ namespace LWFStatsWeb.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityUserClaim<string>", b =>
                 {
-                    b.HasOne("LWFStatsWeb.Models.ApplicationUser")
+                    b.HasOne("FWAStatsWeb.Models.ApplicationUser")
                         .WithMany("Claims")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -486,7 +486,7 @@ namespace LWFStatsWeb.Data.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.EntityFrameworkCore.IdentityUserLogin<string>", b =>
                 {
-                    b.HasOne("LWFStatsWeb.Models.ApplicationUser")
+                    b.HasOne("FWAStatsWeb.Models.ApplicationUser")
                         .WithMany("Logins")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
@@ -499,7 +499,7 @@ namespace LWFStatsWeb.Data.Migrations
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade);
 
-                    b.HasOne("LWFStatsWeb.Models.ApplicationUser")
+                    b.HasOne("FWAStatsWeb.Models.ApplicationUser")
                         .WithMany("Roles")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
