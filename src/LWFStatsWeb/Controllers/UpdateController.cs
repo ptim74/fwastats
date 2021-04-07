@@ -380,6 +380,7 @@ namespace LWFStatsWeb.Controllers
                                         result.TeamSize = resultDb.TeamSize;
 
                                         //TODO
+                                        result.TH14Count = 0;
                                         result.TH13Count = 0;
                                         result.TH12Count = 0;
                                         result.TH11Count = 0;
@@ -394,23 +395,25 @@ namespace LWFStatsWeb.Controllers
                                         for (int i = 11; i <= max; i++)
                                         {
                                             var weight = Convert.ToInt32(row[i + dataOffset]);
-                                            if (weight > 130000)
-                                                weight = 130000;
+                                            if (weight > Constants.MAXWEIGHT_TH14)
+                                                weight = Constants.MAXWEIGHT_TH14;
                                             if (weight < 0)
                                                 weight = 0;
                                             totalWeight += weight;
 
-                                            if (weight > 120000)
+                                            if (weight > Constants.MAXWEIGHT_TH13)
+                                                result.TH14Count++;
+                                            else if (weight > Constants.MAXWEIGHT_TH12)
                                                 result.TH13Count++;
-                                            else if (weight > 110000)
+                                            else if (weight > Constants.MAXWEIGHT_TH11)
                                                 result.TH12Count++;
-                                            else if (weight > 90000)
+                                            else if (weight > Constants.MAXWEIGHT_TH10)
                                                 result.TH11Count++;
-                                            else if (weight > 70000)
+                                            else if (weight > Constants.MAXWEIGHT_TH9)
                                                 result.TH10Count++;
-                                            else if (weight > 55000)
+                                            else if (weight > Constants.MAXWEIGHT_TH8)
                                                 result.TH9Count++;
-                                            else if (weight > 40000)
+                                            else if (weight > Constants.MAXWEIGHT_TH7)
                                                 result.TH8Count++;
                                             else
                                                 result.TH7Count++;
@@ -418,7 +421,7 @@ namespace LWFStatsWeb.Controllers
                                             result.SetBase(i - 10, weight);
                                         }
 
-                                        for (int i = resultDb.TeamSize + 1; i <= 50; i++)
+                                        for (int i = resultDb.TeamSize + 1; i <= Constants.WAR_SIZE2; i++)
                                         {
                                             result.SetBase(i, 0);
                                         }

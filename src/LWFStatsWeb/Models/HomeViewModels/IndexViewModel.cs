@@ -59,6 +59,7 @@ namespace LWFStatsWeb.Models.HomeViewModels
     {
         public int Clans { get; set; }
         public int Weight { get; set; }
+        public double TH14 { get; set; }
         public double TH13 { get; set; }
         public double TH12 { get; set; }
         public double TH11 { get; set; }

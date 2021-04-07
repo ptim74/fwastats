@@ -129,26 +129,29 @@ else
                 var member_max = 0;
                 switch(member.TownHallLevel)
                 {
+                    case 14:
+                        member_max = Constants.MAXWEIGHT_TH14;
+                        break;
                     case 13:
-                        member_max = 130000;
+                        member_max = Constants.MAXWEIGHT_TH13;
                         break;
                     case 12:
-                        member_max = 120000;
+                        member_max = Constants.MAXWEIGHT_TH12;
                         break;
                     case 11:
-                        member_max = 110000;
+                        member_max = Constants.MAXWEIGHT_TH11;
                         break;
                     case 10:
-                        member_max = 90000;
+                        member_max = Constants.MAXWEIGHT_TH10;
                         break;
                     case 9:
-                        member_max = 70000;
+                        member_max = Constants.MAXWEIGHT_TH9;
                         break;
                     case 8:
-                        member_max = 55000;
+                        member_max = Constants.MAXWEIGHT_TH8;
                         break;
                     default:
-                        member_max = 40000;
+                        member_max = Constants.MAXWEIGHT_TH7;
                         break;
                 }
                 var member_class = member.InWar ? "success" : "danger";
@@ -446,6 +449,7 @@ else
 
             $('#war-members').text(members_in_war + ' / ' + members_total);
 
+            var th14_count = 0;
             var th13_count = 0;
             var th12_count = 0;
             var th11_count = 0;
@@ -461,17 +465,19 @@ else
                 if ($("input[name='" + checkName + "']").is(':checked'))
                 {
                     war_weight += member_weight;
-                    if (member_weight > 120000)
+                    if (member_weight > @Constants.MAXWEIGHT_TH13)
+                        th14_count++;
+                    else if (member_weight > @Constants.MAXWEIGHT_TH12)
                         th13_count++;
-                    else if (member_weight > 110000)
+                    else if (member_weight > @Constants.MAXWEIGHT_TH11)
                         th12_count++;
-                    else if (member_weight > 90000)
+                    else if (member_weight > @Constants.MAXWEIGHT_TH10)
                         th11_count++;
-                    else if (member_weight > 70000)
+                    else if (member_weight > @Constants.MAXWEIGHT_TH9)
                         th10_count++;
-                    else if (member_weight > 55000)
+                    else if (member_weight > @Constants.MAXWEIGHT_TH8)
                         th9_count++;
-                    else if (member_weight > 40000)
+                    else if (member_weight > @Constants.MAXWEIGHT_TH7)
                         th8_count++;
                     else
                         th7_count++;
@@ -479,7 +485,7 @@ else
             });
 
             $('#war-weight').text(war_weight);
-            $('#war-composition').text(th13_count + ' / ' + th12_count + ' / ' + th11_count + ' / ' + th10_count + ' / ' + th9_count + ' / ' + th8_count + ' / ' + th7_count);
+            $('#war-composition').text(th14_count + ' / ' + th13_count + ' / ' + th12_count + ' / ' + th11_count + ' / ' + th10_count + ' / ' + th9_count + ' / ' + th8_count + ' / ' + th7_count);
 
             $('.btn-save').addClass((members_in_war == @Constants.WAR_SIZE1 || members_in_war == @Constants.WAR_SIZE2) ? 'btn-success' : 'btn-danger');
             $('.btn-save').removeClass((members_in_war == @Constants.WAR_SIZE1 || members_in_war == @Constants.WAR_SIZE2) ? 'btn-danger' : 'btn-success');

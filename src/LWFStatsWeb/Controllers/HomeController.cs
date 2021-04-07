@@ -186,6 +186,7 @@ namespace LWFStatsWeb.Controllers
                             thcounters.Add(weight, th);
                         }
                         th.Clans++;
+                        th.TH14 += result.TH14Count;
                         th.TH13 += result.TH13Count;
                         th.TH12 += result.TH12Count;
                         th.TH11 += result.TH11Count;
@@ -198,6 +199,7 @@ namespace LWFStatsWeb.Controllers
                     {
                         th.Weight = th.Weight * divider / 1000;
 
+                        th.TH14 = Math.Round(th.TH14 / th.Clans, 1);
                         th.TH13 = Math.Round(th.TH13 / th.Clans, 1);
                         th.TH12 = Math.Round(th.TH12 / th.Clans, 1);
                         th.TH11 = Math.Round(th.TH11 /= th.Clans, 1);
@@ -205,7 +207,7 @@ namespace LWFStatsWeb.Controllers
                         th.TH9 = Math.Round(th.TH9 /= th.Clans, 1);
                         th.TH8 = Math.Round(th.TH8 /= th.Clans, 1);
                         //Rounding to teamSize with TH10
-                        th.TH10 = teamSize - th.TH13 - th.TH12 - th.TH11 - th.TH9 - th.TH8;
+                        th.TH10 = teamSize - th.TH14 - th.TH13 - th.TH12 - th.TH11 - th.TH9 - th.TH8;
                     }
 
                     if (thcounters.Values.Count() > 0)

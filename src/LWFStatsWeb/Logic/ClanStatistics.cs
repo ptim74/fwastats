@@ -246,6 +246,7 @@ namespace LWFStatsWeb.Logic
 
                 if (weights.TryGetValue(clan.Tag, out WeightCalculator.Results weight))
                 {
+                    clan.Th14Count = weight.Th14Count;
                     clan.Th13Count = weight.Th13Count;
                     clan.Th12Count = weight.Th12Count;
                     clan.Th11Count = weight.Th11Count;

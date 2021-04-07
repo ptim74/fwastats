@@ -222,6 +222,7 @@ namespace LWFStatsWeb.Controllers
             {
                 if (weights.TryGetValue(row.Tag, out WeightCalculator.Results weight))
                 {
+                    row.Th14Count = weight.Th14Count;
                     row.Th13Count = weight.Th13Count;
                     row.Th12Count = weight.Th12Count;
                     row.Th11Count = weight.Th11Count;

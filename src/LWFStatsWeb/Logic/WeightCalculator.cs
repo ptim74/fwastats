@@ -11,6 +11,7 @@ namespace LWFStatsWeb.Logic
         public class Results
         {
             public string Tag { get; set; }
+            public int Th14Count { get; set; }
             public int Th13Count { get; set; }
             public int Th12Count { get; set; }
             public int Th11Count { get; set; }
@@ -43,6 +44,9 @@ namespace LWFStatsWeb.Logic
                 {
                     switch (th.TownHallLevel)
                     {
+                        case 14:
+                            ret.Th14Count = th.Count;
+                            break;
                         case 13:
                             ret.Th13Count = th.Count;
                             break;
@@ -70,28 +74,32 @@ namespace LWFStatsWeb.Logic
                 //Calculate estimated max weight
                 var availableMembers = Constants.WAR_SIZE1; //TODO
 
-                var thLevelMembers = ret.Th13Count < availableMembers ? ret.Th13Count : availableMembers;
-                var maxWeight = thLevelMembers * 125;
+                var thLevelMembers = ret.Th14Count < availableMembers ? ret.Th14Count : availableMembers;
+                var maxWeight = thLevelMembers * Constants.MAXWEIGHT_TH14 / 1000 - 5;
+                availableMembers -= thLevelMembers;
+
+                thLevelMembers = ret.Th13Count < availableMembers ? ret.Th13Count : availableMembers;
+                maxWeight += thLevelMembers * Constants.MAXWEIGHT_TH13 / 1000 - 5;
                 availableMembers -= thLevelMembers;
 
                 thLevelMembers = ret.Th12Count < availableMembers ? ret.Th12Count : availableMembers;
-                maxWeight += thLevelMembers * 115;
+                maxWeight += thLevelMembers * Constants.MAXWEIGHT_TH12 / 1000 - 5;
                 availableMembers -= thLevelMembers;
 
                 thLevelMembers = ret.Th11Count < availableMembers ? ret.Th11Count : availableMembers;
-                maxWeight += thLevelMembers * 105;
+                maxWeight += thLevelMembers * Constants.MAXWEIGHT_TH11 / 1000 - 5;
                 availableMembers -= thLevelMembers;
 
                 thLevelMembers = ret.Th10Count < availableMembers ? ret.Th10Count : availableMembers;
-                maxWeight += thLevelMembers * 85;
+                maxWeight += thLevelMembers * Constants.MAXWEIGHT_TH10 / 1000 - 5;
                 availableMembers -= thLevelMembers;
 
                 thLevelMembers = ret.Th9Count < availableMembers ? ret.Th9Count : availableMembers;
-                maxWeight += thLevelMembers * 65;
+                maxWeight += thLevelMembers * Constants.MAXWEIGHT_TH9 / 1000 - 5;
                 availableMembers -= thLevelMembers;
 
                 thLevelMembers = ret.Th8Count < availableMembers ? ret.Th8Count : availableMembers;
-                maxWeight += thLevelMembers * 50;
+                maxWeight += thLevelMembers * Constants.MAXWEIGHT_TH8 / 1000 - 5;
                 availableMembers -= thLevelMembers;
 
 
@@ -106,27 +114,31 @@ namespace LWFStatsWeb.Logic
                     thLevelMembers = 1;
                 var th8Members = thLevelMembers;
 
-                var minWeight = thLevelMembers * 50;
+                var minWeight = thLevelMembers * Constants.MAXWEIGHT_TH8 / 1000 - 5;
                 availableMembers -= thLevelMembers;
 
                 thLevelMembers = ret.Th9Count < availableMembers ? ret.Th9Count : availableMembers;
-                minWeight += thLevelMembers * 65;
+                minWeight += thLevelMembers * Constants.MAXWEIGHT_TH9 / 1000 - 5;
                 availableMembers -= thLevelMembers;
 
                 thLevelMembers = ret.Th10Count < availableMembers ? ret.Th10Count : availableMembers;
-                minWeight += thLevelMembers * 85;
+                minWeight += thLevelMembers * Constants.MAXWEIGHT_TH10 / 1000 - 5;
                 availableMembers -= thLevelMembers;
 
                 thLevelMembers = ret.Th11Count < availableMembers ? ret.Th11Count : availableMembers;
-                minWeight += thLevelMembers * 105;
+                minWeight += thLevelMembers * Constants.MAXWEIGHT_TH11 / 1000 - 5;
                 availableMembers -= thLevelMembers;
 
                 thLevelMembers = ret.Th12Count < availableMembers ? ret.Th12Count : availableMembers;
-                minWeight += thLevelMembers * 115;
+                minWeight += thLevelMembers * Constants.MAXWEIGHT_TH12 / 1000 - 5;
                 availableMembers -= thLevelMembers;
 
                 thLevelMembers = ret.Th13Count < availableMembers ? ret.Th13Count : availableMembers;
-                minWeight += thLevelMembers * 125;
+                minWeight += thLevelMembers * Constants.MAXWEIGHT_TH13 / 1000 - 5;
+                availableMembers -= thLevelMembers;
+
+                thLevelMembers = ret.Th14Count < availableMembers ? ret.Th14Count : availableMembers;
+                minWeight += thLevelMembers * Constants.MAXWEIGHT_TH14 / 1000 - 5;
                 availableMembers -= thLevelMembers;
 
                 ret.EstimatedWeight = (maxWeight + minWeight) / 2;

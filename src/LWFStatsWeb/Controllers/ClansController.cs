@@ -57,6 +57,7 @@ namespace LWFStatsWeb.Controllers
                 Name = c.Name,
                 Members = c.Members,
                 BadgeUrl = c.BadgeUrl,
+                Th14Count = c.Th14Count,
                 Th13Count = c.Th13Count,
                 Th12Count = c.Th12Count,
                 Th11Count = c.Th11Count,
@@ -264,6 +265,7 @@ namespace LWFStatsWeb.Controllers
                 }
             }
 
+            details.Clan.Th14Count = 0;
             details.Clan.Th13Count = 0;
             details.Clan.Th12Count = 0;
             details.Clan.Th11Count = 0;
@@ -279,7 +281,9 @@ namespace LWFStatsWeb.Controllers
                 if (member != null)
                 {
                     member.TownHallLevel = thlevel.TownHallLevel;
-                    if (member.TownHallLevel == 13)
+                    if (member.TownHallLevel == 14)
+                        details.Clan.Th14Count++;
+                    else if (member.TownHallLevel == 13)
                         details.Clan.Th13Count++;
                     else if (member.TownHallLevel == 12)
                         details.Clan.Th12Count++;

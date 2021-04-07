@@ -34,6 +34,9 @@
                 <span class="glyphicon glyphicon-user"></span>
             </th>
             <th>
+                <span>TH14</span>
+            </th>
+            <th>
                 <span>TH13</span>
             </th>
             <th>
@@ -71,50 +74,53 @@
     <tbody>
         @foreach (var clan in Model)
         {
-            <tr>
-                <td style="padding:0px;">
-                    <img src="@clan.BadgeUrl" width="35" height="35" />
-                </td>
-                <td class="search">
-                    <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => clan.Members)
-                </td>
-                <td>
-                    @clan.Th13Count
-                </td>
-                <td>
-                    @clan.Th12Count
-                </td>
-                <td>
-                    @clan.Th11Count
-                </td>
-                <td>
-                    @clan.Th10Count
-                </td>
-                <td>
-                    @clan.Th9Count
-                </td>
-                <td>
-                    @clan.Th8Count
-                </td>
-                <td>
-                    @clan.ThLowCount
-                </td>
-                <td>
-                    @clan.EstimatedWeight
-                </td>
-                <td>
-                    @clan.WarCount
-                </td>
-                <td>
-                    @clan.MatchPercentage
-                </td>
-                <td>
-                    @clan.WinPercentage
-                </td>
-            </tr>
+        <tr>
+            <td style="padding:0px;">
+                <img src="@clan.BadgeUrl" width="35" height="35" />
+            </td>
+            <td class="search">
+                <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => clan.Members)
+            </td>
+            <td>
+                @clan.Th14Count
+            </td>
+            <td>
+                @clan.Th13Count
+            </td>
+            <td>
+                @clan.Th12Count
+            </td>
+            <td>
+                @clan.Th11Count
+            </td>
+            <td>
+                @clan.Th10Count
+            </td>
+            <td>
+                @clan.Th9Count
+            </td>
+            <td>
+                @clan.Th8Count
+            </td>
+            <td>
+                @clan.ThLowCount
+            </td>
+            <td>
+                @clan.EstimatedWeight
+            </td>
+            <td>
+                @clan.WarCount
+            </td>
+            <td>
+                @clan.MatchPercentage
+            </td>
+            <td>
+                @clan.WinPercentage
+            </td>
+        </tr>
         }
     </tbody>
 </table>

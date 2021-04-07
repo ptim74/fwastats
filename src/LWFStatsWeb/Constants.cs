@@ -21,6 +21,15 @@ namespace LWFStatsWeb
 
         public const int WEIGHT_COMPARE = 30000;
 
+        public const int MAXWEIGHT_TH14 = 140000;
+        public const int MAXWEIGHT_TH13 = 130000;
+        public const int MAXWEIGHT_TH12 = 120000;
+        public const int MAXWEIGHT_TH11 = 110000;
+        public const int MAXWEIGHT_TH10 = 90000;
+        public const int MAXWEIGHT_TH9 = 70000;
+        public const int MAXWEIGHT_TH8 = 55000;
+        public const int MAXWEIGHT_TH7 = 40000;
+
         public static DateTime MaxVisibleSearchTime
         {
             get
