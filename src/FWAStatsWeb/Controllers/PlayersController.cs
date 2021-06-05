@@ -69,7 +69,7 @@ namespace FWAStatsWeb.Controllers
 
                     #pragma warning disable IDE0031
                     var players = from p in db.Players
-                                  where p.Name.ToUpperInvariant().Contains(q.ToUpperInvariant())
+                                  where p.Name.ToUpper().Contains(q.ToUpper())
                                   join im in db.Members on p.Tag equals im.Tag into InnerMembers
                                   from m in InnerMembers.DefaultIfEmpty()
                                   select new SearchResultModel
@@ -81,7 +81,7 @@ namespace FWAStatsWeb.Controllers
                                   };
                     #pragma warning restore IDE0031
 
-                    foreach (var player in players.OrderBy(p => p.Name.ToUpperInvariant()).Take(100))
+                    foreach (var player in players.OrderBy(p => p.Name.ToUpper()).Take(100))
                     {
                         if (!string.IsNullOrEmpty(player.ClanTag) && clanNames.ContainsKey(player.ClanTag))
                             player.ClanName = clanNames[player.ClanTag];
