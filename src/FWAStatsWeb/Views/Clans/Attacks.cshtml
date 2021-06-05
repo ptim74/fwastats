@@ -1,0 +1,82 @@
+﻿@model FWAStatsWeb.Models.ClanViewModels.ClanAttackModel
+
+@{
+    ViewData["Title"] = Model.Name + " Attack Summary";
+    ViewBag.MetaImage = Model.BadgeUrl;
+    ViewBag.MetaRobots = "noindex, nofollow";
+    ICollection<WarAttack> attacks;
+}
+
+<ol class="breadcrumb">
+    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Details" asp-route-id="@Model.LinkID">@Model.Name</a></li>
+    <li class="active">Attack Summary</li>
+</ol>
+
+<div class="well" style="margin-top:20px;">
+    <div class="row">
+        <div class="col">
+            <img src="@Model.BadgeUrl" height="70" width="70" style="float:left;margin-right:10px;margin-left:10px;margin-top:-15px;" />
+            <h3 style="margin-top:10px;margin-bottom:0px">@Model.Name</h3>
+            <div class="text-muted">
+                @Model.Tag
+                <a class="text-muted" href="@Constants.KUILIN_NET/clan.php?tag=@Model.LinkID"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">hocolate</span>C<span class="hidden-xs">lash</span></a>
+                <a class="text-muted" href="@Constants.CLASHOFSTATS/clans/@Model.LinkID"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">lash </span>o<span class="hidden-xs">f </span>S<span class="hidden-xs">tats</span></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h4>Attack Summary</h4>
+
+<table class="table table-condensed table-hover table-responsive tablesorter">
+    <thead>
+        <tr>
+            <th>Name</th>
+            @foreach (var war in Model.Wars)
+            {
+                <th>@war.OpponentName</th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var member in Model.Members)
+        {
+        <tr>
+            <td><a asp-route-id="@member.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@member.Name</a></td>
+            @foreach (var war in Model.Wars)
+            {
+                <td style="white-space: nowrap">
+                    @if (member.Attacks.TryGetValue(war.ID, out attacks))
+                    {
+                        foreach (var attack in attacks)
+                        {
+                            @for (var starCount = 0; starCount < attack.Stars; starCount++)
+                            {
+                                <text>⭐</text>
+                            }
+                            if (attack.Stars == 0)
+                            {
+                                <span class="label label-info">0 Stars</span>
+                            }
+                            <span>#@attack.DefenderMapPosition</span>
+                            <br />
+                        }
+                        for (int i = attacks.Count; i < 2; i++)
+                        {
+                            <span class="label label-default">Not Used</span>
+                            <br />
+                        }
+                    }
+                    else
+                    {
+                        <span class="label label-danger">Opt Out</span>
+                    }
+                </td>
+            }
+        </tr>
+        }
+    </tbody>
+</table>
+ 

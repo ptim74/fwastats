@@ -1,0 +1,109 @@
+﻿@model FWAStatsWeb.Models.UpdateViewModels.PlayersViewModel
+
+@{
+    ViewBag.Title = "Update Players";
+}
+
+<h2>Update</h2>
+
+<div class="alerts">
+    @foreach (var error in Model.Errors)
+    {
+        <div class="alert alert-warning">
+            <strong>Warning: </strong>@error
+        </div>
+    }
+</div>
+
+@{
+    var task_delim = false;
+    var player_count = Model.Tasks.Count;
+}
+
+<div>
+    <dl class="dl-horizontal">
+    <dt>
+        Updates
+    </dt>
+    <dd class="count-player">
+        @player_count
+    </dd>
+    </dl>
+</div>
+
+<div class="progress hidden">
+    <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="0"
+         aria-valuemin="0" aria-valuemax="100" style="width:0%">
+    </div>
+</div>
+
+<p>
+    <button id="confirm-btn" type="button" class="btn btn-primary">Confirm</button>
+</p>
+
+@section scripts {
+    <script type="text/javascript">
+
+        var updates_remaining = @player_count;
+        var total_updates = updates_remaining;
+        var updates_done = 0;
+        var update_threads = 16;
+
+        var tasks = [
+        @foreach (var task in Model.Tasks)
+        {
+            if(task_delim)
+            {
+                @:,'@task.LinkID'
+            }
+            else
+            {
+                task_delim = true;
+                @:'@task.LinkID'
+            }
+        }
+        ].reverse();
+
+        function updateTask() {
+
+            if(tasks.length > 0)
+            {
+                $.getJSON('@Url.Action("UpdatePlayerTask","Update")/' + tasks.pop(),updateTaskCallback);
+            }
+        }
+
+        function updateProgress(message) {
+
+            if (message)
+                $(".progress-bar").text(message);
+
+            var progress = Math.round(++updates_done * 100 / total_updates);
+
+            $(".progress-bar").attr("aria-valuenow", progress);
+            $(".progress-bar").attr("style", "width:" + progress + "%");
+        }
+
+        function updateTaskCallback(data) {
+            if (data && data.id) {
+                if(!data.status)
+                    $(".alerts").append($("<div class='alert alert-danger'><strong>Error: </strong></div>").append($("<span></span>").text(data.message)));
+                updateProgress(data.message);
+                updates_remaining--;
+                if(updates_remaining > 0)
+                {
+                    updateTask();
+                }
+            }
+        }
+
+        $(function () {
+            $("#confirm-btn").click(function () {
+                $(this).addClass('disabled');
+                $(".progress").removeClass('hidden');
+                for (var i = 0; i < update_threads; i++)
+                    updateTask();
+            });
+        });
+
+    </script>
+}

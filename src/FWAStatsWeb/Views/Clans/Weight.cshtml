@@ -1,0 +1,541 @@
+@model FWAStatsWeb.Models.ClanViewModels.WeightViewModel
+
+@{
+    ViewBag.Title = Model.ClanName + " Weight";
+    ViewBag.MetaImage = Model.ClanBadge;
+    ViewBag.MetaRobots = "noindex, nofollow";
+    int member_id = 0;
+    string resultType = "alert-success";
+    string resultMessage = "";
+    if (Model.PendingWeightSubmit)
+    {
+        resultType = "alert-warning";
+        resultMessage = "Clan has pending weight submit response which has to be approved by FWA weight department.";
+    }
+    else
+    {
+        resultMessage = string.Format("Clan weight submitted {0}.", FWAStatsWeb.Logic.Utils.TimeSpanToString(DateTime.UtcNow.Subtract(Model.WeightSubmitDate)));
+        if (Model.WeightSubmitDate == DateTime.MinValue)
+        {
+            resultMessage = "Weight submit results not found.";
+        }
+        if (Model.WeightSubmitDate > DateTime.Now.AddDays(-28))
+        {
+            resultType = "alert-success";
+        }
+        else if (Model.WeightSubmitDate > DateTime.Now.AddDays(-42))
+        {
+            resultType = "alert-warning";
+        }
+        else
+        {
+            resultType = "alert-danger";
+        }
+    }
+}
+
+<ol class="breadcrumb">
+    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Details" asp-route-id="@Model.ClanLink">@Model.ClanName</a></li>
+    <li class="active">Weight</li>
+</ol>
+
+<div class="well" style="margin-top:20px;">
+    <div class="row">
+        <div class="col">
+            <img src="@Model.ClanBadge" height="70" width="70" style="float:left;margin-right:10px;margin-left:10px;margin-top:-15px;" />
+            <h3 style="margin-top:10px;margin-bottom:0px">@Model.ClanName</h3>
+            <div class="text-muted">
+                @Model.ClanTag
+                <a class="text-muted" href="@Constants.KUILIN_NET/clan.php?tag=@Model.ClanLink"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">hocolate</span>C<span class="hidden-xs">lash</span></a>
+                <a class="text-muted" href="@Constants.CLASHOFSTATS/clans/@Model.ClanLink"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">lash </span>o<span class="hidden-xs">f </span>S<span class="hidden-xs">tats</span></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h4>Edit Clan Weight</h4>
+
+<div class="alert @resultType">
+    <strong>@resultMessage</strong><br />
+    If you want to submit weights to the official FWA weight sheet, first select war roster from below and then click submit from the bottom of the page.
+</div>
+
+<form id="form1" asp-action="Weight">
+    <input type="hidden" asp-for="ClanTag" />
+    <div class="form-group">
+        <label for="WarID">Select members</label>
+        <select class="form-control" id="WarID" name="WarID" onchange='this.form.submit()'>
+            <!option @(Model.WarID == 0 ? "selected='selected'" : "") value="0">All Members</!option>
+            @foreach (var war in Model.Wars)
+            {
+                <!option @(Model.WarID == war.ID ? "selected='selected'" : "") value="@war.ID">War against @war.OpponentName</!option>
+            }
+        </select>
+    </div>
+</form>
+
+@if (Model.Comparisons != null)
+{
+    int me = (int)(Model.ComparisonDeviation / Model.ComparisonSampleSize);
+    <div id="chart"></div>
+    <div class="caption">
+        <p class="small">Weight of selected roster compared against average of @Model.ComparisonSampleSize weight submit results close to selected weight (+/- @Constants.WEIGHT_COMPARE). 
+        <!--Mean absolute deviation is @Model.ComparisonDeviation and mean absolute error is @me. -->
+        </p>
+    </div>
+}
+else
+{
+    if (Model.WarID == 0)
+    {
+        <div class="caption">
+            <p class="small">To see the weight chart please fill weights for @Constants.WAR_SIZE1 or @Constants.WAR_SIZE2 selected members.</p>
+        </div>
+    }
+    else
+    {
+        <div class="caption">
+            <p class="small">To see the weight chart please fill weights for all war members.</p>
+        </div>
+    }
+}
+
+<form id="form2" asp-action="Weight">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <input type="hidden" asp-for="ClanTag" />
+    <input type="hidden" asp-for="WarID" />
+    <table id="myTable" class="table table-condensed table-hover tablesorter">
+        <thead>
+            <tr>
+                <th>
+                    #
+                </th>
+                <th>
+                    Name
+                </th>
+                <th>
+                    Weight
+                </th>
+                <th>
+                    InWar
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var member in Model.Members)
+            {
+                var member_max = 0;
+                switch(member.TownHallLevel)
+                {
+                    case 14:
+                        member_max = Constants.MAXWEIGHT_TH14;
+                        break;
+                    case 13:
+                        member_max = Constants.MAXWEIGHT_TH13;
+                        break;
+                    case 12:
+                        member_max = Constants.MAXWEIGHT_TH12;
+                        break;
+                    case 11:
+                        member_max = Constants.MAXWEIGHT_TH11;
+                        break;
+                    case 10:
+                        member_max = Constants.MAXWEIGHT_TH10;
+                        break;
+                    case 9:
+                        member_max = Constants.MAXWEIGHT_TH9;
+                        break;
+                    case 8:
+                        member_max = Constants.MAXWEIGHT_TH8;
+                        break;
+                    default:
+                        member_max = Constants.MAXWEIGHT_TH7;
+                        break;
+                }
+                var member_class = member.InWar ? "success" : "danger";
+                var member_checked = member.InWar ? "checked" : "";
+                var member_pos = member_id + 1;
+                <tr class="@member_class">
+                    <td>@member_pos</td>
+                    <td>
+                        <input type="hidden" name="Members[@member_id].Tag" value="@member.Tag" />
+                        @if (member.TownHallLevel == 13)
+                        {
+                            <span class="label label-info">@member.TownHallLevel</span>
+                        }
+                        else if (member.TownHallLevel == 12)
+                        {
+                            <span class="label label-primary">@member.TownHallLevel</span>
+                        }
+                        else if (member.TownHallLevel == 11)
+                        {
+                            <span class="label label-success">@member.TownHallLevel</span>
+                        }
+                        else if (member.TownHallLevel == 10)
+                        {
+                            <span class="label label-danger">@member.TownHallLevel</span>
+                        }
+                        else if (member.TownHallLevel == 9)
+                        {
+                            <span class="label label-default">@member.TownHallLevel</span>
+                        }
+                        else
+                        {
+                            <span class="label label-warning">@member.TownHallLevel</span>
+                        }
+                        <a asp-route-id="@member.LinkID" asp-area="" asp-controller="Players" asp-action="Details" tabindex="-1">@member.Name</a>
+                    </td>
+                    <td>
+                        <div class="input-group" style="max-width:300px;min-width:190px;">
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-danger btn-number" data-type="minus" data-field="Members[@member_id].Weight" tabindex="-1">
+                                    <span class="glyphicon glyphicon-minus"></span>
+                                </button>
+                            </span>
+                            <input type="number" name="Members[@member_id].Weight" war-check="Members[@member_id].InWar" class="form-control input-number member-weight" value="@member.Weight" min="0" max="@member_max" step="1000">
+                            <span class="input-group-btn">
+                                <button type="button" style="border-radius:0px;" class="btn btn-success btn-number" data-type="plus" data-field="Members[@member_id].Weight" tabindex="-1">
+                                    <span class="glyphicon glyphicon-plus"></span>
+                                </button>
+                            </span>
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" tabindex="-1">
+                                    <span class="caret"></span>
+                                </button>
+                                <ul class="dropdown-menu" role="menu">
+                                    <li><a class="weight-multiply" multiplier="3" max="@member_max" data-field="Members[@member_id].Weight">3x</a></li>
+                                    <li><a class="weight-multiply" multiplier="4" max="@member_max" data-field="Members[@member_id].Weight">4x</a></li>
+                                    <li><a class="weight-multiply" multiplier="5" max="@member_max" data-field="Members[@member_id].Weight">5x</a></li>
+                                </ul>
+                            </span>
+                        </div>
+                    </td>
+                    <td>
+                        <input type="checkbox" class="form-control input-sm member-in-war" style="max-width:30px;" name="Members[@member_id].InWar" value="true" @(member.InWar ? "checked=\"checked\"" : "") tabindex="-1" />
+                    </td>
+                </tr>
+                member_id++;
+            }
+        </tbody>
+    </table>
+
+    <div>
+        <a class="small" asp-area="" asp-controller="Clans" asp-action="WeightForm" asp-route-id="@Model.ClanLink" asp-route-warid="@Model.WarID">...</a>
+    </div>
+
+    <div style="position:fixed;bottom:0px;left:0px;width:100%;height:50px;background-color:black;color:white;z-index:1030;">
+        <div class="container">
+            <div class="row" style="margin:5px;">
+                <div class="col-xs-6">
+                    <div class="text-nowrap">W<span class="hidden-xs">eight</span>: <span id="war-weight"></span> ( <span id="war-members"></span> )</div>
+                    <div class="text-nowrap">TH<span class="hidden-xs"> Comp</span>: <span id="war-composition"></span></div>
+                </div>
+                <div class="col-xs-6 text-nowrap text-right">
+                    @if (Model.WarID != 0 || Model.Members.Count == Constants.WAR_SIZE2)
+                    {
+                        <input type="submit" class="btn btn-primary" name="command" id="command-submit" value="Submit">
+                    }
+                    else
+                    {
+                        <input type="submit" class="btn btn-primary" name="command" id="command-submit-disabled" value="Submit">
+                    }
+                    <input type="submit" class="btn btn-save" name="command" id="command-save" value="Save">
+                </div>
+            </div>
+        </div>
+    </div>
+
+</form>
+
+@section modals {
+
+<div id="submitModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div id="submitModalHeader" class="modal-header-primary">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <div id="submitModalAnimation" class="loader"></div>
+                <h4 id="submitModalTitle" class="modal-title loader-title">Submitting...</h4>
+            </div>
+            <div class="modal-body">
+                <p id="submit-details">Please wait...</p>
+            </div>
+            <div class="modal-footer">
+                <a id="backup-submit-button" class="btn btn-primary hidden" asp-area="" asp-controller="Clans" asp-action="WeightForm" asp-route-id="@Model.ClanLink" asp-route-warid="@Model.WarID">Submit with Google Forms</a>
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+    
+}
+
+@section scripts {
+
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+
+    <script type="text/javascript">
+
+        //plugin bootstrap minus and plus
+        //http://jsfiddle.net/laelitenetwork/puJ6G/
+        $(function () {
+
+            $('.btn-number').click(function (e) {
+                e.preventDefault();
+                var fieldName = $(this).attr('data-field');
+                var type = $(this).attr('data-type');
+                var input = $("input[name='" + fieldName + "']");
+                var currentVal = parseInt(input.val());
+                if (!isNaN(currentVal)) {
+                    var stepValue = parseInt(input.attr('step'));
+                    if (!stepValue) stepValue = 1;
+                    currentVal = Math.round(currentVal / stepValue) * stepValue;
+                    if (type == 'minus') {
+                        var minValue = parseInt(input.attr('min'));
+                        if (!minValue) minValue = 0;
+                        if (currentVal - stepValue >= minValue) {
+                            input.val(currentVal - stepValue).change();
+                        }
+                        if (parseInt(input.val()) == minValue) {
+                            $(this).attr('disabled', true);
+                        }
+
+                    } else if (type == 'plus') {
+                        var maxValue = parseInt(input.attr('max'));
+                        if (!maxValue) maxValue = 999;
+                        if (currentVal + stepValue <= maxValue) {
+                            input.val(currentVal + stepValue).change();
+                        }
+                        if (parseInt(input.val()) == maxValue) {
+                            $(this).attr('disabled', true);
+                        }
+
+                    }
+                } else {
+                    input.val(0);
+                }
+                input.focus();
+            });
+            $('.input-number').focusin(function () {
+                $(this).data('oldValue', $(this).val());
+            });
+            $('.input-number').change(function () {
+                var minValue = parseInt($(this).attr('min'));
+                var maxValue = parseInt($(this).attr('max'));
+                var stepValue = parseInt($(this).attr('step'));
+                if (!stepValue) stepValue = 1;
+                if (!minValue) minValue = 0;
+                if (!maxValue) maxValue = 999;
+                var valueCurrent = parseInt($(this).val());
+
+                var name = $(this).attr('name');
+                if (valueCurrent > minValue) {
+                    $(".btn-number[data-type='minus'][data-field='" + name + "']").removeAttr('disabled')
+                } else {
+                    $(this).val(minValue);
+                }
+                if (valueCurrent < maxValue) {
+                    $(".btn-number[data-type='plus'][data-field='" + name + "']").removeAttr('disabled')
+                } else {
+                    $(this).val(maxValue);
+                }
+            });
+
+            $('.member-in-war').change(function (e) {
+                $(this).parent().parent().addClass($(this).is(':checked') ? 'success' : 'danger');
+                $(this).parent().parent().removeClass($(this).is(':checked') ? 'danger' : 'success');
+                calculateWarWeight();
+            });
+
+            $('.member-weight').tooltip({
+                title: function () {
+                    var valueCurrent = parseInt($(this).val());
+                    if (valueCurrent > 26000)
+                    {
+                        var div5 = parseInt(valueCurrent / 5);
+                        var div4 = parseInt(valueCurrent / 4);
+                        return "5x" + div5 + ", 4x" + div4;
+                    }
+                    else if (valueCurrent > 0)
+                    {
+                        var mul5 = valueCurrent * 5;
+                        var mul4 = valueCurrent * 4;
+                        return mul5 + "/5, " + mul4 + "/4";
+                    }
+                    return "";
+                },
+                trigger: 'focus'
+            });
+
+            $('.member-weight').change(function (e) {
+                calculateWarWeight();
+                $(this).tooltip('fixTitle').tooltip('show');
+            });
+
+            $('.weight-multiply').click(function (e) {
+                var fieldName = $(this).attr('data-field');
+                var input = $("input[name='" + fieldName + "']");
+                var multiplier = parseInt($(this).attr('multiplier'));
+                var max = parseInt($(this).attr('max'));
+                var currentVal = parseInt(input.val());
+                var newVal = currentVal * multiplier;
+                if (newVal <= max)
+                    input.val(newVal).change();
+            });
+
+            $('#command-submit').click(function () {
+                return confirm("Submit weights to FWA Weight Sheet?");
+            });
+
+            $('#command-submit-disabled').click(function () {
+                alert("Please select war roster from top of the page.")
+                return false;
+            });
+
+            calculateWarWeight();
+            resizeChart();
+
+            @if (Model.WeightSubmitQueued)
+            {
+                @:statusPoll();
+                @:$("#submitModal").modal();
+            }
+        });
+
+        function statusPoll()
+        {
+            $.getJSON('/Clan/@Model.ClanLink/WeightStatus')
+                .done(function (data) {
+                    //{"final":true,"result":false,"text":"Unknown result"}
+                    $("#submit-details").text(data.text);
+                    if (data.final === true) {
+                        if (data.result) {
+                            $("#submitModalTitle").text("Submit done");
+                            $("#submitModalHeader").addClass("modal-header-success");
+                        } else {
+                            $("#submitModalTitle").text("Submit failed");
+                            $("#submitModalHeader").addClass("modal-header-danger");
+                            if (data.text != "Too few weight changes since last submit.")
+                                $("#backup-submit-button").removeClass("hidden");
+                        }
+                        $("#submitModalHeader").removeClass("modal-header-primary");
+                        $("#submitModalAnimation").removeClass("loader");
+                    }
+                    if(data.final === false)
+                        setTimeout(statusPoll, 1000);
+                })
+                .fail(function (jqxhr, textStatus, error) {
+                    $("#submitModalTitle").text("Submit error");
+                    $("#submitModalHeader").addClass("modal-header-danger");
+                    $("#submitModalHeader").removeClass("modal-header-primary");
+                    $("#submitModalAnimation").removeClass("loader");
+                    $("#submit-details").text(textStatus + ": " + error);
+                    $("#backup-submit-button").removeClass("hidden");
+                });
+        }
+
+        function calculateWarWeight()
+        {
+            var members_total = 0;
+            var members_in_war = 0;
+
+            $('.member-in-war').each(function (e) {
+                members_total++;
+                if ($(this).is(':checked'))
+                    members_in_war++;
+            });
+
+            $('#war-members').text(members_in_war + ' / ' + members_total);
+
+            var th14_count = 0;
+            var th13_count = 0;
+            var th12_count = 0;
+            var th11_count = 0;
+            var th10_count = 0;
+            var th9_count = 0;
+            var th8_count = 0;
+            var th7_count = 0;
+            var war_weight = 0;
+
+            $('.member-weight').each(function (e) {
+                var member_weight = parseInt($(this).val());
+                var checkName = $(this).attr('war-check');
+                if ($("input[name='" + checkName + "']").is(':checked'))
+                {
+                    war_weight += member_weight;
+                    if (member_weight > @Constants.MAXWEIGHT_TH13)
+                        th14_count++;
+                    else if (member_weight > @Constants.MAXWEIGHT_TH12)
+                        th13_count++;
+                    else if (member_weight > @Constants.MAXWEIGHT_TH11)
+                        th12_count++;
+                    else if (member_weight > @Constants.MAXWEIGHT_TH10)
+                        th11_count++;
+                    else if (member_weight > @Constants.MAXWEIGHT_TH9)
+                        th10_count++;
+                    else if (member_weight > @Constants.MAXWEIGHT_TH8)
+                        th9_count++;
+                    else if (member_weight > @Constants.MAXWEIGHT_TH7)
+                        th8_count++;
+                    else
+                        th7_count++;
+                }
+            });
+
+            $('#war-weight').text(war_weight);
+            $('#war-composition').text(th14_count + ' / ' + th13_count + ' / ' + th12_count + ' / ' + th11_count + ' / ' + th10_count + ' / ' + th9_count + ' / ' + th8_count + ' / ' + th7_count);
+
+            $('.btn-save').addClass((members_in_war == @Constants.WAR_SIZE1 || members_in_war == @Constants.WAR_SIZE2) ? 'btn-success' : 'btn-danger');
+            $('.btn-save').removeClass((members_in_war == @Constants.WAR_SIZE1 || members_in_war == @Constants.WAR_SIZE2) ? 'btn-danger' : 'btn-success');
+        }
+
+        function resizeChart()
+        {
+            var width = $('#chart').width();
+            var height = Math.round(width * 0.5);
+            if (height > 400) height = 400;
+            $('#chart').css('height', height + 'px');
+        }
+
+        google.charts.load('current', { 'packages': ['corechart'] });
+        google.charts.setOnLoadCallback(function () {
+            @if (Model.Comparisons != null)
+            {
+                var comma = ' ';
+                <text>
+
+                var data = new google.visualization.DataTable();
+                data.addColumn('number', 'Pos');
+                data.addColumn('number', 'Weight');
+                data.addColumn('number', 'Average');
+                data.addRows([
+                </text>
+                @foreach(var c in Model.Comparisons)
+                {
+                    @:@comma [@c.Position, @c.Weight, @c.Average.ToString().Replace(",",".")]
+                    comma = ',';
+                }
+                <text>
+                ]);
+
+                resizeChart();
+
+                var options = {
+                    theme: 'maximized',
+                    legend: {
+                        alignment: 'end'
+                    },
+                    series: {
+                        3: { color: 'black' }
+                    }
+                };
+
+                new google.visualization.LineChart(document.getElementById('chart')).draw(data, options);
+                </text>
+            }
+        });
+
+    </script>
+}

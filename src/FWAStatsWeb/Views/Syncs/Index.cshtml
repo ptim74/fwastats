@@ -1,0 +1,107 @@
+﻿@model FWAStatsWeb.Models.SyncViewModels.IndexViewModel
+
+@{
+    ViewBag.Title = "Syncs";
+}
+
+<ol class="breadcrumb">
+    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+    <li class="active">Syncs</li>
+</ol>
+
+<h2>Syncs</h2>
+
+<div class="input-group" style="margin-bottom:20px;">
+    <span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-search"></span></span>
+    <input type="text" id="search" class="form-control" placeholder="Search" aria-describedby="basic-addon1" />
+</div>
+
+<table id="table" class="table table-hover table-responsive tablesorter">
+    <thead>
+        <tr>
+            <th width="35"></th>
+            <th>
+                Clan
+            </th>
+            @foreach (var warSync in Model.Syncs)
+            {
+                <th>
+                    <a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@warSync.ID">@warSync.DisplayName</a>
+                </th>
+            }
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var clan in Model.Clans)
+        {
+            <tr>
+                <td style="padding:0px;">
+                    <img src="@clan.BadgeUrl" width="35" height="35" />
+                </td>
+                <td class="search">
+                    <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
+                    @if (clan.New)
+                    {
+                        <small class="label label-success">N<span class="hidden-xs">ew</span></small>
+                    }
+                    @if (clan.Departed)
+                    {
+                        <small class="label label-info">D<span class="hidden-xs">eparted</span></small>
+                    }
+                    @if (clan.HiddenLog)
+                    {
+                        <small class="label label-warning">H<span class="hidden-xs">idden log</span></small>
+                    }
+                    @if (clan.InLeague)
+                    {
+                        <small class="label label-primary">L<span class="hidden-xs">eague</span></small>
+                    }
+                </td>
+                @foreach (var warResult in clan.Results)
+                {
+                    var result_class = "";
+                    if (warResult.Result == "win")
+                    {
+                        result_class = "text-success";
+                    }
+                    else if (warResult.Result == "lose")
+                    {
+                        result_class = "text-danger";
+                    }
+                    else
+                    {
+                        result_class = "text-muted";
+                    }
+                    <td class="search">
+                        <a class="@result_class" asp-route-id="@warResult.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@warResult.OpponentName</a>
+                        @if (!string.IsNullOrEmpty(warResult.OpponentTag) && !warResult.IsAlliance)
+                        {
+                            if (warResult.OpponentIsBlacklisted)
+                            {
+                                <small class="label label-default">B<span class="hidden-xs">lacklisted</span></small>
+                            }
+                            else
+                            {
+                                <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
+                            }
+                        }
+                    </td>
+                }
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section scripts {
+    <script type="text/javascript">
+
+        $('#search').keyup(function () {
+            var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+            $('#table > tbody > tr').show().filter(function () {
+                var text = $(this).children(".search").text().replace(/\s+/g, ' ').toLowerCase();
+                return !~text.indexOf(val);
+            }).hide();
+        });
+
+    </script>
+}

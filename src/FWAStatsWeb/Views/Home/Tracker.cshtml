@@ -1,0 +1,56 @@
+﻿@model FWAStatsWeb.Models.HomeViewModels.TrackerViewModel
+
+@{
+    ViewBag.Title = "Tracker";
+    var trackerUrl = "https://docs.google.com/spreadsheets/d/" + Constants.DONATION_TRACKER_SHEET_ID + "/copy";
+    if (Model != null && !string.IsNullOrEmpty(Model.ClanName))
+    {
+        trackerUrl += string.Concat("?title=", Uri.EscapeDataString(Model.ClanName + " Donations"));
+    }
+}
+
+<ol class="breadcrumb">
+    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+    <li class="active">Tracker</li>
+</ol>
+
+<h3>Create Clash of Clans donation tracker in Google Sheets</h3>
+
+<div class="alert alert-warning alert-dismissable">
+    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+    <strong>Note!</strong>
+    You don't need to ask permissions for the tracker template, I'm not going to respond to permission requests since it's not needed if you follow the instructions.
+    If you still think that you need to ask permissions, please note that I can see your Google profile name, picture and email in the permission request.
+    If you need help setting up the tracker, please contact Help Desk or DM me directly (pete | War Farmers 18), thank you.
+</div>
+
+@if (Model != null && !string.IsNullOrEmpty(Model.ClanName))
+{
+    <p>Press the following button to start the process.</p>
+    <p><a class="btn btn-primary" href="@trackerUrl">Create Donation Tracker for @Model.ClanName</a></p>
+    <p>You need to be signed into Google.</p>
+    <p>It takes a little while for the Tracker menu to be visible.</p>
+}
+else
+{
+    <p>Open <a href="@trackerUrl">Donation Tracker Template</a>.</p>
+    <p>Make a copy of the template (<b>File > Make a copy...</b>).</p>
+    <p><img src="http://tracker.fwastats.com/tracker00.png" /></p>
+    <p>Edit the name for the document and click <b>OK</b>.</p>
+    <p><img src="http://tracker.fwastats.com/tracker01.png" /></p>
+    <p>Select Setup-tab and set the clan tag of your clan.</p>
+}
+<p><img src="http://tracker.fwastats.com/tracker02.png" /></p>
+<p>Click <b>Tracker > Start</b> from the menu (works only in desktop version)</p>
+<p><img src="http://tracker.fwastats.com/tracker03.png" /></p>
+<p>Click <b>Continue</b></p>
+<p><img src="http://tracker.fwastats.com/tracker04.png" /></p>
+<p>Click <b>Advanced</b></p>
+<p><img src="http://tracker.fwastats.com/tracker05.png" /></p>
+<p>Click <b>Go to DonationTracker (unsafe)</b></p>
+<p><img src="http://tracker.fwastats.com/tracker06.png" /></p>
+<p>Type <b>Continue</b> and click <b>NEXT</b></p>
+<p><img src="http://tracker.fwastats.com/tracker07.png" /></p>
+<p>Click <b>ALLOW</b></p>
+<p><img src="http://tracker.fwastats.com/tracker08.png" /></p>
+<p>Tracking is now started.</p>

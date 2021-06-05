@@ -1,0 +1,85 @@
+@model List<FWAStatsWeb.Models.ClanViewModels.FollowingClan>
+
+@{
+    ViewBag.Title = "Following Clans";
+    ViewBag.MetaRobots = "noindex, nofollow";
+}
+
+<ol class="breadcrumb">
+    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
+    <li class="active">Following Clans</li>
+</ol>
+
+<h2>Following Clans</h2>
+
+<ul class="pagination">
+    <li><a asp-area="" asp-controller="Clans" asp-action="Index">Active</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Departed">Departed</a></li>
+    <li class="active"><a asp-area="" asp-controller="Clans" asp-action="Following">Following</a></li>
+</ul>
+
+<div class="input-group" style="margin-bottom:20px;">
+    <span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-search"></span></span>
+    <input type="text" id="search" class="form-control" placeholder="Search" aria-describedby="basic-addon1" />
+</div>
+
+<table id="table" class="table table-hover table-responsive tablesorter">
+    <thead>
+        <tr>
+            <th width="35"></th>
+            <th>
+                Clan
+            </th>
+            <th>
+                Wars
+            </th>
+            <th>
+                Latest
+            </th>
+            <th>
+                Against
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var clan in Model)
+        {
+            <tr>
+                <td style="padding:0px;">
+                    <img src="@clan.BadgeURL" width="35" height="35" />
+                </td>
+                <td class="search">
+                    <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
+                    @if (clan.Blacklisted)
+                    {
+                        <small class="label label-default">B<span class="hidden-xs">lacklisted</span></small>
+                    }
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => clan.Wars)
+                </td>
+                <td>
+                    @clan.LatestDate.ToString("yyyy-MM-dd")
+                </td>
+                <td>
+                    <a asp-route-id="@clan.LatestLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.LatestClan</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@section scripts {
+    <script type="text/javascript">
+
+        $('#search').keyup(function () {
+            var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+            $('#table > tbody > tr').show().filter(function () {
+                var text = $(this).children(".search").text().replace(/\s+/g, ' ').toLowerCase();
+                return !~text.indexOf(val);
+            }).hide();
+        });
+
+    </script>
+}

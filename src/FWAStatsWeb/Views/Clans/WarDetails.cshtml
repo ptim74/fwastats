@@ -1,0 +1,174 @@
+﻿@model FWAStatsWeb.Models.War
+
+@{
+    ViewData["Title"] = "War";
+    ViewBag.MetaRobots = "noindex, nofollow";
+}
+
+<ol class="breadcrumb">
+    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Details" asp-route-id="@Model.ClanLinkID">@Model.ClanName</a></li>
+    <li class="active">War</li>
+</ol>
+
+@{
+    var war_class = "";
+    var opp_class = "";
+    if (Model.Result == "win")
+    {
+        war_class = "text-success";
+        opp_class = "text-danger";
+    }
+    else if (Model.Result == "lose")
+    {
+        war_class = "text-danger";
+        opp_class = "text-success";
+    }
+    else
+    {
+        war_class = "text-muted";
+        opp_class = "text-muted";
+    }
+}
+
+<div class="well" style="margin-top:20px;">
+    <table>
+        <tr class="@war_class">
+            <td class="text-right text-nowrap">
+                @Model.ClanName
+                <br />
+                <small class="text-info">@Model.ClanExpEarned xp</small>
+                <small class="text-muted">@Model.ClanDestructionPercentage.ToString("0.#") %</small>
+                <small class="text-warning" style="font-weight:bold">@Model.ClanStars <span class="glyphicon glyphicon-star" /></small>
+            </td>
+            <td style="vertical-align:middle">
+                <img src="@Model.ClanBadgeUrl" width="35" height="35" />
+            </td>
+            <td class="text-nowrap text-center" width="35">
+                @Model.Result
+                <br />
+                <small class="text-muted text-center text-nowrap">@Model.TeamSize vs @Model.TeamSize</small>
+            </td>
+            <td style="vertical-align:middle">
+                <img src="@Model.OpponentBadgeUrl" width="35" height="35" />
+            </td>
+            <td class="text-nowrap">
+                <a class="@opp_class" asp-route-id="@Model.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@Model.OpponentName</a>
+                @if (!Model.Matched)
+                {
+                    <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
+                }
+                <br />
+                <small class="text-warning" style="font-weight:bold">@Model.OpponentStars <span class="glyphicon glyphicon-star" /></small>
+                <small class="text-muted">@Model.OpponentDestructionPercentage.ToString("0.#") %</small>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<ul class="nav nav-tabs">
+    <li class="active"><a data-toggle="tab" href="#clanmembers">@Model.ClanName</a></li>
+    <li><a data-toggle="tab" href="#opponentmembers">@Model.OpponentName</a></li>
+</ul>
+
+<div class="tab-content">
+    <div id="clanmembers" class="tab-pane active">
+        <table class="table table-condensed table-hover table-responsive tablesorter">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Attack 1</th>
+                    <th>#1</th>
+                    <th>Attack 2</th>
+                    <th>#2</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Members != null)
+                {
+                    foreach (var member in Model.Members.Where(m => m.IsOpponent == false).OrderBy(m => m.MapPosition))
+                    {
+                        int attackCount = 0;
+                        <tr>
+                            <td>@member.MapPosition</td>
+                            <td>@member.Name</td>
+                            @if (member.Attacks != null)
+                            {
+
+                                foreach (var attack in member.Attacks)
+                                {
+                                    attackCount += 2;
+                                    <td>
+                                        @for (var starCount = 0; starCount < attack.Stars; starCount++)
+                                        {
+                                            <text>⭐</text>
+                                        }
+                                    </td>
+                                    <td>@attack.DefenderMapPosition</td>
+                                }
+                            }
+                            @while (attackCount < 4)
+                            {
+                                attackCount++;
+                                <td></td>
+                            }
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div id="opponentmembers" class="tab-pane">
+        <table class="table table-condensed table-hover table-responsive tablesorter">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Attack 1</th>
+                    <th>#1</th>
+                    <th>Attack 2</th>
+                    <th>#2</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Members != null)
+                {
+                    foreach (var member in Model.Members.Where(m => m.IsOpponent == true).OrderBy(m => m.MapPosition))
+                    {
+                        int attackCount = 0;
+                        <tr>
+                            <td>@member.MapPosition</td>
+                            <td>@member.Name</td>
+                            @if (member.Attacks != null)
+                            {
+
+                                foreach (var attack in member.Attacks)
+                                {
+                                    attackCount += 2;
+                                    <td>
+                                        @for (var starCount = 0; starCount < attack.Stars; starCount++)
+                                        {
+                                            <text>⭐</text>
+}
+                                    </td>
+                                    <td>@attack.DefenderMapPosition</td>
+                                }
+                            }
+                            @while (attackCount < 4)
+                            {
+                                attackCount++;
+                                <td></td>
+                            }
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div id="attacks" class="tab-pane">
+    </div>
+</div>
