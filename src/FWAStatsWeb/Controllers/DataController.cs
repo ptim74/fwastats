@@ -294,12 +294,12 @@ namespace FWAStatsWeb.Controllers
             return Ok(data);
         }
 
-        protected DateTime RoundToSec(DateTime input, DateTimeKind kind)
+        protected static DateTime RoundToSec(DateTime input, DateTimeKind kind)
         {
             return new DateTime(input.Year, input.Month, input.Day, input.Hour, input.Minute, input.Second, kind);
         }
 
-        protected DateTime RoundToDate(DateTime input, DateTimeKind kind)
+        protected static DateTime RoundToDate(DateTime input, DateTimeKind kind)
         {
             return new DateTime(input.Year, input.Month, input.Day, 0, 0, 0, kind);
         }
