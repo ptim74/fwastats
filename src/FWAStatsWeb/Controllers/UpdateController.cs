@@ -97,7 +97,7 @@ namespace FWAStatsWeb.Controllers
 
         protected async Task DeleteTasks()
         {
-            await db.Database.ExecuteSqlCommandAsync("DELETE FROM UpdateTasks");
+            await db.Database.ExecuteSqlRawAsync("DELETE FROM UpdateTasks");
         }
 
         protected async Task UpdateBlacklisted()
@@ -828,8 +828,8 @@ namespace FWAStatsWeb.Controllers
 
                     if (duplicate != null)
                     {
-                        db.Database.ExecuteSqlCommand("UPDATE WarMembers SET WarID = {0} WHERE WarID = {1}", war.ID, duplicate.ID);
-                        db.Database.ExecuteSqlCommand("UPDATE WarAttacks SET WarID = {0} WHERE WarID = {1}", war.ID, duplicate.ID);
+                        db.Database.ExecuteSqlRaw("UPDATE WarMembers SET WarID = {0} WHERE WarID = {1}", war.ID, duplicate.ID);
+                        db.Database.ExecuteSqlRaw("UPDATE WarAttacks SET WarID = {0} WHERE WarID = {1}", war.ID, duplicate.ID);
                         db.Wars.Remove(duplicate);
                     }
 

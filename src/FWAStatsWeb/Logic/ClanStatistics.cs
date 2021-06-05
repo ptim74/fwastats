@@ -265,7 +265,7 @@ namespace FWAStatsWeb.Logic
         {
             var keepEventsSince = DateTime.UtcNow.AddDays(-1.0);
 
-            db.Database.ExecuteSqlCommand("DELETE FROM ClanEvents WHERE EventDate < {0}", keepEventsSince);
+            db.Database.ExecuteSqlRawAsync("DELETE FROM ClanEvents WHERE EventDate < {0}", keepEventsSince);
 
             var keepAttacksSince = DateTime.UtcNow.AddDays(-7.0);
 
@@ -274,19 +274,19 @@ namespace FWAStatsWeb.Logic
             if (isInMiddleSync2 != null)
                 keepAttacksSince = isInMiddleSync2.Start.AddHours(-1);
 
-            db.Database.ExecuteSqlCommand("DELETE FROM WarMembers WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} )", keepAttacksSince);
+            db.Database.ExecuteSqlRawAsync("DELETE FROM WarMembers WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} )", keepAttacksSince);
 
-            db.Database.ExecuteSqlCommand("DELETE FROM WarAttacks WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} )", keepAttacksSince);
+            db.Database.ExecuteSqlRawAsync("DELETE FROM WarAttacks WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} )", keepAttacksSince);
 
             if (options.Value.Members > 0)
             {
                 var keepMembersSince = DateTime.UtcNow.AddDays(-1.0 * options.Value.Members);
 
-                db.Database.ExecuteSqlCommand("DELETE FROM PlayerEvents WHERE EventDate < {0}", keepMembersSince);
+                db.Database.ExecuteSqlRawAsync("DELETE FROM PlayerEvents WHERE EventDate < {0}", keepMembersSince);
 
                 var keepPlayersSince = DateTime.UtcNow.AddDays(-60);
 
-                db.Database.ExecuteSqlCommand("DELETE FROM Players WHERE LastUpdated < {0}", keepPlayersSince);
+                db.Database.ExecuteSqlRawAsync("DELETE FROM Players WHERE LastUpdated < {0}", keepPlayersSince);
             }
 
             if(options.Value.Wars > 0)
@@ -298,24 +298,24 @@ namespace FWAStatsWeb.Logic
                 if (isInMiddleSync != null)
                     keepWarsSince = isInMiddleSync.Start.AddHours(-1);
 
-                db.Database.ExecuteSqlCommand("DELETE FROM WarSyncs WHERE Finish < {0}", keepWarsSince);
+                db.Database.ExecuteSqlRawAsync("DELETE FROM WarSyncs WHERE Finish < {0}", keepWarsSince);
 
-                db.Database.ExecuteSqlCommand("DELETE FROM Wars WHERE EndTime < {0}", keepWarsSince);
+                db.Database.ExecuteSqlRawAsync("DELETE FROM Wars WHERE EndTime < {0}", keepWarsSince);
 
-                db.Database.ExecuteSqlCommand("DELETE FROM ClanValidities WHERE ValidTo < {0}", keepWarsSince);
+                db.Database.ExecuteSqlRawAsync("DELETE FROM ClanValidities WHERE ValidTo < {0}", keepWarsSince);
             }
 
             var keepInvalidWarsSince = DateTime.UtcNow.AddDays(-1.0);
             //Endtime is in past but war is not finished -> delete
-            db.Database.ExecuteSqlCommand("DELETE FROM WarMembers WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} AND Result IN({1},{2}))", keepInvalidWarsSince, "preparation", "inWar");
-            db.Database.ExecuteSqlCommand("DELETE FROM WarAttacks WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} AND Result IN({1},{2}))", keepInvalidWarsSince, "preparation", "inWar");
-            db.Database.ExecuteSqlCommand("DELETE FROM Wars WHERE EndTime < {0} AND Result IN({1},{2})", keepInvalidWarsSince, "preparation", "inWar");
+            db.Database.ExecuteSqlRawAsync("DELETE FROM WarMembers WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} AND Result IN({1},{2}))", keepInvalidWarsSince, "preparation", "inWar");
+            db.Database.ExecuteSqlRawAsync("DELETE FROM WarAttacks WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} AND Result IN({1},{2}))", keepInvalidWarsSince, "preparation", "inWar");
+            db.Database.ExecuteSqlRawAsync("DELETE FROM Wars WHERE EndTime < {0} AND Result IN({1},{2})", keepInvalidWarsSince, "preparation", "inWar");
 
-            db.Database.ExecuteSqlCommand("DELETE FROM WarMembers WHERE WarID IS NULL");
-            db.Database.ExecuteSqlCommand("DELETE FROM WarAttacks WHERE WarID IS NULL");
+            db.Database.ExecuteSqlRawAsync("DELETE FROM WarMembers WHERE WarID IS NULL");
+            db.Database.ExecuteSqlRawAsync("DELETE FROM WarAttacks WHERE WarID IS NULL");
 
-            db.Database.ExecuteSqlCommand("DELETE FROM WarMembers WHERE WarID NOT IN ( SELECT ID FROM Wars )");
-            db.Database.ExecuteSqlCommand("DELETE FROM WarAttacks WHERE WarID NOT IN ( SELECT ID FROM Wars )");
+            db.Database.ExecuteSqlRawAsync("DELETE FROM WarMembers WHERE WarID NOT IN ( SELECT ID FROM Wars )");
+            db.Database.ExecuteSqlRawAsync("DELETE FROM WarAttacks WHERE WarID NOT IN ( SELECT ID FROM Wars )");
 
         }
     }
