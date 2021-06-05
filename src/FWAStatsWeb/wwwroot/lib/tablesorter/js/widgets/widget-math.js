@@ -1,4 +1,4 @@
-/*! Widget: math - updated 5/3/2017 (v2.28.9) *//*
+/*! Widget: math - updated 12/1/2019 (v2.31.2) *//*
 * Requires tablesorter v2.16+ and jQuery 1.7+
 * by Rob Garrison
 */
@@ -30,8 +30,12 @@
 
 		processText : function( c, $cell ) {
 			var tmp,
+				wo = c.widgetOptions,
 				txt = ts.getElementText( c, $cell, math.getCellIndex( $cell ) ),
 				prefix = c.widgetOptions.math_prefix;
+			if (wo.math_textAttr) {
+				txt = $cell.attr(wo.math_textAttr) || txt;
+			}
 			if ( /</.test( prefix ) ) {
 				// prefix contains HTML; remove it & any text before using formatFloat
 				tmp = $( '<div>' + prefix + '</div>' ).text()
@@ -106,7 +110,7 @@
 						// stop calculating 'above', when encountering another 'above'
 						if ( mathAbove ) {
 							index = 0;
-						} else if ( $t.length ) {
+						} else if ( $t.length && $t.not( mathIgnore ).length ) {
 							arry[ arry.length ] = math.processText( c, $t );
 						}
 					}
@@ -128,7 +132,7 @@
 					});
 					if ( ( hasFilter || !$tr.hasClass( filtered ) ) &&
 						$tr.not( mathIgnore ).length &&
-						$t.length ) {
+						$t.length && $t.not( mathIgnore ) ) {
 						arry[ arry.length ] = math.processText( c, $t );
 					}
 				}
@@ -145,7 +149,8 @@
 					});
 					if ( ( hasFilter || !$tr.hasClass( filtered ) ) &&
 						$t.not( mathAttrs.join( ',' ) ).length &&
-						!$t.is( $el ) ) {
+						!$t.is( $el ) && $t.not( mathIgnore ).length
+					) {
 						arry[ arry.length ] = math.processText( c, $t );
 					}
 				}
@@ -171,7 +176,6 @@
 				if ( hasFilter || !$row.hasClass( filtered ) ) {
 					$cells = $row.children().not( mathIgnore );
 					cellLen = $cells.length;
-					// $row.children().each(function(){
 					for ( cellIndex = 0; cellIndex < cellLen; cellIndex++ ) {
 						$t = $cells.eq( cellIndex );
 						col = math.getCellIndex( $t );
@@ -221,7 +225,7 @@
 		recalculate : function(c, wo, init) {
 			if ( c && ( !wo.math_isUpdating || init ) ) {
 
-				var undef, time, mathAttr, $mathCells, indx, len,
+				var time, mathAttr, $mathCells, indx, len,
 					changed = false,
 					filters = {};
 				if ( c.debug || wo.math_debug ) {
@@ -435,7 +439,7 @@
 		mask = mask.substring( start, index );
 
 		// convert any string to number according to formation sign.
-		val = mask.charAt( 0 ) == '-' ? -val : +val;
+		val = mask.charAt( 0 ) === '-' ? -val : +val;
 		isNegative = val < 0 ? val = -val : 0; // process only abs(), and turn on flag.
 
 		// search for separator for grp & decimal, anything not digit, not +/- sign, not #.
@@ -517,7 +521,7 @@
 				len = arry.length;
 			if ( len > 1 ) {
 				// https://gist.github.com/caseyjustus/1166258
-				arry.sort( function( a, b ){ return a - b; } );
+				arry.sort( function( a, b ) { return a - b; } );
 				half = Math.floor( len / 2 );
 				return ( len % 2 ) ? arry[ half ] : ( arry[ half - 1 ] + arry[ half ] ) / 2;
 			}
@@ -542,7 +546,7 @@
 				}
 			}
 			// returns arry of modes if there is a tie
-			return modes.sort( function( a, b ){ return a - b; } );
+			return modes.sort( function( a, b ) { return a - b; } );
 		},
 		max : function(arry) {
 			return Math.max.apply( Math, arry );
@@ -551,7 +555,7 @@
 			return Math.min.apply( Math, arry );
 		},
 		range: function(arry) {
-			var v = arry.sort( function( a, b ){ return a - b; } );
+			var v = arry.sort( function( a, b ) { return a - b; } );
 			return v[ arry.length - 1 ] - v[ 0 ];
 		},
 		// common variance equation
@@ -604,15 +608,17 @@
 			// mask info: https://code.google.com/p/javascript-number-formatter/
 			math_mask     : '#,##0.00',
 			// complete executed after each fucntion
-			math_complete : null, // function($cell, wo, result, value, arry){ return result; },
+			math_complete : null, // function($cell, wo, result, value, arry) { return result; },
 			// math_completed called after all math calculations have completed
-			math_completed: function( config ) {},
+			math_completed: function( /* config */ ) {},
 			// order of calculation; 'all' is last
 			math_priority : [ 'row', 'above', 'below', 'col' ],
 			// template for or just prepend the mask prefix & suffix with this HTML
 			// e.g. '<span class="red">{content}</span>'
 			math_prefix   : '',
 			math_suffix   : '',
+			// cell attribute containing the math value to use
+			math_textAttr : '',
 			// no matching math elements found (text added to cell)
 			math_none     : 'N/A',
 			math_event    : 'recalculate',
@@ -639,7 +645,7 @@
 					}
 				})
 				.on( update, function() {
-					setTimeout( function(){
+					setTimeout( function() {
 						math.updateComplete( c );
 					}, 40 );
 				});

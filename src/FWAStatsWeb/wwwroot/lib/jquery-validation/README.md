@@ -1,8 +1,10 @@
 [jQuery Validation Plugin](https://jqueryvalidation.org/) - Form validation made easy
 ================================
 
+[![release](https://img.shields.io/github/release/jquery-validation/jquery-validation.svg)](https://github.com/jquery-validation/jquery-validation/releases/latest)
 [![Build Status](https://secure.travis-ci.org/jquery-validation/jquery-validation.svg)](https://travis-ci.org/jquery-validation/jquery-validation)
 [![devDependency Status](https://david-dm.org/jquery-validation/jquery-validation/dev-status.svg?theme=shields.io)](https://david-dm.org/jquery-validation/jquery-validation#info=devDependencies)
+[![jsDelivr Hits](https://data.jsdelivr.com/v1/package/npm/jquery-validation/badge?style=rounded)](https://www.jsdelivr.com/package/npm/jquery-validation)
 
 The jQuery Validation Plugin provides drop-in validation for your existing forms, while making all kinds of customizations to fit your application really easy.
 
@@ -31,7 +33,7 @@ Include jQuery and the plugin on a page. Then select a form to validate and call
 <script src="jquery.js"></script>
 <script src="jquery.validate.js"></script>
 <script>
-$("form").validate();
+    $("form").validate();
 </script>
 ```
 
@@ -70,6 +72,27 @@ $("#myForm").validate({
 	}
 });
 ```
+
+## Accessibility
+For an invalid field, the default output for the jQuery Validation Plugin is an error message in a `<label>` element. This results in two `<label>` elements pointing to a single input field using the `for` attribute. While this is valid HTML, it has inconsistent support across screen readers.
+
+For greater screen reader support in your form's validation, use the `errorElement` parameter in the `validate()` method. This option outputs the error in an element of your choice and automatically adds ARIA attributes to the HTML that help with screen reader support.
+
+`aria-describedby` is added to the input field and it is programmatically tied to the error element chosen in the `errorElement` parameter.
+
+``` js
+$("#myform").validate({
+  errorElement: "span"
+});
+```
+
+``` html
+<label for="name">Name</label>
+<input id="name" aria-describedby="unique-id-here">
+<span class="error" id="unique-id-here">This field is required</span>
+```
+
+[Learn more about errorElement](https://jqueryvalidation.org/validate/#errorelement)
 
 ## License
 Copyright &copy; Jörn Zaefferer<br>

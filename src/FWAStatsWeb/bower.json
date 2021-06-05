@@ -2,13 +2,16 @@
   "name": "asp.net",
   "private": true,
   "dependencies": {
-    "jquery": "3.2.1",
-    "jquery-validation": "1.17.0",
-    "jquery-validation-unobtrusive": "3.2.6",
-    "tablesorter": "jquery.tablesorter#v2.28.15",
-    "bootstrap": "v3.3.7"
+    "jquery": "3.6.0",
+    "jquery-validation": "1.19.3",
+    "jquery-validation-unobtrusive": "v3.2.11",
+    "bootstrap": "v3.4.1",
+    "tablesorter": "jquery.tablesorter#v2.31.3"
   },
   "resolutions": {
-    "jquery": "3.2.1"
+    "jquery": "3.6.0",
+    "jquery-validation": "1.19.3",
+    "jquery-validation-unobtrusive": "v3.2.11",
+    "tablesorter": "v2.31.3"
   }
 }
