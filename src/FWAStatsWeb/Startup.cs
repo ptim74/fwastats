@@ -48,6 +48,12 @@ namespace FWAStatsWeb
                     throw new Exception($"Invalid connection type ${connectionType}");
             });
 
+            services.AddLogging(logging =>
+            {
+                logging.ClearProviders();
+                logging.AddNLog();
+            });
+
             services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
@@ -96,7 +102,7 @@ namespace FWAStatsWeb
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)
         {
-            loggerFactory.AddNLog();
+            //loggerFactory.AddNLog();
 
             if (env.IsDevelopment())
             {
