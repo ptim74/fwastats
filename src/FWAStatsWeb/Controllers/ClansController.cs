@@ -1007,7 +1007,7 @@ namespace FWAStatsWeb.Controllers
                 var user = await GetCurrentUserAsync();
                 if(user != null)
                 {
-                    logger.LogInformation("Weight.User {0}", user.Id);
+                    logger.LogInformation("Weight.User {0}", user.Email);
                     userId = user.Id;
                 }
                 var players = from pc in db.PlayerClaims

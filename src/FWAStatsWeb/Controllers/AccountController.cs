@@ -298,7 +298,7 @@ namespace FWAStatsWeb.Controllers
                     {
                         foreach(var claim in db.PlayerClaims.Where(p => p.UserId == user.Id))
                         {
-                            _logger.LogInformation("Delete: Removing player {0} from user {1}", claim.Tag, claim.UserId);
+                            _logger.LogInformation("Delete: Removing player {0} from user {1}", claim.Tag, user.Email);
                             db.PlayerClaims.Remove(claim);
                         }
                         foreach(var userDetail in db.UserDetails.Where(u => u.Id == user.Id))
@@ -306,7 +306,7 @@ namespace FWAStatsWeb.Controllers
                             db.UserDetails.Remove(userDetail);
                         }
                         db.SaveChanges();
-                        _logger.LogInformation("Delete: user {0} with email {1} deleted", user.Id, user.Email);
+                        _logger.LogInformation("Delete: user {0} deleted", user.Email);
                         await _userManager.DeleteAsync(user);
                     }
                     await _signInManager.SignOutAsync();
