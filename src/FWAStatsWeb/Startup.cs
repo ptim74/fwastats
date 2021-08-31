@@ -58,6 +58,12 @@ namespace FWAStatsWeb
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.ExpireTimeSpan = TimeSpan.FromDays(14);
+                options.SlidingExpiration = true;
+            });
+
             services.AddOptions();
             services.Configure<ClanListOptions>(Configuration.GetSection("ClanLists"));
             services.Configure<ClashApiOptions>(Configuration.GetSection("ClashApi"));
@@ -67,7 +73,6 @@ namespace FWAStatsWeb
             services.Configure<WeightResultOptions>(Configuration.GetSection("ResultDatabase"));
             services.Configure<GoogleServiceOptions>(Configuration.GetSection("GoogleService"));
             services.Configure<SendGridOptions>(Configuration.GetSection("SendGrid"));
-
 
             /*
             services.Configure<IdentityOptions>(options =>
@@ -80,7 +85,7 @@ namespace FWAStatsWeb
                 options.Password.RequiredUniqueChars = 1;
             });
             */
-
+  
             var csvFormatterOptions = new CsvFormatterOptions();
 
             services.AddMvc(options =>
