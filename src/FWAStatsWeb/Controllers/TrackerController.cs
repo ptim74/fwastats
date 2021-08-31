@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace FWAStatsWeb.Controllers
 {
-    [ResponseCache(Duration = Constants.CACHE_MIN)]
+    //[ResponseCache(Duration = Constants.CACHE_MIN)]
     public class TrackerController : Controller
     {
         private readonly ApplicationDbContext db;

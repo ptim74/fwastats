@@ -27,7 +27,7 @@ namespace FWAStatsWeb.Controllers
             this.googleSheets = googleSheets;
         }
 
-        [ResponseCache(Duration = Constants.CACHE_MIN)]
+        //[ResponseCache(Duration = Constants.CACHE_MIN)]
         public IActionResult Index()
         {
             logger.LogInformation("Index");
@@ -236,13 +236,13 @@ namespace FWAStatsWeb.Controllers
             return View();
         }
 
-        [ResponseCache(Duration = Constants.CACHE_MIN)]
+        //[ResponseCache(Duration = Constants.CACHE_MIN)]
         public IActionResult Ping()
         {
             return Ok();
         }
 
-        [ResponseCache(Duration = Constants.CACHE_MIN)]
+        //[ResponseCache(Duration = Constants.CACHE_MIN)]
         public IActionResult DBPing()
         {
             var test = db.Clans.FirstOrDefault();

@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace FWAStatsWeb.Controllers
 {
-    [ResponseCache(Duration = Constants.CACHE_NORMAL)]
+    //[ResponseCache(Duration = Constants.CACHE_NORMAL)]
     public class DataController : Controller
     {
         private readonly ApplicationDbContext db;

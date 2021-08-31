@@ -13,7 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace FWAStatsWeb.Controllers
 {
-    [ResponseCache(Duration = Constants.CACHE_MIN)]
+    //[ResponseCache(Duration = Constants.CACHE_MIN)]
     public class PlayersController : Controller
     {
         private readonly ApplicationDbContext db;

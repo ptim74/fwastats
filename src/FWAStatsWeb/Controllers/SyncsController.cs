@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FWAStatsWeb.Controllers
 {
-    [ResponseCache(Duration = Constants.CACHE_NORMAL)]
+    //[ResponseCache(Duration = Constants.CACHE_NORMAL)]
     public class SyncsController : Controller
     {
         private readonly ApplicationDbContext db;

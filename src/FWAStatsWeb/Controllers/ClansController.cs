@@ -18,7 +18,7 @@ using Microsoft.AspNetCore.Identity;
 
 namespace FWAStatsWeb.Controllers
 {
-    [ResponseCache(Duration = Constants.CACHE_NORMAL)]
+    //[ResponseCache(Duration = Constants.CACHE_NORMAL)]
     public class ClansController : Controller
     {
         private readonly UserManager<ApplicationUser> userManager;
@@ -1072,7 +1072,7 @@ namespace FWAStatsWeb.Controllers
         }
 
         [Route("Clan/{id}/Donations")]
-        [ResponseCache(Duration = Constants.CACHE_MIN)]
+        //[ResponseCache(Duration = Constants.CACHE_MIN)]
         public async Task<IActionResult> DonationData(string id)
         {
             var tag = Utils.LinkIdToTag(id);
