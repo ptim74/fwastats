@@ -27,7 +27,7 @@ namespace FWAStatsWeb.Controllers
             this.googleSheets = googleSheets;
         }
 
-        [ResponseCache(Duration = Constants.CACHE_NORMAL)]
+        [ResponseCache(Duration = Constants.CACHE_MIN)]
         public IActionResult Index()
         {
             logger.LogInformation("Index");
