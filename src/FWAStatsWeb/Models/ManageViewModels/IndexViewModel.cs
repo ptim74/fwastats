@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace FWAStatsWeb.Models.ManageViewModels
 {
@@ -17,5 +18,9 @@ namespace FWAStatsWeb.Models.ManageViewModels
         public bool TwoFactor { get; set; }
 
         public bool BrowserRemembered { get; set; }
+
+        public IList<Player> Players { get; set; }
+
+        public IList<Clan> Clans { get; set; }
     }
 }

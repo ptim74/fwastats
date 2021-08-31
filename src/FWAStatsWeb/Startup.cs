@@ -54,7 +54,7 @@ namespace FWAStatsWeb
                 logging.AddNLog();
             });
 
-            services.AddIdentity<ApplicationUser, IdentityRole>()
+            services.AddIdentity<ApplicationUser, IdentityRole>(/*options => options.SignIn.RequireConfirmedAccount = true*/)
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
@@ -66,6 +66,20 @@ namespace FWAStatsWeb
             services.Configure<WeightDatabaseOptions>(Configuration.GetSection("WeightDatabase"));
             services.Configure<WeightResultOptions>(Configuration.GetSection("ResultDatabase"));
             services.Configure<GoogleServiceOptions>(Configuration.GetSection("GoogleService"));
+            services.Configure<SendGridOptions>(Configuration.GetSection("SendGrid"));
+
+
+            /*
+            services.Configure<IdentityOptions>(options =>
+            {
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireNonAlphanumeric = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequiredLength = 6;
+                options.Password.RequiredUniqueChars = 1;
+            });
+            */
 
             var csvFormatterOptions = new CsvFormatterOptions();
 
@@ -92,6 +106,8 @@ namespace FWAStatsWeb
             services.AddTransient<IGoogleSheetsService, GoogleSheetsService>();
             services.AddSingleton<WeightSubmitService>();
             services.AddSingleton<Microsoft.Extensions.Hosting.IHostedService, HostedWebSubmitService>();
+            services.AddTransient<IEmailSender, EmailSender>();
+            
 
             // Caching
             services.AddMemoryCache();
@@ -125,6 +141,7 @@ namespace FWAStatsWeb
             app.UseRouting();
 
             app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

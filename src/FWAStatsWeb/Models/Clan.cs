@@ -84,6 +84,9 @@ namespace FWAStatsWeb.Models
         [StringLength(150)]
         public string BadgeUrl { get; set; }
 
+        [DataMember]
+        public SubmitRestriction SubmitRestriction { get; set; }
+
         public int WarCount { get; set; }
         public double MatchPercentage { get; set; }
         public double WinPercentage { get; set; }

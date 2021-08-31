@@ -11,12 +11,14 @@ using Microsoft.Extensions.Logging;
 using FWAStatsWeb.Models;
 using FWAStatsWeb.Models.AccountViewModels;
 using FWAStatsWeb.Services;
+using FWAStatsWeb.Data;
 
 namespace FWAStatsWeb.Controllers
 {
     [Authorize]
     public class AccountController : Controller
     {
+        private readonly ApplicationDbContext db;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IEmailSender _emailSender;
@@ -24,12 +26,14 @@ namespace FWAStatsWeb.Controllers
         private readonly ILogger _logger;
 
         public AccountController(
+            ApplicationDbContext db,
             UserManager<ApplicationUser> userManager,
             SignInManager<ApplicationUser> signInManager,
             IEmailSender emailSender,
             ISmsSender smsSender,
             ILoggerFactory loggerFactory)
         {
+            this.db = db;
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
@@ -54,35 +58,53 @@ namespace FWAStatsWeb.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
         {
+            _logger.LogInformation("Login: {0}", model.Email);
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
                 // This doesn't count login failures towards account lockout
                 // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: false);
+                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
-                    _logger.LogInformation(1, "User logged in.");
+                    _logger.LogInformation("Login: Succeeded");
+                    var user = await _userManager.FindByNameAsync(model.Email);
+                    var userDetail = GetUserDetails(user.Id, true);
+                    userDetail.LastLogin = DateTime.UtcNow;
+                    db.SaveChanges();
+
                     return RedirectToLocal(returnUrl);
                 }
                 if (result.RequiresTwoFactor)
                 {
+                    _logger.LogInformation("Login: RequiresTwoFactor");
                     return RedirectToAction(nameof(SendCode), new { ReturnUrl = returnUrl, model.RememberMe });
                 }
                 if (result.IsLockedOut)
                 {
+                    _logger.LogWarning("Login: IsLockedOut");
                     _logger.LogWarning(2, "User account locked out.");
                     return View("Lockout");
                 }
                 else
                 {
+                    _logger.LogWarning("Login: Failed");
                     ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                    return View(model);
                 }
             }
 
             // If we got this far, something failed, redisplay form
             return View(model);
+        }
+
+        //
+        // GET: /Account/Created
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult Created(string returnUrl = null)
+        {
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
         }
 
         //
@@ -105,10 +127,19 @@ namespace FWAStatsWeb.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
+                if(!model.AcceptPrivacyPolicy)
+                {
+                    ModelState.AddModelError(string.Empty, $"You need to accept our privacy policy.");
+                    return View(model);
+                }
                 var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
                 var result = await _userManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
+                    var userDetail = GetUserDetails(user.Id, true);
+                    userDetail.Created = DateTime.UtcNow;
+                    userDetail.LastLogin = DateTime.UtcNow;
+                    db.SaveChanges();
                     // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=532713
                     // Send an email with this link
                     //var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -116,7 +147,8 @@ namespace FWAStatsWeb.Controllers
                     //await _emailSender.SendEmailAsync(model.Email, "Confirm your account",
                     //    $"Please confirm your account by clicking this link: <a href='{callbackUrl}'>link</a>");
                     await _signInManager.SignInAsync(user, isPersistent: false);
-                    _logger.LogInformation(3, "User created a new account with password.");
+                    _logger.LogInformation("Register: {0}", model.Email);
+                    //return RedirectToAction(nameof(Created));
                     return RedirectToLocal(returnUrl);
                 }
                 AddErrors(result);
@@ -133,7 +165,6 @@ namespace FWAStatsWeb.Controllers
         public async Task<IActionResult> LogOff()
         {
             await _signInManager.SignOutAsync();
-            _logger.LogInformation(4, "User logged out.");
             return RedirectToAction(nameof(HomeController.Index), "Home");
         }
 
@@ -171,7 +202,7 @@ namespace FWAStatsWeb.Controllers
             var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
             if (result.Succeeded)
             {
-                _logger.LogInformation(5, "User logged in with {Name} provider.", info.LoginProvider);
+                _logger.LogInformation("User logged in with {0} provider.", info.LoginProvider);
                 return RedirectToLocal(returnUrl);
             }
             if (result.RequiresTwoFactor)
@@ -215,7 +246,7 @@ namespace FWAStatsWeb.Controllers
                     if (result.Succeeded)
                     {
                         await _signInManager.SignInAsync(user, isPersistent: false);
-                        _logger.LogInformation(6, "User created an account using {Name} provider.", info.LoginProvider);
+                        _logger.LogInformation("User created an account using {0} provider.", info.LoginProvider);
                         return RedirectToLocal(returnUrl);
                     }
                 }
@@ -245,6 +276,62 @@ namespace FWAStatsWeb.Controllers
         }
 
         //
+        // GET: /Account/Delete
+        [HttpGet]
+        public IActionResult Delete()
+        {
+            return View();
+        }
+
+        //
+        // GET: /Account/Delete
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(DeleteAccountViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                if(model.DeleteAccount && model.DeleteAccountConfirmation)
+                {
+                    var user = await GetCurrentUserAsync();
+                    if(user != null)
+                    {
+                        foreach(var claim in db.PlayerClaims.Where(p => p.UserId == user.Id))
+                        {
+                            _logger.LogInformation("Delete: Removing player {0} from user {1}", claim.Tag, claim.UserId);
+                            db.PlayerClaims.Remove(claim);
+                        }
+                        foreach(var userDetail in db.UserDetails.Where(u => u.Id == user.Id))
+                        {
+                            db.UserDetails.Remove(userDetail);
+                        }
+                        db.SaveChanges();
+                        _logger.LogInformation("Delete: user {0} with email {1} deleted", user.Id, user.Email);
+                        await _userManager.DeleteAsync(user);
+                    }
+                    await _signInManager.SignOutAsync();
+                    return RedirectToAction(nameof(Deleted));
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "You need to check both boxes to delete the account.");
+                }
+            }
+
+            // If we got this far, something failed, redisplay form
+            return View(model);
+        }
+
+        //
+        // GET: /Account/Deleted
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult Deleted()
+        {
+            return View();
+        }
+
+        //
         // GET: /Account/ForgotPassword
         [HttpGet]
         [AllowAnonymous]
@@ -263,7 +350,7 @@ namespace FWAStatsWeb.Controllers
             if (ModelState.IsValid)
             {
                 var user = await _userManager.FindByNameAsync(model.Email);
-                if (user == null || !(await _userManager.IsEmailConfirmedAsync(user)))
+                if (user == null /*|| !(await _userManager.IsEmailConfirmedAsync(user))*/)
                 {
                     // Don't reveal that the user does not exist or is not confirmed
                     return View("ForgotPasswordConfirmation");
@@ -271,11 +358,12 @@ namespace FWAStatsWeb.Controllers
 
                 // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=532713
                 // Send an email with this link
-                //var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-                //var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
-                //await _emailSender.SendEmailAsync(model.Email, "Reset Password",
-                //   $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>");
-                //return View("ForgotPasswordConfirmation");
+                var code = await _userManager.GeneratePasswordResetTokenAsync(user);
+                _logger.LogInformation("ForgotPassword: {0}", model.Email);
+                var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+                await _emailSender.SendEmailAsync(model.Email, "Reset Password",
+                   $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>");
+                return View("ForgotPasswordConfirmation");
             }
 
             // If we got this far, something failed, redisplay form
@@ -314,12 +402,14 @@ namespace FWAStatsWeb.Controllers
             var user = await _userManager.FindByNameAsync(model.Email);
             if (user == null)
             {
+                _logger.LogWarning("ResetPasswordAttempt: {0}", model.Email);
                 // Don't reveal that the user does not exist
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
             }
             var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
             if (result.Succeeded)
             {
+                _logger.LogInformation("ResetPasswordSucceeded: {0}", user.Email);
                 return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
             }
             AddErrors(result);
@@ -449,6 +539,17 @@ namespace FWAStatsWeb.Controllers
         private Task<ApplicationUser> GetCurrentUserAsync()
         {
             return _userManager.GetUserAsync(HttpContext.User);
+        }
+
+        private UserDetail GetUserDetails(string userId, bool create)
+        {
+            var userDetail = db.UserDetails.FirstOrDefault(u => u.Id == userId);
+            if(userDetail == null && create)
+            {
+                userDetail = new UserDetail { Id = userId, Created = DateTime.UtcNow };
+                db.UserDetails.Add(userDetail);
+            }
+            return userDetail;
         }
 
         private IActionResult RedirectToLocal(string returnUrl)

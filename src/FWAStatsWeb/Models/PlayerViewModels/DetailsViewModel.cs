@@ -9,5 +9,6 @@ namespace FWAStatsWeb.Models.PlayerViewModels
     {
         public Player Player { get; set; }
         public ICollection<PlayerDetailsEvent> Events { get; set; } 
+        public bool Claimed { get; set; }
     }
 }

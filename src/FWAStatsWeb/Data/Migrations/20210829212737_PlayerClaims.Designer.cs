@@ -3,14 +3,16 @@ using System;
 using FWAStatsWeb.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace FWAStatsWeb.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210829212737_PlayerClaims")]
+    partial class PlayerClaims
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -143,9 +145,6 @@ namespace FWAStatsWeb.Data.Migrations
                         .HasMaxLength(50);
 
                     b.Property<int>("RequiredTrophies")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("SubmitRestriction")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Th10Count")
@@ -426,23 +425,6 @@ namespace FWAStatsWeb.Data.Migrations
                     b.HasKey("ID");
 
                     b.ToTable("UpdateTasks");
-                });
-
-            modelBuilder.Entity("FWAStatsWeb.Models.UserDetail", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("TEXT")
-                        .HasMaxLength(50);
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("LastLogin")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("UserDetails");
                 });
 
             modelBuilder.Entity("FWAStatsWeb.Models.War", b =>

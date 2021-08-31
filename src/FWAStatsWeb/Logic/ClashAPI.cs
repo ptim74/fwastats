@@ -40,6 +40,7 @@ namespace FWAStatsWeb.Logic
         //Task<War> GetClanCurrentWar(string clanTag);
         Task<Clan> GetClan(string clanTag, bool withWarDetails, bool withCurrentWar);
         Task<Player> GetPlayer(string playerTag);
+        Task<string> VerifyPlayer(string playerTag, string playerToken);
     }
 
     public class ClashApi : IClashApi
@@ -65,17 +66,22 @@ namespace FWAStatsWeb.Logic
             return responseStream;
         }
 
-        private async Task<string> Request(string page)
+        private async Task<string> Request(string page, HttpMethod method = null, string content = null)
         {
             var url = string.Format("{0}/{1}", options.Value.Url, page);
             var client = clientFactory.CreateClient();
 
             try
             {
-                using (var request = new HttpRequestMessage(HttpMethod.Get, url))
+                using (var request = new HttpRequestMessage(method ?? HttpMethod.Get, url))
                 {
                     request.Headers.Add("Authorization", string.Format("Bearer {0}", options.Value.Token));
                     request.Headers.Add("Accept-Encoding", "gzip");
+
+                    if(method != null && method != HttpMethod.Get && content != null)
+                    {
+                        request.Content = new StringContent(content);
+                    }
 
                     using (var response = await client.SendAsync(request))
                     {
@@ -109,16 +115,28 @@ namespace FWAStatsWeb.Logic
             }
         }
 
-        private async Task<T> Request<T>(string page)
+        private JsonSerializerSettings GetJsonSerializerSettings()
         {
-            var pageData = await Request(page);
-
-            var settings = new JsonSerializerSettings {
+            return new JsonSerializerSettings
+            {
                 NullValueHandling = NullValueHandling.Ignore,
                 DateFormatString = "yyyyMMddTHHmmss.fffK"
             };
+        }
 
+        private async Task<T> Request<T>(string page)
+        {
+            var pageData = await Request(page);
+            var settings = GetJsonSerializerSettings();
             return JsonConvert.DeserializeObject<T>(pageData, settings);
+        }
+
+        private async Task<TResponse> PostRequest<TRequest, TResponse>(string page, TRequest payload)
+        {
+            var settings = GetJsonSerializerSettings();
+            var postData = JsonConvert.SerializeObject(payload, settings);
+            var pageData = await Request(page, HttpMethod.Post, postData);
+            return JsonConvert.DeserializeObject<TResponse>(pageData, settings);
         }
 
         public async Task<ICollection<War>> GetClanWarlog(string clanTag)
@@ -249,6 +267,25 @@ namespace FWAStatsWeb.Logic
             data.FixData();
 
             return data;
+        }
+
+        public async Task<string> VerifyPlayer(string playerTag, string playerToken)
+        {
+            var url = string.Format("players/{0}/verifytoken", Uri.EscapeDataString(playerTag.ToUpperInvariant()));
+            var data = await PostRequest<PlayerVerifyRequest, PlayerVerifyResponse>(url, new PlayerVerifyRequest { token = playerToken });
+            return data.status;
+        }
+
+        private class PlayerVerifyRequest
+        {
+            public string token { get; set; }
+        }
+
+        private class PlayerVerifyResponse
+        {
+            public string tag { get; set; }
+            public string token { get; set; }
+            public string status { get; set; }
         }
     }
 }

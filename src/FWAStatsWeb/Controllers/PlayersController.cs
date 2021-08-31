@@ -8,6 +8,8 @@ using FWAStatsWeb.Data;
 using FWAStatsWeb.Models;
 using FWAStatsWeb.Logic;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FWAStatsWeb.Controllers
 {
@@ -18,17 +20,20 @@ namespace FWAStatsWeb.Controllers
         private readonly IClashApi api;
         private readonly IMemberUpdater memberUpdater;
         private readonly ILogger<PlayersController> logger;
+        private readonly UserManager<ApplicationUser> userManager;
 
         public PlayersController(
             ApplicationDbContext db,
             IClashApi api,
             IMemberUpdater memberUpdater,
-            ILogger<PlayersController> logger)
+            ILogger<PlayersController> logger,
+            UserManager<ApplicationUser> userManager)
         {
             this.db = db;
             this.api = api;
             this.memberUpdater = memberUpdater;
             this.logger = logger;
+            this.userManager = userManager;
         }
 
         public IActionResult Index(string q)
@@ -106,6 +111,16 @@ namespace FWAStatsWeb.Controllers
                 Player = await api.GetPlayer(tag)
             };
 
+            var user = await GetCurrentUserAsync();
+            if(user != null)
+            {
+                var userClaim = db.PlayerClaims.FirstOrDefault(p => p.Tag == tag);
+                if(userClaim != null && userClaim.UserId == user.Id)
+                {
+                    ret.Claimed = true;
+                }
+            }
+
             memberUpdater.UpdatePlayer(ret.Player, true);
 
             var events = from e in db.PlayerEvents
@@ -133,6 +148,131 @@ namespace FWAStatsWeb.Controllers
             }
 
             return View(ret);
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("Players/Link")]
+        public IActionResult Link()
+        {
+            var model = new LinkViewModel();
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("Player/{id}/Link")]
+        public IActionResult Link(string id)
+        {
+            var tag = Utils.LinkIdToTag(id);
+            var model = new LinkViewModel { Tag = tag };
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpGet]
+        [Route("Player/{id}/Unlink")]
+        public IActionResult Unlink(string id)
+        {
+            var tag = Utils.LinkIdToTag(id);
+            var model = new UnlinkViewModel { Tag = tag };
+            return View(model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateLink(LinkViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                logger.LogInformation("Link {0}", model.Tag);
+
+                var tag = Utils.LinkIdToTag(model.Tag);
+
+                var user = await GetCurrentUserAsync();
+                if(user == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Not Logged in");
+                }
+                else
+                {
+                    var status = await api.VerifyPlayer(tag, model.ApiToken);
+                    if (status != null && status == "ok")
+                    {
+                        var claim = db.PlayerClaims.FirstOrDefault(p => p.Tag == tag);
+                        if (claim == null)
+                        {
+                            claim = new PlayerClaim
+                            {
+                                UserId = user.Id,
+                                Tag = tag
+                            };
+                            db.PlayerClaims.Add(claim);
+                        }
+                        else
+                        {
+                            claim.UserId = user.Id;
+                        }
+                        db.SaveChanges();
+                        var player = db.Players.FirstOrDefault(p => p.Tag == tag);
+                        if(player == null)
+                        {
+                            player = await api.GetPlayer(tag);
+                            memberUpdater.UpdatePlayer(player, true);
+                        }
+                        return RedirectToAction(nameof(Details), new { id = Utils.TagToLinkId(tag) });
+                    }
+                    else
+                    {
+                        ModelState.AddModelError(string.Empty, "Linking plauer failed. Please check API Key.");
+                    }
+                }
+            }
+
+            // If we got this far, something failed, redisplay form
+            return View(nameof(Link), model);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteLink(UnlinkViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                logger.LogInformation("Unlink {0}", model.Tag);
+
+                var tag = Utils.LinkIdToTag(model.Tag);
+
+                var user = await GetCurrentUserAsync();
+                if (user == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Not Logged in");
+                }
+                else
+                {
+                    var claim = db.PlayerClaims.FirstOrDefault(p => p.Tag == tag && p.UserId == user.Id);
+                    if(claim == null)
+                    {
+                        ModelState.AddModelError(string.Empty, "Link not found");
+                    }
+                    else
+                    {
+                        db.PlayerClaims.Remove(claim);
+                        db.SaveChanges();
+                        return RedirectToAction(nameof(Details), new { id = Utils.TagToLinkId(tag) });
+                    }
+                }
+            }
+
+            // If we got this far, something failed, redisplay form
+            return View(nameof(Link), model);
+        }
+
+        private Task<ApplicationUser> GetCurrentUserAsync()
+        {
+            return userManager.GetUserAsync(HttpContext.User);
         }
     }
 }

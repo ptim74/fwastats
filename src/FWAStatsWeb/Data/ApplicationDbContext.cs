@@ -33,6 +33,7 @@ namespace FWAStatsWeb.Data
             builder.Entity<WarSync>().HasIndex(e => e.Finish);
             builder.Entity<ClanValidity>().HasIndex(v => v.ValidFrom);
             builder.Entity<ClanValidity>().HasIndex(v => v.ValidTo);
+            builder.Entity<PlayerClaim>().HasIndex(e => new { e.UserId });
             builder.Entity<PlayerEvent>().HasIndex(e => new { e.ClanTag, e.EventDate });
             builder.Entity<PlayerEvent>().HasIndex(e => new { e.PlayerTag, e.EventDate });
             builder.Entity<PlayerEvent>().HasIndex(e => new { e.EventType, e.EventDate });
@@ -48,8 +49,10 @@ namespace FWAStatsWeb.Data
         public virtual DbSet<Clan> Clans { get; set; }
         public virtual DbSet<Member> Members { get; set; }
         public virtual DbSet<Player> Players { get; set; }
+        public virtual DbSet<PlayerClaim> PlayerClaims { get; set; }
         public virtual DbSet<PlayerEvent> PlayerEvents { get; set; }
         public virtual DbSet<UpdateTask> UpdateTasks { get; set; }
+        public virtual DbSet<UserDetail> UserDetails { get; set; }
         public virtual DbSet<War> Wars { get; set; }
         public virtual DbSet<WarSync> WarSyncs { get; set; }
         public virtual DbSet<ClanValidity> ClanValidities { get; set; }
@@ -63,5 +66,6 @@ namespace FWAStatsWeb.Data
         // Add Migration:
         // CMD> dotnet ef migrations {MigrationName}
         // PM> Add-Migration [-Name] <String>
+        // PM> Update-Database
     }
 }

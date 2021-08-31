@@ -23,5 +23,8 @@ namespace FWAStatsWeb.Models.AccountViewModels
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; }
+
+        [Display(Name = "Accept Privacy Policy")]
+        public bool AcceptPrivacyPolicy { get; set; }
     }
 }

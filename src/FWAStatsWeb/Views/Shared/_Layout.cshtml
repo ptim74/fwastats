@@ -78,13 +78,12 @@
                     <li><a asp-area="" asp-controller="Players" asp-action="Index">Players</a></li>
                     <li><a asp-area="" asp-controller="Data" asp-action="Index">Data</a></li>
                 </ul>
+                @*
                 <ul class="nav navbar-nav navbar-right">
                     <li><a asp-area="" asp-controller="Home" asp-action="About">About</a></li>
-
                 </ul>
-@*
-    @await Html.PartialAsync("_LoginPartial")
-*@
+                *@
+                @await Html.PartialAsync("_LoginPartial")
                 </div>
 
             </div>
@@ -97,7 +96,7 @@
                     <small class="text-muted">
                         This content is not affiliated with, endorsed, sponsored, or specifically approved by Supercell and Supercell is not responsible for it.
                         For more information see Supercell’s Fan Content Policy: <a href="http://www.supercell.com/fan-content-policy">www.supercell.com/fan-content-policy</a>.
-                        This website uses cookies, more details in <a asp-controller="Home" asp-action="PrivacyPolicy">Privacy Policy</a>.
+                        This website uses cookies and may store your personal information, more details in <a asp-controller="Home" asp-action="PrivacyPolicy">Privacy Policy</a>.
                     </small>
                 </p>
             </div>

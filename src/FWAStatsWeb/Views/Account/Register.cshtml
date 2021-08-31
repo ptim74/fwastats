@@ -7,10 +7,10 @@
     ViewData["Title"] = "Register";
 }
 
-<div class="mainbox col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+<div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
     <div class="panel panel-info">
         <div class="panel-heading">
-            <div class="panel-title">Register</div>
+            <div class="panel-title">@ViewData["Title"]</div>
         </div>
         <div class="panel-body">
 
@@ -22,64 +22,84 @@
                 </form>
             }
 
-            <form asp-controller="Account" asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="form-horizontal" role="form">
+        <form asp-controller="Account" asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]" method="post" class="form-horizontal" role="form">
 
-                <span asp-validation-for="Email" class="text-danger"></span>
-                <div class="form-group">
-                    <label asp-for="Email" class="col-md-3 control-label"></label>
-                    <div class="col-md-9">
-                        <input asp-for="Email" class="form-control" placeholder="Email Address">
-                    </div>
+            <div class="text-danger">
+                @Html.ValidationSummary(true)
+            </div>
+
+            <span asp-validation-for="Email" class="text-danger"></span>
+            <div class="form-group">
+                <label asp-for="Email" class="col-md-3 control-label"></label>
+                <div class="input-group col-md-9">
+                    <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
+                    <input asp-for="Email" class="form-control" placeholder="Email">
                 </div>
+            </div>
 
-                <span asp-validation-for="Password" class="text-danger"></span>
-                <div class="form-group">
-                    <label asp-for="Password" class="col-md-3 control-label"></label>
-                    <div class="col-md-9">
-                        <input asp-for="Password" class="form-control" placeholder="Password">
-                    </div>
+            <span asp-validation-for="Password" class="text-danger"></span>
+            <div class="form-group">
+                <label asp-for="Password" class="col-md-3 control-label"></label>
+                <div class="input-group col-md-9">
+                    <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                    <input asp-for="Password" class="form-control" placeholder="Password">
                 </div>
+            </div>
 
-                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                <div class="form-group">
-                    <label asp-for="ConfirmPassword" class="col-md-3 control-label"></label>
-                    <div class="col-md-9">
-                        <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm Password">
-                    </div>
+            <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+            <div class="form-group">
+                <label asp-for="ConfirmPassword" class="col-md-3 control-label"></label>
+                <div class="input-group col-md-9">
+                    <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
+                    <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm Password">
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <div class="col-md-offset-3 col-md-9">
-                        <button type="submit" class="btn btn-success">Create account</button>
-                        @{
-                            var providers = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-                            if (providers.Count > 0)
-                            {
-                                <text>or</text>
-                            }
-                        }
-                    </div>
+            <div class="form-group">
+                <div class="checkbox col-md-offset-3 col-md-9">
+                    <label asp-for="AcceptPrivacyPolicy">
+                        <input asp-for="AcceptPrivacyPolicy" />
+                        @Html.DisplayNameFor(m => m.AcceptPrivacyPolicy)
+                    </label>
+                    <br />
+                    <ul>
+                        <li>Click here to read <a asp-controller="Home" asp-action="PrivacyPolicy">Privacy Policy</a></li>
+                    </ul>
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <div class="col-md-offset-3 col-md-9">
-                        @foreach (var provider in providers)
+            <div class="form-group">
+                <div class="col-md-offset-3 col-md-9">
+                    <button type="submit" class="btn btn-success">Create account</button>
+                    @{
+                        var providers = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+                        if (providers.Count > 0)
                         {
-                            <a href="#" onClick="$('#login-@provider.Name').submit()" class="btn btn-primary">Register using @provider.DisplayName account</a>
+                            <text>or</text>
                         }
+                    }
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-offset-3 col-md-9">
+                    @foreach (var provider in providers)
+                    {
+                        <a href="#" onClick="$('#login-@provider.Name').submit()" class="btn btn-primary">Register using @provider.DisplayName account</a>
+                    }
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-sm-12 control">
+                    <div style="border-top: 1px solid#888; padding-top:15px; font-size:85%">
+                        Already registered,
+                        <a asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]">Login Here</a>
                     </div>
                 </div>
+            </div>
 
-                <div class="form-group">
-                    <div class="col-sm-12 control">
-                        <div style="border-top: 1px solid#888; padding-top:15px; font-size:85%">
-                            Already registered,
-                            <a asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]">Login Here</a>
-                        </div>
-                    </div>
-                </div>
-
-            </form>
+        </form>
         </div>
     </div>
 </div>

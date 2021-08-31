@@ -8,36 +8,37 @@
 }
 
 <div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-    <div class="panel-group">
-        <div class="panel panel-info">
-            <div class="panel-heading">
-                <div class="panel-title">Login</div>
-            </div>
-            <div style="padding-top:30px" class="panel-body">
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <div class="panel-title">@ViewData["Title"]</div>
+        </div>
+        <div class="panel-body">
 
-                @foreach (var provider in (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList())
-                {
-                    <form asp-controller="Account" asp-action="ExternalLogin" id="login-@provider.Name">
-                        <input type="hidden" name="returnurl" value="@ViewData["ReturnUrl"]" />
-                        <input type="hidden" name="provider" value="@provider.Name" />
-                    </form>
-                }
+            <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" id="login-Local" class="form-horizontal" role="form">
 
-                <form asp-controller="Account" asp-action="Login" asp-route-returnurl="@ViewData["ReturnUrl"]" id="login-Local" class="form-horizontal" role="form">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                    <span asp-validation-for="Email" class="text-danger"></span>
-                    <div style="margin-bottom: 25px" class="input-group">
+                <span asp-validation-for="Email" class="text-danger"></span>
+                <div class="form-group">
+                    <label asp-for="Email" class="col-md-3 control-label"></label>
+                    <div class="input-group col-md-9">
                         <span class="input-group-addon"><i class="glyphicon glyphicon-user"></i></span>
-                        <input asp-for="Email" class="form-control" placeholder="Email Address">
+                        <input asp-for="Email" class="form-control" placeholder="Email">
                     </div>
+                </div>
 
-                    <span asp-validation-for="Password" class="text-danger"></span>
-                    <div style="margin-bottom: 25px" class="input-group">
+                <span asp-validation-for="Password" class="text-danger"></span>
+                <div class="form-group">
+                    <label asp-for="Password" class="col-md-3 control-label"></label>
+                    <div class="input-group col-md-9">
                         <span class="input-group-addon"><i class="glyphicon glyphicon-lock"></i></span>
                         <input asp-for="Password" class="form-control" placeholder="Password">
                     </div>
+                </div>
 
-                    <div class="input-group">
+                <span asp-validation-for="RememberMe" class="text-danger"></span>
+                <div class="form-group">
+                    <div class="input-group col-md-offset-3 col-md-9">
                         <div class="checkbox">
                             <label asp-for="RememberMe">
                                 <input asp-for="RememberMe" />
@@ -45,37 +46,60 @@
                             </label>
                         </div>
                     </div>
+                </div>
 
-                    <div style="margin-top:10px" class="form-group">
-
-                        <div class="col-sm-12 controls">
-                            <a href="#" onClick="$('#login-Local').submit()" class="btn btn-success">Login</a>
-                            @{
-                                var providers = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
-                                @foreach (var provider in providers)
-                                {
-                                    <a href="#" onClick="$('#login-@provider.Name').submit()" class="btn btn-primary">Login with @provider.DisplayName</a>
-                                }
+                <div class="form-group">
+                    <div class="col-md-offset-3 col-md-9">
+                        <a href="#" onClick="$('#login-Local').submit()" class="btn btn-success">Login</a>
+                        @{
+                            var providers = (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList();
+                            if (providers.Count > 0)
+                            {
+                                <text>or</text>
                             }
-                        </div>
+                        }
                     </div>
+                </div>
 
-                    <div class="form-group">
-                        <div class="col-sm-12 control">
-                            <div style="border-top: 1px solid#888; padding-top:15px; font-size:85%">
-                                Don't have an account!
-                                <a asp-controller="Account" asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]">
-                                   Register Here
-                                </a>
-                            </div>
+                <div class="form-group">
+                    <div class="col-md-offset-3 col-md-9">
+                        @foreach (var provider in providers)
+                        {
+                            <a href="#" onClick="$('#login-@provider.Name').submit()" class="btn btn-primary">Login with @provider.DisplayName</a>
+                        }
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-sm-12 control">
+                        <div style="border-top: 1px solid#888; padding-top:15px; font-size:85%">
+                            Don't have an account!
+                            <a asp-controller="Account" asp-action="Register" asp-route-returnurl="@ViewData["ReturnUrl"]">
+                                Register Here
+                            </a>
+                            <br />
+                            Forgot your password?
+                            <a asp-action="ForgotPassword">
+                                Click Here to Reset Your Password
+                            </a>
                         </div>
                     </div>
+                </div>
+
+            </form>
+
+            @foreach (var provider in (await SignInManager.GetExternalAuthenticationSchemesAsync()).ToList())
+            {
+                <form asp-controller="Account" asp-action="ExternalLogin" id="login-@provider.Name">
+                    <input type="hidden" name="returnurl" value="@ViewData["ReturnUrl"]" />
+                    <input type="hidden" name="provider" value="@provider.Name" />
                 </form>
-            </div>
+            }
+
         </div>
     </div>
 </div>
 
-    @section Scripts {
-        @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
-    }
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}

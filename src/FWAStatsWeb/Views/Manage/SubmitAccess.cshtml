@@ -1,0 +1,48 @@
+﻿@model SubmitAccessViewModel
+@{
+    ViewData["Title"] = "Submit Access";
+}
+
+<div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <div class="panel-title">@ViewData["Title"]</div>
+        </div>
+        <div class="panel-body">
+
+            <form asp-controller="Manage" asp-action="SubmitAccess" method="post" class="form-horizontal" role="form">
+
+                <div asp-validation-summary="All" class="text-danger"></div>
+
+                <input asp-for="ClanTag" type="hidden" />
+                <input asp-for="ClanName" type="hidden" />
+
+                <div class="form-group">
+                    <label class="col-md-3 control-label">Clan Name:</label>
+                    <div class="col-md-9">@Model.ClanName</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="submitRestriction" class="col-md-3 control-label">Submit Access: </label>
+                    <div class="col-md-9">
+                        <select id="submitRestriction" asp-for="SubmitRestriction" asp-items="@Html.GetEnumSelectList(typeof(SubmitRestriction))" class="form-control"></select>
+                        <span asp-validation-for="SubmitRestriction" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-offset-3 col-md-9">
+                        <button type="submit" class="btn btn-default">Change</button>
+                    </div>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+}
+

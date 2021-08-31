@@ -29,13 +29,23 @@
         <div class="row">
             <div class="col">
                 <img src="@Model.Player.BadgeUrl" style="float:left;margin-right:10px;margin-left:10px;margin-top:-15px;" />
+                @if (Model.Claimed)
+                {
+                    <a asp-area="" asp-route-id="@Model.Player.LinkID" asp-controller="Players" asp-action="Unlink" class="text-muted pull-right" style="margin-right:10px"><span class="glyphicon glyphicon-tag"></span> Unlink</a>
+                }
+                else
+                {
+                    <a asp-area="" asp-route-id="@Model.Player.LinkID" asp-controller="Players" asp-action="Link" class="text-muted pull-right" style="margin-right:10px"><span class="glyphicon glyphicon-tag"></span> Link</a>
+                }
                 <h3 style="margin-top:10px;margin-bottom:0px">@Model.Player.Name</h3>
                 <div class="text-muted">
-                    @if (!string.IsNullOrEmpty(Model.Player.ClanTag)) {
+                    @if (!string.IsNullOrEmpty(Model.Player.ClanTag))
+                    {
                         <a asp-area="" asp-route-id="@Model.Player.ClanLinkID" asp-controller="Clans" asp-action="Details">@Model.Player.ClanName</a>
                     }
                     <a class="text-muted" href="@Constants.KUILIN_NET/member.php?tag=@Model.Player.LinkID"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">hocolate</span>C<span class="hidden-xs">lash</span></a>
                     <a class="text-muted" href="https://www.clashofstats.com/players/@Model.Player.LinkID"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">lash </span>o<span class="hidden-xs">f </span>S<span class="hidden-xs">tats</span></a>
+
                 </div>
             </div>
         </div>

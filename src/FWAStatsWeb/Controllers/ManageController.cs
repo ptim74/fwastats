@@ -9,12 +9,17 @@ using Microsoft.Extensions.Logging;
 using FWAStatsWeb.Models;
 using FWAStatsWeb.Models.ManageViewModels;
 using FWAStatsWeb.Services;
+using Microsoft.AspNetCore.Authentication;
+using FWAStatsWeb.Data;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Collections.ObjectModel;
 
 namespace FWAStatsWeb.Controllers
 {
     [Authorize]
     public class ManageController : Controller
     {
+        private readonly ApplicationDbContext db;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IEmailSender _emailSender;
@@ -22,12 +27,14 @@ namespace FWAStatsWeb.Controllers
         private readonly ILogger _logger;
 
         public ManageController(
+        ApplicationDbContext db,
         UserManager<ApplicationUser> userManager,
         SignInManager<ApplicationUser> signInManager,
         IEmailSender emailSender,
         ISmsSender smsSender,
         ILoggerFactory loggerFactory)
         {
+            this.db = db;
             _userManager = userManager;
             _signInManager = signInManager;
             _emailSender = emailSender;
@@ -54,13 +61,34 @@ namespace FWAStatsWeb.Controllers
             {
                 return View("Error");
             }
+
+            var players = from pc in db.PlayerClaims
+                          where pc.UserId == user.Id
+                          join p in db.Players on pc.Tag equals p.Tag
+                          select p;
+
+            var clans = from pc in db.PlayerClaims
+                        where pc.UserId == user.Id
+                        join m in db.Members on pc.Tag equals m.Tag
+                        join c in db.Clans on m.ClanTag equals c.Tag
+                        select c;
+
+            //var x = new Collection<SelectListItem>
+            //var factorOptions = userFactors.Select(purpose => new SelectListItem { Text = purpose, Value = purpose }).ToList();
+            // var 
+            //var enumList = EnumHelper.GetSelectList(typeof(MyEnum));
+
+            // var enumList = EnumHelper.GetSelectList(typeof (MyEnum));
+
             var model = new IndexViewModel
             {
                 HasPassword = await _userManager.HasPasswordAsync(user),
                 PhoneNumber = await _userManager.GetPhoneNumberAsync(user),
                 TwoFactor = await _userManager.GetTwoFactorEnabledAsync(user),
                 Logins = await _userManager.GetLoginsAsync(user),
-                BrowserRemembered = await _signInManager.IsTwoFactorClientRememberedAsync(user)
+                BrowserRemembered = await _signInManager.IsTwoFactorClientRememberedAsync(user),
+                Players = players.ToList(),
+                Clans = clans.Distinct().ToList()
             };
             return View(model);
         }
@@ -111,6 +139,69 @@ namespace FWAStatsWeb.Controllers
             var code = await _userManager.GenerateChangePhoneNumberTokenAsync(user, model.PhoneNumber);
             await _smsSender.SendSmsAsync(model.PhoneNumber, "Your security code is: " + code);
             return RedirectToAction(nameof(VerifyPhoneNumber), new { model.PhoneNumber });
+        }
+
+        //
+        // POST: /Manage/AddPhoneNumber
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitAccess(SubmitAccessViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await GetCurrentUserAsync();
+                if(user == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Not logged in.");
+                    return View(model);
+                }
+
+                var clan = db.Clans.FirstOrDefault(c => c.Tag == model.ClanTag);
+                if(model.SubmitRestriction != clan.SubmitRestriction)
+                {
+                    var players = from pc in db.PlayerClaims
+                                  where pc.UserId == user.Id
+                                  join m in db.Members on pc.Tag equals m.Tag
+                                  where m.ClanTag == model.ClanTag
+                                  select m;
+                    var playerAccessLevel = 0;
+                    foreach(var player in players)
+                    {
+                        if (player.Role == "member" && playerAccessLevel <= 0)
+                            playerAccessLevel = 1;
+                        if (player.Role == "admin" && playerAccessLevel <= 1)
+                            playerAccessLevel = 2;
+                        if (player.Role == "coLeader" && playerAccessLevel <= 2)
+                            playerAccessLevel = 3;
+                        if (player.Role == "leader" && playerAccessLevel <= 3)
+                            playerAccessLevel = 4;
+                    }
+                    if(playerAccessLevel < 4 && clan.SubmitRestriction == SubmitRestriction.Leader)
+                    {
+                        ModelState.AddModelError(string.Empty, "Only Leader can change submit restriction");
+                        return View(model);
+                    }
+                    if (playerAccessLevel < 3)
+                    {
+                        ModelState.AddModelError(string.Empty, "Only Leader or Co-Leaders can change submit restriction");
+                        return View(model);
+                    }
+                    if(playerAccessLevel < 4 && model.SubmitRestriction == SubmitRestriction.Leader)
+                    {
+                        ModelState.AddModelError(string.Empty, "Only Leader can change submit restriction to Leaders-only");
+                        return View(model);
+                    }
+                    clan.SubmitRestriction = model.SubmitRestriction;
+                    db.SaveChanges();
+                    return RedirectToAction(nameof(Index));
+                }
+                else
+                {
+                    return RedirectToAction(nameof(Index));
+                }
+            }
+
+            return View(model);
         }
 
         //

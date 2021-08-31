@@ -14,12 +14,14 @@ using Microsoft.Extensions.Options;
 using System.Net;
 using Newtonsoft.Json;
 using FWAStatsWeb.Services;
+using Microsoft.AspNetCore.Identity;
 
 namespace FWAStatsWeb.Controllers
 {
     [ResponseCache(Duration = Constants.CACHE_NORMAL)]
     public class ClansController : Controller
     {
+        private readonly UserManager<ApplicationUser> userManager;
         private readonly ApplicationDbContext db;
         private readonly IClashApi api;
         private readonly ILogger<ClansController> logger;
@@ -29,6 +31,7 @@ namespace FWAStatsWeb.Controllers
         private readonly WeightSubmitService submitService;
 
         public ClansController(
+            UserManager<ApplicationUser> userManager,
             ApplicationDbContext db,
             IClashApi api,
             ILogger<ClansController> logger,
@@ -38,6 +41,7 @@ namespace FWAStatsWeb.Controllers
             WeightSubmitService submitService
             )
         {
+            this.userManager = userManager;
             this.db = db;
             this.api = api;
             this.logger = logger;
@@ -995,6 +999,62 @@ namespace FWAStatsWeb.Controllers
 
             var tag = Utils.LinkIdToTag(id);
 
+            var clan = db.Clans.SingleOrDefault(c => c.Tag == tag);
+
+            if(clan.SubmitRestriction != SubmitRestriction.Anyone)
+            {
+                var userId = string.Empty;
+                var user = await GetCurrentUserAsync();
+                if(user != null)
+                {
+                    logger.LogInformation("Weight.User {0}", user.Id);
+                    userId = user.Id;
+                }
+                var players = from pc in db.PlayerClaims
+                              where pc.UserId == userId
+                              join m in db.Members on pc.Tag equals m.Tag
+                              where m.ClanTag == model.ClanTag
+                              select m;
+
+                var playerAccessLevel = 0;
+
+                foreach (var player in players)
+                {
+                    if (player.Role == "member" && playerAccessLevel <= 0)
+                        playerAccessLevel = 1;
+                    if (player.Role == "admin" && playerAccessLevel <= 1)
+                        playerAccessLevel = 2;
+                    if (player.Role == "coLeader" && playerAccessLevel <= 2)
+                        playerAccessLevel = 3;
+                    if (player.Role == "leader" && playerAccessLevel <= 3)
+                        playerAccessLevel = 4;
+                }
+                if (playerAccessLevel < 4 && clan.SubmitRestriction == SubmitRestriction.Leader)
+                {
+                    ViewData["Message"] = "Only clan leader can edit weights.";
+                    logger.LogWarning("Weight.AccessDenied LeaderRequired");
+                    return View("WeightError");
+                }
+                if (playerAccessLevel < 3 && clan.SubmitRestriction == SubmitRestriction.CoLeaders)
+                {
+                    ViewData["Message"] = "Only clan leader and co-leaders can edit weights.";
+                    logger.LogWarning("Weight.AccessDenied CoLeaderRequired");
+                    return View("WeightError");
+                }
+                if (playerAccessLevel < 2 && clan.SubmitRestriction == SubmitRestriction.Elders)
+                {
+                    ViewData["Message"] = "Only clan leader, co-leaders and elders can edit weights.";
+                    logger.LogWarning("Weight.AccessDenied ElderRequired");
+                    return View("WeightError");
+                }
+                if (playerAccessLevel < 1 && clan.SubmitRestriction == SubmitRestriction.Members)
+                {
+                    ViewData["Message"] = "Only clan members can edit weights.";
+                    logger.LogWarning("Weight.AccessDenied MemberRequired");
+                    return View("WeightError");
+                }
+            }
+
             if(model.Command != null)
             {
                 await SaveWeight(model);
@@ -1050,6 +1110,11 @@ namespace FWAStatsWeb.Controllers
                 return NotFound();
 
             return View(clan);
+        }
+
+        private Task<ApplicationUser> GetCurrentUserAsync()
+        {
+            return userManager.GetUserAsync(HttpContext.User);
         }
 
     }

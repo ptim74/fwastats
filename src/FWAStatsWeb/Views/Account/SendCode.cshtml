@@ -3,19 +3,37 @@
     ViewData["Title"] = "Send Verification Code";
 }
 
-<h2>@ViewData["Title"].</h2>
+<div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
+    <div class="panel panel-info">
+        <div class="panel-heading">
+            <div class="panel-title">@ViewData["Title"]</div>
+        </div>
+        <div class="panel-body">
 
-<form asp-controller="Account" asp-action="SendCode" asp-route-returnurl="@Model.ReturnUrl" method="post" class="form-horizontal">
-    <input asp-for="RememberMe" type="hidden" />
-    <div class="row">
-        <div class="col-md-8">
-            Select Two-Factor Authentication Provider:
-            <select asp-for="SelectedProvider" asp-items="Model.Providers"></select>
-            <button type="submit" class="btn btn-default">Submit</button>
+            <form asp-controller="Account" asp-action="SendCode" asp-route-returnurl="@Model.ReturnUrl" method="post" class="form-horizontal">
+
+                <input asp-for="RememberMe" type="hidden" />
+
+                <div class="form-group">
+                    <label asp-for="SelectedProvider" class="col-md-3 control-label"></label>
+                    <div class="col-md-9">
+                        <select asp-for="SelectedProvider" asp-items="Model.Providers"></select>
+                        <span asp-validation-for="SelectedProvider" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-offset-3 col-md-9">
+                        <button type="submit" class="btn btn-default">Submit</button>
+                    </div>
+                </div>
+
+            </form>
+
         </div>
     </div>
-</form>
+</div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
+    @{ await Html.RenderPartialAsync("_ValidationScriptsPartial"); }
 }
