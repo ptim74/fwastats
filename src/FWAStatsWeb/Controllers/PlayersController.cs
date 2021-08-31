@@ -153,10 +153,10 @@ namespace FWAStatsWeb.Controllers
         [Authorize]
         [HttpGet]
         [Route("Players/Link")]
-        public IActionResult Link()
+        public IActionResult NewLink()
         {
             var model = new LinkViewModel();
-            return View(model);
+            return View("Link", model);
         }
 
         [Authorize]
