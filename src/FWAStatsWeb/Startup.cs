@@ -20,6 +20,8 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using FWAStatsWeb.Formatters;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Hosting;
+using Microsoft.AspNetCore.DataProtection;
+using System.IO;
 //using Microsoft.Extensions.Hosting;
 
 namespace FWAStatsWeb
@@ -112,7 +114,12 @@ namespace FWAStatsWeb
             services.AddSingleton<WeightSubmitService>();
             services.AddSingleton<Microsoft.Extensions.Hosting.IHostedService, HostedWebSubmitService>();
             services.AddTransient<IEmailSender, EmailSender>();
-            
+
+            services.AddDataProtection()
+                    // This helps surviving a restart: a same app will find back its keys. Just ensure to create the folder.
+                    .PersistKeysToFileSystem(new DirectoryInfo(Configuration.GetValue<string>("KeyStorageFolder")))
+                    // This helps surviving a site update: each app has its own store, building the site creates a new app
+                    .SetApplicationName("FwaStats");
 
             // Caching
             services.AddMemoryCache();
