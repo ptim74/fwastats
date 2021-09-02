@@ -1019,34 +1019,35 @@ namespace FWAStatsWeb.Controllers
 
             if(model.Command != null)
             {
+                var userId = string.Empty;
+                var user = await GetCurrentUserAsync();
+                if (user != null)
+                {
+                    logger.LogInformation("Weight.User {0}", user.Email);
+                    userId = user.Id;
+                }
+                var players = from pc in db.PlayerClaims
+                              where pc.UserId == userId
+                              join m in db.Members on pc.Tag equals m.Tag
+                              where m.ClanTag == model.ClanTag
+                              select m;
+
+                var playerAccessLevel = 0;
+
+                foreach (var player in players)
+                {
+                    if (player.Role == "member" && playerAccessLevel <= 0)
+                        playerAccessLevel = 1;
+                    if (player.Role == "admin" && playerAccessLevel <= 1)
+                        playerAccessLevel = 2;
+                    if (player.Role == "coLeader" && playerAccessLevel <= 2)
+                        playerAccessLevel = 3;
+                    if (player.Role == "leader" && playerAccessLevel <= 3)
+                        playerAccessLevel = 4;
+                }
+
                 if (clan.SubmitRestriction != SubmitRestriction.Anyone)
                 {
-                    var userId = string.Empty;
-                    var user = await GetCurrentUserAsync();
-                    if (user != null)
-                    {
-                        logger.LogInformation("Weight.User {0}", user.Email);
-                        userId = user.Id;
-                    }
-                    var players = from pc in db.PlayerClaims
-                                  where pc.UserId == userId
-                                  join m in db.Members on pc.Tag equals m.Tag
-                                  where m.ClanTag == model.ClanTag
-                                  select m;
-
-                    var playerAccessLevel = 0;
-
-                    foreach (var player in players)
-                    {
-                        if (player.Role == "member" && playerAccessLevel <= 0)
-                            playerAccessLevel = 1;
-                        if (player.Role == "admin" && playerAccessLevel <= 1)
-                            playerAccessLevel = 2;
-                        if (player.Role == "coLeader" && playerAccessLevel <= 2)
-                            playerAccessLevel = 3;
-                        if (player.Role == "leader" && playerAccessLevel <= 3)
-                            playerAccessLevel = 4;
-                    }
                     if (playerAccessLevel < 4 && clan.SubmitRestriction == SubmitRestriction.Leader)
                     {
                         ViewData["Message"] = "Only clan leader can edit weights.";
@@ -1077,11 +1078,11 @@ namespace FWAStatsWeb.Controllers
                     }
                 }
 
-                if (clan.SubmitRestriction == SubmitRestriction.Anyone)
+                if (clan.SubmitRestriction == SubmitRestriction.Anyone && playerAccessLevel == 0)
                 {
-                    if (CheckSubmitChanges(tag, DateTime.UtcNow.AddHours(-2)) > 100)
+                    if (CheckSubmitChanges(tag, DateTime.UtcNow.AddDays(-1)) > 100)
                     {
-                        ViewData["Message"] = "You have modified enough weights for a while. Please try again later.";
+                        ViewData["Message"] = "You have modified enough weights for today. Please login and link your player tags if you need to modify weights for more than one clan.";
                         ViewData["ClanLink"] = clan.LinkID;
                         logger.LogWarning("Weight.AccessDenied MaxSubmitChanges");
                         return View("WeightError");
