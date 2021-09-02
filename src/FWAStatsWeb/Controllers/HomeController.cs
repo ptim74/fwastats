@@ -229,7 +229,7 @@ namespace FWAStatsWeb.Controllers
             foreach(var key in this.HttpContext.Request.Headers.Keys)
             {
                 var value = this.HttpContext.Request.Headers[key];
-                logger.LogTrace("Header: {0}={1}", key, value);
+                logger.LogInformation("Header: {0}={1}", key, value);
             }
 
             logger.LogInformation("About");
