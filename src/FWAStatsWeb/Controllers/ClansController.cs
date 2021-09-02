@@ -922,7 +922,7 @@ namespace FWAStatsWeb.Controllers
             }
 
             if (model.Final)
-                logger.LogInformation("Weight.SubmitStatus {0}, {1}", id, model.Result);
+                logger.LogInformation("Weight.PostSubmitStatus {0}, {1}", id, model.Result);
 
             return Json(model);
         }
