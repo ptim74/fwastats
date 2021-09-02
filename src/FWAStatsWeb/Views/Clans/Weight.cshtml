@@ -105,6 +105,7 @@ else
 <form id="form2" asp-action="Weight">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <input type="hidden" asp-for="ClanTag" />
+    <input type="hidden" asp-for="ClanName" />
     <input type="hidden" asp-for="WarID" />
     <table id="myTable" class="table table-condensed table-hover tablesorter">
         <thead>
@@ -127,7 +128,7 @@ else
             @foreach (var member in Model.Members)
             {
                 var member_max = 0;
-                switch(member.TownHallLevel)
+                switch (member.TownHallLevel)
                 {
                     case 14:
                         member_max = Constants.MAXWEIGHT_TH14;

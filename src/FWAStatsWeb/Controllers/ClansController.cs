@@ -922,7 +922,7 @@ namespace FWAStatsWeb.Controllers
             }
 
             if (model.Final)
-                logger.LogInformation("Weight.PostSubmitStatus {0}, {1}", id, model.Result);
+                logger.LogInformation("Weight.Post SubmitStatus {0}, {1}", id, model.Result);
 
             return Json(model);
         }
@@ -1012,9 +1012,9 @@ namespace FWAStatsWeb.Controllers
         [Route("Clan/{id}/Weight")]
         public async Task<IActionResult> Weight(string id, WeightViewModel model)
         {
-            logger.LogInformation("Weight.Post {0}", id);
+            logger.LogInformation("Weight.Post Clan {0} {1}", id, model?.ClanName);
 
-            logger.LogInformation("Weight.PostIpAddr {0}", GetIpAddr());
+            logger.LogInformation("Weight.Post IpAddr {0}", GetIpAddr());
 
             var tag = Utils.LinkIdToTag(id);
 
@@ -1026,7 +1026,7 @@ namespace FWAStatsWeb.Controllers
                 var user = await GetCurrentUserAsync();
                 if (user != null)
                 {
-                    logger.LogInformation("Weight.PostUser {0}", user.Email);
+                    logger.LogInformation("Weight.Post User {0}", user.Email);
                     userId = user.Id;
                 }
                 var players = from pc in db.PlayerClaims
@@ -1055,28 +1055,28 @@ namespace FWAStatsWeb.Controllers
                     {
                         ViewData["Message"] = "Only clan leader can edit weights.";
                         ViewData["ClanLink"] = clan.LinkID;
-                        logger.LogWarning("Weight.PostAccessDenied LeaderRequired");
+                        logger.LogWarning("Weight.Post AccessDenied LeaderRequired");
                         return View("WeightError");
                     }
                     if (playerAccessLevel < 3 && clan.SubmitRestriction == SubmitRestriction.CoLeaders)
                     {
                         ViewData["Message"] = "Only clan leader and co-leaders can edit weights.";
                         ViewData["ClanLink"] = clan.LinkID;
-                        logger.LogWarning("Weight.PostAccessDenied CoLeaderRequired");
+                        logger.LogWarning("Weight.Post AccessDenied CoLeaderRequired");
                         return View("WeightError");
                     }
                     if (playerAccessLevel < 2 && clan.SubmitRestriction == SubmitRestriction.Elders)
                     {
                         ViewData["Message"] = "Only clan leader, co-leaders and elders can edit weights.";
                         ViewData["ClanLink"] = clan.LinkID;
-                        logger.LogWarning("Weight.PostAccessDenied ElderRequired");
+                        logger.LogWarning("Weight.Post AccessDenied ElderRequired");
                         return View("WeightError");
                     }
                     if (playerAccessLevel < 1 && clan.SubmitRestriction == SubmitRestriction.Members)
                     {
                         ViewData["Message"] = "Only clan members can edit weights.";
                         ViewData["ClanLink"] = clan.LinkID;
-                        logger.LogWarning("Weight.PostAccessDenied MemberRequired");
+                        logger.LogWarning("Weight.Post AccessDenied MemberRequired");
                         return View("WeightError");
                     }
                 }
@@ -1087,17 +1087,17 @@ namespace FWAStatsWeb.Controllers
                     {
                         ViewData["Message"] = "You have modified enough weights for today. Please login and link your player tags if you need to modify weights for more than one clan.";
                         ViewData["ClanLink"] = clan.LinkID;
-                        logger.LogWarning("Weight.PostAccessDenied MaxSubmitChanges");
+                        logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges");
                         return View("WeightError");
                     }
                 }
                 var changes = await SaveWeight(model);
 
-                logger.LogInformation("Weight.PostChanges {0}", changes);
+                logger.LogInformation("Weight.Post Changes {0}", changes);
 
                 if (model.Command.Equals("submit", StringComparison.OrdinalIgnoreCase))
                 {
-                    logger.LogInformation("Weight.PostSubmit");
+                    logger.LogInformation("Weight.Post Submit");
                     var model2 = WeightData(id, model.WarID);
                     model2.WeightSubmitQueued = true;
                     await QueueWeightSubmit(model2);
