@@ -225,6 +225,13 @@ namespace FWAStatsWeb.Controllers
         //default 24h cache
         public IActionResult About()
         {
+            //Testing what headers are visible in prod
+            foreach(var key in this.HttpContext.Request.Headers.Keys)
+            {
+                var value = this.HttpContext.Request.Headers[key];
+                logger.LogTrace("Header: {0}={1}", key, value);
+            }
+
             logger.LogInformation("About");
             return View();
         }
