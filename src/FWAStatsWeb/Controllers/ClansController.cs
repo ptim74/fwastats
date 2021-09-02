@@ -931,11 +931,13 @@ namespace FWAStatsWeb.Controllers
         {
             if (model != null && model.Members != null)
             {
+                var changes = 0;
                 foreach (var member in model.Members)
                 {
                     var weight = db.Weights.Where(w => w.Tag == member.Tag).SingleOrDefault();
                     if (weight == null)
                     {
+                        changes++;
                         weight = new Weight { Tag = member.Tag, WarWeight = member.Weight, InWar = member.InWar, LastModified = DateTime.UtcNow };
                         db.Weights.Add(weight);
                     }
@@ -943,12 +945,26 @@ namespace FWAStatsWeb.Controllers
                     {
                         if (weight.WarWeight != member.Weight || weight.InWar != member.InWar)
                         {
+                            if(weight.WarWeight != member.Weight)
+                            {
+                                changes++;
+                            }
                             weight.WarWeight = member.Weight;
                             weight.InWar = member.InWar;
                             weight.LastModified = DateTime.UtcNow;
                         }
                     }
                 }
+
+                var ipAddr = GetIpAddr();
+                var submitLog = new SubmitLog
+                {
+                    Tag = model.ClanTag,
+                    Modified = DateTime.UtcNow,
+                    IpAddr = ipAddr,
+                    Changes = changes
+                };
+                db.SubmitLogs.Add(submitLog);
 
                 await db.SaveChangesAsync();
             }
@@ -1001,62 +1017,76 @@ namespace FWAStatsWeb.Controllers
 
             var clan = db.Clans.SingleOrDefault(c => c.Tag == tag);
 
-            if(clan.SubmitRestriction != SubmitRestriction.Anyone)
-            {
-                var userId = string.Empty;
-                var user = await GetCurrentUserAsync();
-                if(user != null)
-                {
-                    logger.LogInformation("Weight.User {0}", user.Email);
-                    userId = user.Id;
-                }
-                var players = from pc in db.PlayerClaims
-                              where pc.UserId == userId
-                              join m in db.Members on pc.Tag equals m.Tag
-                              where m.ClanTag == model.ClanTag
-                              select m;
-
-                var playerAccessLevel = 0;
-
-                foreach (var player in players)
-                {
-                    if (player.Role == "member" && playerAccessLevel <= 0)
-                        playerAccessLevel = 1;
-                    if (player.Role == "admin" && playerAccessLevel <= 1)
-                        playerAccessLevel = 2;
-                    if (player.Role == "coLeader" && playerAccessLevel <= 2)
-                        playerAccessLevel = 3;
-                    if (player.Role == "leader" && playerAccessLevel <= 3)
-                        playerAccessLevel = 4;
-                }
-                if (playerAccessLevel < 4 && clan.SubmitRestriction == SubmitRestriction.Leader)
-                {
-                    ViewData["Message"] = "Only clan leader can edit weights.";
-                    logger.LogWarning("Weight.AccessDenied LeaderRequired");
-                    return View("WeightError");
-                }
-                if (playerAccessLevel < 3 && clan.SubmitRestriction == SubmitRestriction.CoLeaders)
-                {
-                    ViewData["Message"] = "Only clan leader and co-leaders can edit weights.";
-                    logger.LogWarning("Weight.AccessDenied CoLeaderRequired");
-                    return View("WeightError");
-                }
-                if (playerAccessLevel < 2 && clan.SubmitRestriction == SubmitRestriction.Elders)
-                {
-                    ViewData["Message"] = "Only clan leader, co-leaders and elders can edit weights.";
-                    logger.LogWarning("Weight.AccessDenied ElderRequired");
-                    return View("WeightError");
-                }
-                if (playerAccessLevel < 1 && clan.SubmitRestriction == SubmitRestriction.Members)
-                {
-                    ViewData["Message"] = "Only clan members can edit weights.";
-                    logger.LogWarning("Weight.AccessDenied MemberRequired");
-                    return View("WeightError");
-                }
-            }
-
             if(model.Command != null)
             {
+                if (clan.SubmitRestriction != SubmitRestriction.Anyone)
+                {
+                    var userId = string.Empty;
+                    var user = await GetCurrentUserAsync();
+                    if (user != null)
+                    {
+                        logger.LogInformation("Weight.User {0}", user.Email);
+                        userId = user.Id;
+                    }
+                    var players = from pc in db.PlayerClaims
+                                  where pc.UserId == userId
+                                  join m in db.Members on pc.Tag equals m.Tag
+                                  where m.ClanTag == model.ClanTag
+                                  select m;
+
+                    var playerAccessLevel = 0;
+
+                    foreach (var player in players)
+                    {
+                        if (player.Role == "member" && playerAccessLevel <= 0)
+                            playerAccessLevel = 1;
+                        if (player.Role == "admin" && playerAccessLevel <= 1)
+                            playerAccessLevel = 2;
+                        if (player.Role == "coLeader" && playerAccessLevel <= 2)
+                            playerAccessLevel = 3;
+                        if (player.Role == "leader" && playerAccessLevel <= 3)
+                            playerAccessLevel = 4;
+                    }
+                    if (playerAccessLevel < 4 && clan.SubmitRestriction == SubmitRestriction.Leader)
+                    {
+                        ViewData["Message"] = "Only clan leader can edit weights.";
+                        ViewData["ClanLink"] = clan.LinkID;
+                        logger.LogWarning("Weight.AccessDenied LeaderRequired");
+                        return View("WeightError");
+                    }
+                    if (playerAccessLevel < 3 && clan.SubmitRestriction == SubmitRestriction.CoLeaders)
+                    {
+                        ViewData["Message"] = "Only clan leader and co-leaders can edit weights.";
+                        ViewData["ClanLink"] = clan.LinkID;
+                        logger.LogWarning("Weight.AccessDenied CoLeaderRequired");
+                        return View("WeightError");
+                    }
+                    if (playerAccessLevel < 2 && clan.SubmitRestriction == SubmitRestriction.Elders)
+                    {
+                        ViewData["Message"] = "Only clan leader, co-leaders and elders can edit weights.";
+                        ViewData["ClanLink"] = clan.LinkID;
+                        logger.LogWarning("Weight.AccessDenied ElderRequired");
+                        return View("WeightError");
+                    }
+                    if (playerAccessLevel < 1 && clan.SubmitRestriction == SubmitRestriction.Members)
+                    {
+                        ViewData["Message"] = "Only clan members can edit weights.";
+                        ViewData["ClanLink"] = clan.LinkID;
+                        logger.LogWarning("Weight.AccessDenied MemberRequired");
+                        return View("WeightError");
+                    }
+                }
+
+                if (clan.SubmitRestriction == SubmitRestriction.Anyone)
+                {
+                    if (CheckSubmitChanges(tag, DateTime.UtcNow.AddHours(-2)) > 100)
+                    {
+                        ViewData["Message"] = "You have modified enough weights for a while. Please try again later.";
+                        ViewData["ClanLink"] = clan.LinkID;
+                        logger.LogWarning("Weight.AccessDenied MaxSubmitChanges");
+                        return View("WeightError");
+                    }
+                }
                 await SaveWeight(model);
 
                 if (model.Command.Equals("submit", StringComparison.OrdinalIgnoreCase))
@@ -1069,6 +1099,32 @@ namespace FWAStatsWeb.Controllers
             }
 
             return Weight(id, model.WarID);
+        }
+
+        protected string GetIpAddr()
+        {
+            var ipAddr = this.HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            if (string.IsNullOrEmpty(ipAddr))
+            {
+                var originalFor = this.HttpContext.Request.Headers["X-Original-For"].FirstOrDefault();
+                if (originalFor != null && originalFor.Contains(":"))
+                    ipAddr = originalFor.Split(':').FirstOrDefault();
+            }
+            if (string.IsNullOrEmpty(ipAddr))
+                ipAddr = "127.0.0.1";
+            return ipAddr;
+        }
+
+        protected int CheckSubmitChanges(string tag, DateTime since)
+        {
+            var ipAddr = GetIpAddr();
+
+            var changes = db.SubmitLogs
+                .Where(l => l.IpAddr == ipAddr && l.Modified > since)
+                .Select(l => l.Changes)
+                .Sum();
+
+            return changes;
         }
 
         [Route("Clan/{id}/Donations")]

@@ -11,6 +11,8 @@
   <ItemGroup>
     <Compile Remove="Data\Migrations\20210828221537_PlayerClaimUser.cs" />
     <Compile Remove="Data\Migrations\20210828221537_PlayerClaimUser.Designer.cs" />
+    <Compile Remove="Data\Migrations\20210902211728_SubmitLog.cs" />
+    <Compile Remove="Data\Migrations\20210902211728_SubmitLog.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

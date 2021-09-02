@@ -13,6 +13,13 @@
                 @ViewData["Message"]
             </p>
 
+            @if(ViewData["ClanLink"] != null)
+            {
+                <p>
+                    <a class="btn btn-default" asp-route-id="@ViewData["ClanLink"]" asp-area="" asp-controller="Clans" asp-action="Weight">Back</a>
+                </p>
+            }
+
         </div>
     </div>
 </div>
