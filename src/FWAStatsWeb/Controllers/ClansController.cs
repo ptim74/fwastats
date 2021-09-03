@@ -1020,9 +1020,7 @@ namespace FWAStatsWeb.Controllers
 
                 logger.LogInformation("Weight.Post IpAddr {0}", GetIpAddr());
 
-                logger.LogInformation("Weight.Post GA  {0}", GetGa());
-
-                logger.LogInformation("Weight.Post GID {0}", GetGid());
+                logger.LogInformation("Weight.Post GA {0}", GetGa());
 
                 var tag = Utils.LinkIdToTag(id);
 
@@ -1139,15 +1137,6 @@ namespace FWAStatsWeb.Controllers
             if (!string.IsNullOrEmpty(ga))
                 ga = ga.Substring(6); //remove GA1.x prefix
             return ga;
-        }
-
-        protected string GetGid()
-        {
-            var gid = string.Empty;
-            this.HttpContext.Request.Cookies.TryGetValue("_gid", out gid);
-            if (!string.IsNullOrEmpty(gid))
-                gid = gid.Substring(6); //remove GA1.x prefix
-            return gid;
         }
 
         protected int CheckSubmitChanges(string tag, DateTime since)
