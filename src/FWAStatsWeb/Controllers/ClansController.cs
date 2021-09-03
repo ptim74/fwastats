@@ -957,11 +957,13 @@ namespace FWAStatsWeb.Controllers
                 }
 
                 var ipAddr = GetIpAddr();
+                var cookie = GetGa();
                 var submitLog = new SubmitLog
                 {
                     Tag = model.ClanTag,
                     Modified = DateTime.UtcNow,
                     IpAddr = ipAddr,
+                    Cookie = cookie,
                     Changes = changes
                 };
                 db.SubmitLogs.Add(submitLog);
@@ -1138,11 +1140,23 @@ namespace FWAStatsWeb.Controllers
         protected int CheckSubmitChanges(string tag, DateTime since)
         {
             var ipAddr = GetIpAddr();
+            var cookie = GetGa();
 
             var changes = db.SubmitLogs
                 .Where(l => l.IpAddr == ipAddr && l.Modified > since)
                 .Select(l => l.Changes)
                 .Sum();
+
+            if(string.IsNullOrEmpty(cookie))
+            {
+                var changes2 = db.SubmitLogs
+                .Where(l => l.Cookie == cookie && l.Modified > since)
+                .Select(l => l.Changes)
+                .Sum();
+
+                if (changes2 > changes)
+                    return changes2;
+            }
 
             return changes;
         }

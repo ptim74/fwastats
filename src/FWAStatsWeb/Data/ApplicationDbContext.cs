@@ -38,6 +38,7 @@ namespace FWAStatsWeb.Data
             builder.Entity<PlayerEvent>().HasIndex(e => new { e.PlayerTag, e.EventDate });
             builder.Entity<PlayerEvent>().HasIndex(e => new { e.EventType, e.EventDate });
             builder.Entity<SubmitLog>().HasIndex(e => new { e.IpAddr, e.Modified });
+            builder.Entity<SubmitLog>().HasIndex(e => new { e.Cookie, e.Modified });
             builder.Entity<ClanEvent>().HasIndex(e => new { e.ClanTag, e.EventDate });
             builder.Entity<ClanEvent>().HasIndex(e => new { e.EventDate });
             builder.Entity<WarMember>().HasIndex(e => new { e.WarID, e.MapPosition });

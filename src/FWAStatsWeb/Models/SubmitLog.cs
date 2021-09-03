@@ -24,6 +24,10 @@ namespace FWAStatsWeb.Models
         public string IpAddr { get; set; }
 
         [DataMember]
+        [StringLength(50)]
+        public string Cookie { get; set; }
+
+        [DataMember]
         public int Changes { get; set; }
     }
 }
