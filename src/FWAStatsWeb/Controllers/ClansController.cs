@@ -1018,6 +1018,8 @@ namespace FWAStatsWeb.Controllers
 
                 logger.LogInformation("Weight.Post IpAddr {0}", GetIpAddr());
 
+                logger.LogInformation("Weight.Post GA {0}", GetGa());
+
                 var tag = Utils.LinkIdToTag(id);
 
                 var clan = db.Clans.SingleOrDefault(c => c.Tag == tag);
@@ -1124,6 +1126,13 @@ namespace FWAStatsWeb.Controllers
             if (string.IsNullOrEmpty(ipAddr))
                 ipAddr = "127.0.0.1";
             return ipAddr;
+        }
+
+        protected string GetGa()
+        {
+            var ga = string.Empty;
+            this.HttpContext.Request.Cookies.TryGetValue("_ga_24G3LCZ85Z", out ga);
+            return ga;
         }
 
         protected int CheckSubmitChanges(string tag, DateTime since)
