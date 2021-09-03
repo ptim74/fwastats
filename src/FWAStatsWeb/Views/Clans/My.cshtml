@@ -39,25 +39,10 @@
                 Clan
             </th>
             <th>
-                <span class="glyphicon glyphicon-user"></span>
-            </th>
-            <th>
-                <span>Composition</span>
-            </th>
-            <th>
-                <span>Est.W<span class="hidden-xs">eight</span></span>
-            </th>
-            <th>
-                <span>Wars</span>
-            </th>
-            <th>
-                <span>M<span class="hidden-xs">atch</span>%</span>
-            </th>
-            <th>
-                <span>W<span class="hidden-xs">in</span>%</span>
-            </th>
-            <th>
                 Submit Access
+            </th>
+            <th>
+                
             </th>
         </tr>
     </thead>
@@ -72,24 +57,6 @@
                 <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
             </td>
             <td>
-                @Html.DisplayFor(modelItem => clan.Members)
-            </td>
-            <td class="text-nowrap">
-                @clan.Th14Count / @clan.Th13Count / @clan.Th12Count /  @clan.Th11Count /  @clan.Th10Count / @clan.Th9Count / @clan.Th8Count / @clan.ThLowCount
-            </td>
-            <td>
-                @clan.EstimatedWeight
-            </td>
-            <td>
-                @clan.WarCount
-            </td>
-            <td>
-                @clan.MatchPercentage
-            </td>
-            <td>
-                @clan.WinPercentage
-            </td>
-            <td>
                 <form asp-controller="Clans" asp-action="SubmitAccess" method="post" class="form-inline">
                     <input asp-for="@clan.Tag" name="ClanTag" type="hidden" />
                     <input asp-for="@clan.Name" name="ClanName" type="hidden" />
@@ -101,6 +68,9 @@
                         </span>
                     </div>
                 </form>
+            </td>
+            <td>
+                <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Weight" class="btn btn-default">Weights</a>
             </td>
         </tr>
         }
