@@ -1133,7 +1133,7 @@ namespace FWAStatsWeb.Controllers
         protected string GetGa()
         {
             var ga = string.Empty;
-            this.HttpContext.Request.Cookies.TryGetValue("_ga_24G3LCZ85Z", out ga);
+            this.HttpContext.Request.Cookies.TryGetValue("_ga", out ga);
             return ga;
         }
 
