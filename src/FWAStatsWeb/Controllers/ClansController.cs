@@ -1136,6 +1136,8 @@ namespace FWAStatsWeb.Controllers
         {
             var ga = string.Empty;
             this.HttpContext.Request.Cookies.TryGetValue("_ga", out ga);
+            if (!string.IsNullOrEmpty(ga))
+                ga = ga.Substring(6); //remove GA1.x prefix
             return ga;
         }
 
@@ -1143,6 +1145,8 @@ namespace FWAStatsWeb.Controllers
         {
             var gid = string.Empty;
             this.HttpContext.Request.Cookies.TryGetValue("_gid", out gid);
+            if (!string.IsNullOrEmpty(gid))
+                gid = gid.Substring(6); //remove GA1.x prefix
             return gid;
         }
 
