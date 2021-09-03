@@ -1020,7 +1020,7 @@ namespace FWAStatsWeb.Controllers
 
                 logger.LogInformation("Weight.Post IpAddr {0}", GetIpAddr());
 
-                logger.LogInformation("Weight.Post GA {0}", GetGa());
+                logger.LogInformation("Weight.Post GA  {0}", GetGa());
 
                 logger.LogInformation("Weight.Post GID {0}", GetGid());
 
