@@ -61,8 +61,7 @@
                     <input asp-for="@clan.Tag" name="ClanTag" type="hidden" />
                     <input asp-for="@clan.Name" name="ClanName" type="hidden" />
                     <div class="input-group">
-                        <span class="input-group-addon"><span class="glyphicon glyphicon-pencil"></span></span>
-                        <select asp-for="@clan.SubmitRestriction" asp-items="@Html.GetEnumSelectList(typeof(SubmitRestriction))" name="SubmitRestriction" class="form-control"></select>
+                        <select style="min-width:100px;" asp-for="@clan.SubmitRestriction" asp-items="@Html.GetEnumSelectList(typeof(SubmitRestriction))" name="SubmitRestriction" class="form-control"></select>
                         <span class="input-group-btn">
                             <button type="submit" class="btn btn-primary">Change</button>
                         </span>
