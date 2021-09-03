@@ -1022,6 +1022,8 @@ namespace FWAStatsWeb.Controllers
 
                 logger.LogInformation("Weight.Post GA {0}", GetGa());
 
+                logger.LogInformation("Weight.Post GID {0}", GetGid());
+
                 var tag = Utils.LinkIdToTag(id);
 
                 var clan = db.Clans.SingleOrDefault(c => c.Tag == tag);
@@ -1135,6 +1137,13 @@ namespace FWAStatsWeb.Controllers
             var ga = string.Empty;
             this.HttpContext.Request.Cookies.TryGetValue("_ga", out ga);
             return ga;
+        }
+
+        protected string GetGid()
+        {
+            var gid = string.Empty;
+            this.HttpContext.Request.Cookies.TryGetValue("_gid", out gid);
+            return gid;
         }
 
         protected int CheckSubmitChanges(string tag, DateTime since)
