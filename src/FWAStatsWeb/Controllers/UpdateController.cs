@@ -240,6 +240,7 @@ namespace FWAStatsWeb.Controllers
                     weights = db.Weights.ToDictionary(w => w.Tag);
                 var updates = 0;
                 var dateZero = new DateTime(1899, 12, 30, 0, 0, 0);
+                var minDate = DateTime.UtcNow.AddDays(-365);
 
                 foreach (var row in data.Where(r => r.Object != null))
                 {
@@ -258,7 +259,7 @@ namespace FWAStatsWeb.Controllers
 
                     tag = Utils.LinkIdToTag(tag);
 
-                    if (!string.IsNullOrEmpty(tag))
+                    if (!string.IsNullOrEmpty(tag) && timestamp > minDate)
                     {
                         if(!fullUpdate)
                         {
