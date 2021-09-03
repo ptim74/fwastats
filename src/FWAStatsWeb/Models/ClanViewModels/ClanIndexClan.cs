@@ -26,6 +26,8 @@ namespace FWAStatsWeb.Models.ClanViewModels
 
         public int EstimatedWeight { get; set; }
 
+        public SubmitRestriction SubmitRestriction { get; set; }
+
         public string LinkID
         {
             get

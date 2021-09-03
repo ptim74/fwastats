@@ -1,4 +1,4 @@
-﻿@model SubmitAccessViewModel
+﻿@model FWAStatsWeb.Models.ClanViewModels.SubmitAccessViewModel
 @{
     ViewData["Title"] = "Submit Access";
 }
@@ -10,7 +10,7 @@
         </div>
         <div class="panel-body">
 
-            <form asp-controller="Manage" asp-action="SubmitAccess" method="post" class="form-horizontal" role="form">
+            <form asp-controller="Clans" asp-action="SubmitAccess" method="post" class="form-horizontal" role="form">
 
                 <div asp-validation-summary="All" class="text-danger"></div>
 

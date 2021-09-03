@@ -271,11 +271,11 @@ namespace FWAStatsWeb.Controllers
                             player = await api.GetPlayer(tag);
                             memberUpdater.UpdatePlayer(player, true);
                         }
-                        return RedirectToAction(nameof(Details), new { id = Utils.TagToLinkId(tag) });
+                        return RedirectToAction(nameof(My));
                     }
                     else
                     {
-                        ModelState.AddModelError(string.Empty, "Linking plauer failed. Please check API Key.");
+                        ModelState.AddModelError(string.Empty, "Linking player failed. Please check API Key.");
                     }
                 }
             }
@@ -311,7 +311,7 @@ namespace FWAStatsWeb.Controllers
                     {
                         db.PlayerClaims.Remove(claim);
                         db.SaveChanges();
-                        return RedirectToAction(nameof(Details), new { id = Utils.TagToLinkId(tag) });
+                        return RedirectToAction(nameof(My));
                     }
                 }
             }

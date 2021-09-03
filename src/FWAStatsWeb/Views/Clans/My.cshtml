@@ -1,0 +1,130 @@
+@model FWAStatsWeb.Models.ClanViewModels.IndexViewModel
+
+@{
+    ViewBag.Title = Model.IsMyClans ? "My clans" : "Clans";
+    ViewBag.MetaDescription = "List of clans in FWA, Farm War Alliance, Clash of Clans";
+    var activeClansClass = Model.IsMyClans ? "" : "active";
+    var myClansClass = Model.IsMyClans ? "active" : "";
+
+}
+
+<ol class="breadcrumb">
+    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+    @if (Model.IsMyClans)
+    {
+        <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
+    }
+    <li class="active">@ViewBag.Title</li>
+</ol>
+
+<h2>@ViewBag.Title</h2>
+
+<ul class="pagination">
+    <li class="@activeClansClass"><a asp-area="" asp-controller="Clans" asp-action="Index">Active</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Departed">Departed</a></li>
+    <li><a asp-area="" asp-controller="Clans" asp-action="Following">Following</a></li>
+    <li class="@myClansClass"><a asp-area="" asp-controller="Clans" asp-action="My">My clans</a></li>
+</ul>
+
+<div class="input-group" style="margin-bottom:20px;">
+    <span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-search"></span></span>
+    <input type="text" id="search" class="form-control" placeholder="Search" aria-describedby="basic-addon1" />
+</div>
+
+<table id="table" class="table table-hover table-responsive tablesorter">
+    <thead>
+        <tr>
+            <th width="35"></th>
+            <th>
+                Clan
+            </th>
+            <th>
+                <span class="glyphicon glyphicon-user"></span>
+            </th>
+            <th>
+                <span>Composition</span>
+            </th>
+            <th>
+                <span>Est.W<span class="hidden-xs">eight</span></span>
+            </th>
+            <th>
+                <span>Wars</span>
+            </th>
+            <th>
+                <span>M<span class="hidden-xs">atch</span>%</span>
+            </th>
+            <th>
+                <span>W<span class="hidden-xs">in</span>%</span>
+            </th>
+            <th>
+                Submit Access
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var clan in Model)
+        {
+        <tr>
+            <td style="padding:0px;">
+                <img src="@clan.BadgeUrl" width="35" height="35" />
+            </td>
+            <td class="search">
+                <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => clan.Members)
+            </td>
+            <td class="text-nowrap">
+                @clan.Th14Count / @clan.Th13Count / @clan.Th12Count /  @clan.Th11Count /  @clan.Th10Count / @clan.Th9Count / @clan.Th8Count / @clan.ThLowCount
+            </td>
+            <td>
+                @clan.EstimatedWeight
+            </td>
+            <td>
+                @clan.WarCount
+            </td>
+            <td>
+                @clan.MatchPercentage
+            </td>
+            <td>
+                @clan.WinPercentage
+            </td>
+            <td>
+                <form asp-controller="Clans" asp-action="SubmitAccess" method="post" class="form-inline">
+                    <input asp-for="@clan.Tag" name="ClanTag" type="hidden" />
+                    <input asp-for="@clan.Name" name="ClanName" type="hidden" />
+                    <div class="input-group">
+                        <span class="input-group-addon"><span class="glyphicon glyphicon-pencil"></span></span>
+                        <select asp-for="@clan.SubmitRestriction" asp-items="@Html.GetEnumSelectList(typeof(SubmitRestriction))" name="SubmitRestriction" class="form-control"></select>
+                        <span class="input-group-btn">
+                            <button type="submit" class="btn btn-primary">Change</button>
+                        </span>
+                    </div>
+                </form>
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>
+
+@if (Model.IsMyClans)
+{
+    <div class="alert alert-info">
+        <strong>Note!</strong>
+        Showing only your clans in FWA.
+    </div>
+}
+
+@section scripts {
+    <script type="text/javascript">
+
+        $('#search').keyup(function () {
+            var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
+            $('#table > tbody > tr').show().filter(function () {
+                var text = $(this).children(".search").text().replace(/\s+/g, ' ').toLowerCase();
+                return !~text.indexOf(val);
+            }).hide();
+        });
+
+    </script>
+}

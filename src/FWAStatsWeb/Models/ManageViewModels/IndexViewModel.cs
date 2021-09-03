@@ -18,9 +18,5 @@ namespace FWAStatsWeb.Models.ManageViewModels
         public bool TwoFactor { get; set; }
 
         public bool BrowserRemembered { get; set; }
-
-        public IList<Player> Players { get; set; }
-
-        public IList<Clan> Clans { get; set; }
     }
 }

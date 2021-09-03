@@ -73,7 +73,8 @@ namespace FWAStatsWeb.Controllers
                 WarCount = c.WarCount,
                 MatchPercentage = c.MatchPercentage,
                 WinPercentage = c.WinPercentage,
-                EstimatedWeight = c.EstimatedWeight
+                EstimatedWeight = c.EstimatedWeight,
+                SubmitRestriction = c.SubmitRestriction
             });
 
             if(!string.IsNullOrEmpty(userId))
@@ -115,7 +116,7 @@ namespace FWAStatsWeb.Controllers
 
             var model = GetClanList(user.Id);
 
-            return View(nameof(Index), model);
+            return View(model);
         }
 
         public ActionResult Departed()
@@ -475,6 +476,68 @@ namespace FWAStatsWeb.Controllers
             }
 
             return View(war);
+        }
+
+        [Authorize]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitAccess(SubmitAccessViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await GetCurrentUserAsync();
+                if (user == null)
+                {
+                    ModelState.AddModelError(string.Empty, "Not logged in.");
+                    return View(model);
+                }
+
+                var clan = db.Clans.FirstOrDefault(c => c.Tag == model.ClanTag);
+                if (model.SubmitRestriction != clan.SubmitRestriction)
+                {
+                    var players = from pc in db.PlayerClaims
+                                  where pc.UserId == user.Id
+                                  join m in db.Members on pc.Tag equals m.Tag
+                                  where m.ClanTag == model.ClanTag
+                                  select m;
+                    var playerAccessLevel = 0;
+                    foreach (var player in players)
+                    {
+                        if (player.Role == "member" && playerAccessLevel <= 0)
+                            playerAccessLevel = 1;
+                        if (player.Role == "admin" && playerAccessLevel <= 1)
+                            playerAccessLevel = 2;
+                        if (player.Role == "coLeader" && playerAccessLevel <= 2)
+                            playerAccessLevel = 3;
+                        if (player.Role == "leader" && playerAccessLevel <= 3)
+                            playerAccessLevel = 4;
+                    }
+                    if (playerAccessLevel < 4 && clan.SubmitRestriction == SubmitRestriction.Leader)
+                    {
+                        ModelState.AddModelError(string.Empty, "Only Leader can change submit restriction");
+                        return View(model);
+                    }
+                    if (playerAccessLevel < 3)
+                    {
+                        ModelState.AddModelError(string.Empty, "Only Leader or Co-Leader can change submit restriction");
+                        return View(model);
+                    }
+                    if (playerAccessLevel < 4 && model.SubmitRestriction == SubmitRestriction.Leader)
+                    {
+                        ModelState.AddModelError(string.Empty, "Only Leader can change submit restriction to Leaders-only");
+                        return View(model);
+                    }
+                    clan.SubmitRestriction = model.SubmitRestriction;
+                    db.SaveChanges();
+                    return RedirectToAction(nameof(My));
+                }
+                else
+                {
+                    return RedirectToAction(nameof(My));
+                }
+            }
+
+            return View(model);
         }
 
         [Route("Clan/{id}/Edit")]

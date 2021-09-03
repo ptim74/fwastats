@@ -28,7 +28,7 @@
                 Clan
             </th>
             <th>
-                Submit Access
+
             </th>
         </tr>
     </thead>
@@ -43,20 +43,7 @@
                     <a asp-route-id="@player.ClanLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@player.ClanName</a>
                 </td>
                 <td>
-                    @if (player.IsFWA)
-                    {
-                        <form asp-controller="Manage" asp-action="SubmitAccess" method="post" class="form-inline">
-                            <input asp-for="@player.ClanTag" name="ClanTag" type="hidden" />
-                            <input asp-for="@player.ClanName" name="ClanName" type="hidden" />
-                            <div class="input-group">
-                                <span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-pencil"></span></span>
-                                <select id="@player.ClanLinkID" asp-for="@player.ClanSubmitRestriction" asp-items="@Html.GetEnumSelectList(typeof(SubmitRestriction))" name="SubmitRestriction" class="form-control" aria-describedby="basic-addon1"></select>
-                                <span class="input-group-btn">
-                                    <button type="submit" class="btn btn-primary">Change</button>
-                                </span>
-                            </div>
-                        </form>
-                    }
+                    <a asp-area="" asp-route-id="@player.LinkID" asp-controller="Players" asp-action="Unlink" class="btn btn-danger">Unlink</a>
                 </td>
             </tr>
         }
@@ -67,5 +54,5 @@
 
 <div style="margin-top: 20px;" class="alert alert-info">
     <strong>Info!</strong>
-    You can also link players if you click the link on upper right corner in player details page.
+    You can link players if you click the link on upper right corner in player details page.
 </div>
