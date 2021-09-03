@@ -185,7 +185,7 @@ namespace FWAStatsWeb.Controllers
                     }
                     if (playerAccessLevel < 3)
                     {
-                        ModelState.AddModelError(string.Empty, "Only Leader or Co-Leaders can change submit restriction");
+                        ModelState.AddModelError(string.Empty, "Only Leader or Co-Leader can change submit restriction");
                         return View(model);
                     }
                     if(playerAccessLevel < 4 && model.SubmitRestriction == SubmitRestriction.Leader)
@@ -195,11 +195,11 @@ namespace FWAStatsWeb.Controllers
                     }
                     clan.SubmitRestriction = model.SubmitRestriction;
                     db.SaveChanges();
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("My", "Players");
                 }
                 else
                 {
-                    return RedirectToAction(nameof(Index));
+                    return RedirectToAction("My", "Players");
                 }
             }
 
