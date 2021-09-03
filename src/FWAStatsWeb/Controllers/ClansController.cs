@@ -777,7 +777,7 @@ namespace FWAStatsWeb.Controllers
         [Route("Clan/{id}/Weight/{WarID}")]
         public IActionResult Weight(string id, long WarID)
         {
-            logger.LogInformation("Weight {0}", id);
+            logger.LogInformation("Weight {0} {1}", id, WarID > 0 ? WarID.ToString() : "");
 
             var model = WeightData(id, WarID);
 
@@ -1012,16 +1012,16 @@ namespace FWAStatsWeb.Controllers
         [Route("Clan/{id}/Weight")]
         public async Task<IActionResult> Weight(string id, WeightViewModel model)
         {
-            logger.LogInformation("Weight.Post Clan {0} {1}", id, model?.ClanName);
-
-            logger.LogInformation("Weight.Post IpAddr {0}", GetIpAddr());
-
-            var tag = Utils.LinkIdToTag(id);
-
-            var clan = db.Clans.SingleOrDefault(c => c.Tag == tag);
-
             if(model.Command != null)
             {
+                logger.LogInformation("Weight.Post Clan {0} {1}", id, model?.ClanName);
+
+                logger.LogInformation("Weight.Post IpAddr {0}", GetIpAddr());
+
+                var tag = Utils.LinkIdToTag(id);
+
+                var clan = db.Clans.SingleOrDefault(c => c.Tag == tag);
+
                 var userId = string.Empty;
                 var user = await GetCurrentUserAsync();
                 if (user != null)
@@ -1103,6 +1103,10 @@ namespace FWAStatsWeb.Controllers
                     await QueueWeightSubmit(model2);
                     return View(model2);
                 }
+            }
+            else
+            {
+                logger.LogInformation("Weight {0} {1}", id, model?.WarID > 0 ? model?.WarID.ToString() : "");
             }
 
             return Weight(id, model.WarID);
