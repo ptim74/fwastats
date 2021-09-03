@@ -65,12 +65,14 @@ namespace FWAStatsWeb.Controllers
             var players = from pc in db.PlayerClaims
                           where pc.UserId == user.Id
                           join p in db.Players on pc.Tag equals p.Tag
+                          orderby p.TownHallLevel descending, p.Name
                           select p;
 
             var clans = from pc in db.PlayerClaims
                         where pc.UserId == user.Id
                         join m in db.Members on pc.Tag equals m.Tag
                         join c in db.Clans on m.ClanTag equals c.Tag
+                        orderby c.Name
                         select c;
 
             //var x = new Collection<SelectListItem>

@@ -121,7 +121,7 @@ namespace FWAStatsWeb.Controllers
                 }
             }
 
-            memberUpdater.UpdatePlayer(ret.Player, true);
+            memberUpdater.UpdatePlayer(ret.Player, !ret.Claimed);
 
             var events = from e in db.PlayerEvents
                          join v in db.ClanValidities on e.ClanTag equals v.Tag
