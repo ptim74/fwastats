@@ -42,36 +42,68 @@
                 Submit Access
             </th>
             <th>
-                
+            </th>
+            <th>
             </th>
         </tr>
     </thead>
     <tbody>
         @foreach (var clan in Model)
         {
-        <tr>
-            <td style="padding:0px;">
-                <img src="@clan.BadgeUrl" width="35" height="35" />
-            </td>
-            <td class="search">
-                <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
-            </td>
-            <td>
-                <form asp-controller="Clans" asp-action="SubmitAccess" method="post" class="form-inline">
-                    <input asp-for="@clan.Tag" name="ClanTag" type="hidden" />
-                    <input asp-for="@clan.Name" name="ClanName" type="hidden" />
-                    <div class="input-group">
-                        <select style="min-width:100px;" asp-for="@clan.SubmitRestriction" asp-items="@Html.GetEnumSelectList(typeof(SubmitRestriction))" name="SubmitRestriction" class="form-control"></select>
-                        <span class="input-group-btn">
-                            <button type="submit" class="btn btn-primary">Change</button>
-                        </span>
-                    </div>
-                </form>
-            </td>
-            <td>
-                <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Weight" class="btn btn-default">Weights</a>
-            </td>
-        </tr>
+            string resultType = "text-success";
+            string resultMessage = "";
+            if (clan.PendingWeightSubmit)
+            {
+                resultType = "text-warning";
+                resultMessage = "Pending";
+            }
+            else
+            {
+                resultMessage = string.Format("Submitted  {0}", FWAStatsWeb.Logic.Utils.TimeSpanToString(DateTime.UtcNow.Subtract(clan.WeightSubmitDate)));
+                if (clan.WeightSubmitDate == DateTime.MinValue)
+                {
+                    resultMessage = "Missing";
+                    resultType = "text-default";
+                }
+                if (clan.WeightSubmitDate > DateTime.Now.AddDays(-28))
+                {
+                    resultType = "text-success";
+                }
+                else if (clan.WeightSubmitDate > DateTime.Now.AddDays(-42))
+                {
+                    resultType = "text-warning";
+                }
+                else
+                {
+                    resultType = "text-danger";
+                }
+            }
+            <tr>
+                <td style="padding:0px;">
+                    <img src="@clan.BadgeUrl" width="35" height="35" />
+                </td>
+                <td class="search">
+                    <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
+                </td>
+                <td>
+                    <form asp-controller="Clans" asp-action="SubmitAccess" method="post" class="form-inline">
+                        <input asp-for="@clan.Tag" name="ClanTag" type="hidden" />
+                        <input asp-for="@clan.Name" name="ClanName" type="hidden" />
+                        <div class="input-group">
+                            <select style="min-width:100px;" asp-for="@clan.SubmitRestriction" asp-items="@Html.GetEnumSelectList(typeof(SubmitRestriction))" name="SubmitRestriction" class="form-control"></select>
+                            <span class="input-group-btn">
+                                <button type="submit" class="btn btn-primary">Change</button>
+                            </span>
+                        </div>
+                    </form>
+                </td>
+                <td>
+                    <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Weight" class="btn btn-default">Weights</a>
+                </td>
+                <td>
+                    <span class="@resultType">@resultMessage</span>
+                </td>
+            </tr>
         }
     </tbody>
 </table>

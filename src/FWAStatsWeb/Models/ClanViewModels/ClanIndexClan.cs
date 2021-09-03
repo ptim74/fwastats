@@ -28,6 +28,10 @@ namespace FWAStatsWeb.Models.ClanViewModels
 
         public SubmitRestriction SubmitRestriction { get; set; }
 
+        public DateTime WeightSubmitDate { get; set; }
+
+        public bool PendingWeightSubmit { get; set; }
+
         public string LinkID
         {
             get

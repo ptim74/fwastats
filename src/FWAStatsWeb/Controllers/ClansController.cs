@@ -116,6 +116,16 @@ namespace FWAStatsWeb.Controllers
 
             var model = GetClanList(user.Id);
 
+            foreach(var clan in model)
+            {
+                var result = db.WeightResults.SingleOrDefault(r => r.Tag == clan.Tag);
+                if(result != null)
+                {
+                    clan.WeightSubmitDate = result.Timestamp;
+                    clan.PendingWeightSubmit = result.PendingResult;
+                }
+            }
+
             return View(model);
         }
 
