@@ -286,10 +286,13 @@ namespace FWAStatsWeb.Logic
 
                 var keepPlayersSince = DateTime.UtcNow.AddDays(-60);
 
-                db.Database.ExecuteSqlRawAsync("DELETE FROM Players WHERE LastUpdated < {0}", keepPlayersSince);
+                db.Database.ExecuteSqlRawAsync("DELETE FROM Players WHERE Tag NOT IN (SELECT Tag FROM PlayerClaims) AND LastUpdated < {0}", keepPlayersSince);
+
+                var keepWeightsSince = DateTime.UtcNow.AddDays(-365);
+                db.Database.ExecuteSqlRawAsync("DELETE FROM Weights WHERE LastModified < {0}", keepWeightsSince);
             }
 
-            if(options.Value.Wars > 0)
+            if (options.Value.Wars > 0)
             {
                 var keepWarsSince = DateTime.UtcNow.AddDays(-1.0 * options.Value.Wars);
 
@@ -316,6 +319,10 @@ namespace FWAStatsWeb.Logic
 
             db.Database.ExecuteSqlRawAsync("DELETE FROM WarMembers WHERE WarID NOT IN ( SELECT ID FROM Wars )");
             db.Database.ExecuteSqlRawAsync("DELETE FROM WarAttacks WHERE WarID NOT IN ( SELECT ID FROM Wars )");
+
+            //SubmitLogs
+            var keepSubmitLogsSince = DateTime.UtcNow.AddDays(-30.0);
+            db.Database.ExecuteSqlRawAsync("DELETE FROM SubmitLogs WHERE Modified < {0}", keepSubmitLogsSince);
 
         }
     }
