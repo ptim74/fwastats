@@ -98,6 +98,56 @@ namespace FWAStatsWeb.Controllers
             return View(model);
         }
 
+        [Authorize]
+        public async Task<IActionResult> My()
+        {
+            logger.LogInformation("My");
+
+            var user = await GetCurrentUserAsync();
+
+            var myPlayers =  new List<MyPlayerModel>();
+
+            var playerQ = db.PlayerClaims.Where(p => p.UserId == user.Id);
+
+            foreach(var player in playerQ)
+            {
+                var myPlayerQ = from m in db.Members
+                                where m.Tag == player.Tag
+                                join c in db.Clans on m.ClanTag equals c.Tag
+                                select new MyPlayerModel
+                                {
+                                    Name = m.Name,
+                                    Tag = m.Tag,
+                                    ClanName = c.Name,
+                                    ClanTag = c.Tag,
+                                    ClanSubmitRestriction = c.SubmitRestriction,
+                                    IsFWA = true,
+                                };
+
+                var myPlayer = myPlayerQ.SingleOrDefault();
+
+                if(myPlayer == null)
+                {
+                    var newPlayer = await api.GetPlayer(player.Tag);
+                    myPlayer = new MyPlayerModel
+                    {
+                        Name = newPlayer.Name,
+                        Tag = newPlayer.Tag,
+                        ClanName = newPlayer.ClanName,
+                        ClanTag = newPlayer.ClanTag,
+                        IsFWA = false
+                    };
+                }
+
+                myPlayers.Add(myPlayer);
+            }
+
+            var model = new MyPlayersViewModel { Players = myPlayers.OrderBy(p => p.Name).ToList() };
+
+            return View(model);
+        }
+
+
         [Route("Player/{id}")]
         public async Task<IActionResult> Details(string id)
         {

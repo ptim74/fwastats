@@ -1,0 +1,71 @@
+@model FWAStatsWeb.Models.PlayerViewModels.MyPlayersViewModel
+@using FWAStatsWeb.Logic
+
+@{
+    ViewBag.Title = "My players";
+    ViewBag.MetaRobots = "noindex, nofollow";
+}
+
+<ol class="breadcrumb">
+    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+    <li class="active">My Players</li>
+</ol>
+
+<h2>My Players</h2>
+
+<ul class="pagination">
+    <li><a asp-area="" asp-controller="Players" asp-action="Index">Search players</a></li>
+    <li class="active"><a asp-area="" asp-controller="Players" asp-action="My">My players</a></li>
+</ul>
+
+<table class="table table-hover table-responsive tablesorter">
+    <thead>
+        <tr>
+            <th>
+                Name
+            </th>
+            <th>
+                Clan
+            </th>
+            <th>
+                Submit Access
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var player in Model.Players)
+        {
+            <tr>
+                <td>
+                    <a asp-route-id="@player.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@player.Name</a>
+                </td>
+                <td>
+                    <a asp-route-id="@player.ClanLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@player.ClanName</a>
+                </td>
+                <td>
+                    @if (player.IsFWA)
+                    {
+                        <form asp-controller="Manage" asp-action="SubmitAccess" method="post" class="form-inline">
+                            <input asp-for="@player.ClanTag" name="ClanTag" type="hidden" />
+                            <input asp-for="@player.ClanName" name="ClanName" type="hidden" />
+                            <div class="input-group">
+                                <span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-pencil"></span></span>
+                                <select id="@player.ClanLinkID" asp-for="@player.ClanSubmitRestriction" asp-items="@Html.GetEnumSelectList(typeof(SubmitRestriction))" name="SubmitRestriction" class="form-control" aria-describedby="basic-addon1"></select>
+                                <span class="input-group-btn">
+                                    <button type="submit" class="btn btn-primary">Change</button>
+                                </span>
+                            </div>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-controller="Players" asp-action="NewLink" class="btn btn-default">Link new player</a>
+
+<div style="margin-top: 20px;" class="alert alert-info">
+    <strong>Info!</strong>
+    You can also link players if you click link on upper right corner in player details page.
+</div>

@@ -15,6 +15,7 @@ using System.Net;
 using Newtonsoft.Json;
 using FWAStatsWeb.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 
 namespace FWAStatsWeb.Controllers
 {
@@ -51,9 +52,9 @@ namespace FWAStatsWeb.Controllers
             this.submitService = submitService;
         }
 
-        protected IndexViewModel GetClanList()
+        protected IndexViewModel GetClanList(string userId = null)
         {
-            var clans = new IndexViewModel();
+            var clans = new IndexViewModel { IsMyClans = false };
 
             var clanQ = db.Clans.Select(c => new ClanIndexClan
             {
@@ -75,6 +76,18 @@ namespace FWAStatsWeb.Controllers
                 EstimatedWeight = c.EstimatedWeight
             });
 
+            if(!string.IsNullOrEmpty(userId))
+            {
+                var myClans = (from pc in db.PlayerClaims
+                              where pc.UserId == userId
+                              join m in db.Members on pc.Tag equals m.Tag
+                              select m.ClanTag).Distinct().ToList();
+
+                clanQ = clanQ.Where(c => myClans.Contains(c.Tag));
+
+                clans.IsMyClans = true;
+            }
+
             foreach (var clan in clanQ.OrderBy(c => c.Name.ToLower()))
             {
                 clans.Add(clan);
@@ -91,6 +104,18 @@ namespace FWAStatsWeb.Controllers
             var model =  GetClanList();
 
             return View(model);
+        }
+
+        [Authorize]
+        public async Task<ActionResult> My()
+        {
+            logger.LogInformation("My");
+
+            var user = await GetCurrentUserAsync();
+
+            var model = GetClanList(user.Id);
+
+            return View(nameof(Index), model);
         }
 
         public ActionResult Departed()

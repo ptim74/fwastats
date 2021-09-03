@@ -2,7 +2,7 @@
 @using FWAStatsWeb.Logic
 
 @{
-    ViewBag.Title = "Players";
+    ViewBag.Title = "Search players";
     ViewBag.MetaRobots = "noindex, nofollow";
 }
 
@@ -12,6 +12,11 @@
 </ol>
 
 <h2>Players</h2>
+
+<ul class="pagination">
+    <li class="active"><a asp-area="" asp-controller="Players" asp-action="Index">Search players</a></li>
+    <li><a asp-area="" asp-controller="Players" asp-action="My">My players</a></li>
+</ul>
 
 <form asp-action="Index" method="get">
     <div class="input-group" style="margin-bottom:20px;">

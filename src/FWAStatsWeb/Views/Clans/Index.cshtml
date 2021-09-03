@@ -1,21 +1,29 @@
 @model FWAStatsWeb.Models.ClanViewModels.IndexViewModel
 
 @{
-    ViewBag.Title = "Clans";
+    ViewBag.Title = Model.IsMyClans ? "My clans" : "Clans";
     ViewBag.MetaDescription = "List of clans in FWA, Farm War Alliance, Clash of Clans";
+    var activeClansClass = Model.IsMyClans ? "" : "active";
+    var myClansClass = Model.IsMyClans ? "active" : "";
+
 }
 
 <ol class="breadcrumb">
     <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-    <li class="active">Clans</li>
+    @if (Model.IsMyClans)
+    {
+        <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
+    }
+    <li class="active">@ViewBag.Title</li>
 </ol>
 
-<h2>Clans</h2>
+<h2>@ViewBag.Title</h2>
 
 <ul class="pagination">
-    <li class="active"><a asp-area="" asp-controller="Clans" asp-action="Index">Active</a></li>
+    <li class="@activeClansClass"><a asp-area="" asp-controller="Clans" asp-action="Index">Active</a></li>
     <li><a asp-area="" asp-controller="Clans" asp-action="Departed">Departed</a></li>
     <li><a asp-area="" asp-controller="Clans" asp-action="Following">Following</a></li>
+    <li class="@myClansClass"><a asp-area="" asp-controller="Clans" asp-action="My">My clans</a></li>
 </ul>
 
 <div class="input-group" style="margin-bottom:20px;">
@@ -74,56 +82,64 @@
     <tbody>
         @foreach (var clan in Model)
         {
-        <tr>
-            <td style="padding:0px;">
-                <img src="@clan.BadgeUrl" width="35" height="35" />
-            </td>
-            <td class="search">
-                <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => clan.Members)
-            </td>
-            <td>
-                @clan.Th14Count
-            </td>
-            <td>
-                @clan.Th13Count
-            </td>
-            <td>
-                @clan.Th12Count
-            </td>
-            <td>
-                @clan.Th11Count
-            </td>
-            <td>
-                @clan.Th10Count
-            </td>
-            <td>
-                @clan.Th9Count
-            </td>
-            <td>
-                @clan.Th8Count
-            </td>
-            <td>
-                @clan.ThLowCount
-            </td>
-            <td>
-                @clan.EstimatedWeight
-            </td>
-            <td>
-                @clan.WarCount
-            </td>
-            <td>
-                @clan.MatchPercentage
-            </td>
-            <td>
-                @clan.WinPercentage
-            </td>
-        </tr>
+            <tr>
+                <td style="padding:0px;">
+                    <img src="@clan.BadgeUrl" width="35" height="35" />
+                </td>
+                <td class="search">
+                    <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => clan.Members)
+                </td>
+                <td>
+                    @clan.Th14Count
+                </td>
+                <td>
+                    @clan.Th13Count
+                </td>
+                <td>
+                    @clan.Th12Count
+                </td>
+                <td>
+                    @clan.Th11Count
+                </td>
+                <td>
+                    @clan.Th10Count
+                </td>
+                <td>
+                    @clan.Th9Count
+                </td>
+                <td>
+                    @clan.Th8Count
+                </td>
+                <td>
+                    @clan.ThLowCount
+                </td>
+                <td>
+                    @clan.EstimatedWeight
+                </td>
+                <td>
+                    @clan.WarCount
+                </td>
+                <td>
+                    @clan.MatchPercentage
+                </td>
+                <td>
+                    @clan.WinPercentage
+                </td>
+            </tr>
         }
     </tbody>
 </table>
+
+@if (Model.IsMyClans)
+{
+    <div class="alert alert-info">
+        <strong>Note!</strong>
+        Showing only your clans in FWA.
+    </div>
+}
 
 @section scripts {
     <script type="text/javascript">
