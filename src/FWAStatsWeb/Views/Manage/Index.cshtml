@@ -29,6 +29,10 @@
             <div class="form-group">
                 <h5>Account actions:</h5>
                 <ul>
+                    @if (!Model.EmailConfirmed)
+                    {
+                        <li><a asp-controller="Manage" asp-action="VerifyEmail" class="text-info">Verify Email</a></li>
+                    }
                     @if (Model.HasPassword)
                     {
                         <li><a asp-controller="Manage" asp-action="ChangePassword" class="text-info">Change Password</a></li>

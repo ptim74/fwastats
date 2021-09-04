@@ -66,6 +66,7 @@ namespace FWAStatsWeb.Controllers
                 TwoFactor = await _userManager.GetTwoFactorEnabledAsync(user),
                 Logins = await _userManager.GetLoginsAsync(user),
                 BrowserRemembered = await _signInManager.IsTwoFactorClientRememberedAsync(user),
+                EmailConfirmed = await _userManager.IsEmailConfirmedAsync(user)
             };
             return View(model);
         }
@@ -148,6 +149,70 @@ namespace FWAStatsWeb.Controllers
                 _logger.LogInformation(2, "User disabled two-factor authentication.");
             }
             return RedirectToAction(nameof(Index), "Manage");
+        }
+
+        //
+        // GET: /Manage/VerifyEmail
+        [HttpGet]
+        public async Task<IActionResult> VerifyEmail()
+        {
+            var model = new VerifyEmailViewModel();
+            var user = await GetCurrentUserAsync();
+            if (user != null)
+            {
+                model.Email = user.Email;
+            }
+            return View(model);
+        }
+
+        //
+        // POST: /Manage/VerifyEmail
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VerifyEmail(VerifyEmailViewModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var user = await GetCurrentUserAsync();
+                if (user != null)
+                {
+                    if (user.EmailConfirmed)
+                    {
+                        ModelState.AddModelError(string.Empty, "Email is already confirmed.");
+                    }
+                    else if (user.Email != model.Email)
+                    {
+                        ModelState.AddModelError(string.Empty, "Email doesn't match with username. If you need to change your email address, please delete this account and create a new one with correct email address.");
+                    }
+                    else
+                    {
+                        // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=532713
+                        // Send an email with this link
+                        var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                        var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: HttpContext.Request.Scheme);
+                        await _emailSender.SendEmailAsync(model.Email, "Confirm your account",
+                            $"Please confirm your email address by clicking this link: <a href='{callbackUrl}'>link</a>");
+                        return View(nameof(VerifyEmailConfirmation));
+                    }
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, "Failed to find current user.");
+                }
+            }
+            
+            // If we got this far, something failed, redisplay the form
+            //ModelState.AddModelError(string.Empty, "Failed to verify email");
+            return View(model);
+        }
+
+        //
+        // GET: /Manage/VerifyEmailConfirmation
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult VerifyEmailConfirmation()
+        {
+            return View();
         }
 
         //

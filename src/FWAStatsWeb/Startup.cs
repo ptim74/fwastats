@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Hosting;
 using Microsoft.AspNetCore.DataProtection;
 using System.IO;
+using Microsoft.AspNetCore.HttpOverrides;
 //using Microsoft.Extensions.Hosting;
 
 namespace FWAStatsWeb
@@ -125,6 +126,12 @@ namespace FWAStatsWeb
             services.AddMemoryCache();
 
             services.AddHttpClient();
+
+            services.Configure<ForwardedHeadersOptions>(options =>
+            {
+                options.ForwardedHeaders =
+                    ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -137,16 +144,13 @@ namespace FWAStatsWeb
                 app.UseDeveloperExceptionPage();
                 app.UseDatabaseErrorPage();
             }
-            else if(env.IsStaging())
-            {
-                app.UseDeveloperExceptionPage();
-                app.UseStatusCodePagesWithReExecute("/Home/Error/{0}");
-            }
             else
             {
                 app.UseExceptionHandler("/Home/Error");
                 app.UseStatusCodePagesWithReExecute("/Home/Error/{0}");
             }
+
+            app.UseForwardedHeaders();
 
             app.UseStaticFiles();
 

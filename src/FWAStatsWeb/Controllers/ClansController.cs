@@ -1216,16 +1216,7 @@ namespace FWAStatsWeb.Controllers
 
         protected string GetIpAddr()
         {
-            var ipAddr = this.HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-            if (string.IsNullOrEmpty(ipAddr))
-            {
-                var originalFor = this.HttpContext.Request.Headers["X-Original-For"].FirstOrDefault();
-                if (originalFor != null && originalFor.Contains(":"))
-                    ipAddr = originalFor.Split(':').FirstOrDefault();
-            }
-            if (string.IsNullOrEmpty(ipAddr))
-                ipAddr = "127.0.0.1";
-            return ipAddr;
+            return this.HttpContext.Connection.RemoteIpAddress.ToString();
         }
 
         protected string GetGa()
