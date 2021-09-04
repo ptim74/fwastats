@@ -53,25 +53,25 @@
             <div class="col">
                 <div class="row">
                     <div class="col-xs-6 col-sm-3"><b>ExpLevel:</b></div>
-                    <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Player.ExpLevel)</b></div>
+                    <div class="col-xs-6 col-sm-3"><b>@Model.Player.ExpLevel</b></div>
                     <div class="col-xs-6 col-sm-3"><b>Trophies:</b></div>
-                    <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Player.Trophies)</b></div>
+                    <div class="col-xs-6 col-sm-3"><b>@Model.Player.Trophies</b></div>
                     <div class="col-xs-6 col-sm-3"><b>Donations:</b></div>
-                    <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Player.Donations)</b></div>
+                    <div class="col-xs-6 col-sm-3"><b>@Model.Player.Donations</b></div>
                     <div class="col-xs-6 col-sm-3"><b>Received:</b></div>
-                    <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Player.DonationsReceived)</b></div>
+                    <div class="col-xs-6 col-sm-3"><b>@Model.Player.DonationsReceived</b></div>
                     <div class="col-xs-6 col-sm-3"><b>AttackWins:</b></div>
-                    <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Player.AttackWins)</b></div>
+                    <div class="col-xs-6 col-sm-3"><b>@Model.Player.AttackWins</b></div>
                     <div class="col-xs-6 col-sm-3"><b>DefenseWins:</b></div>
-                    <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Player.DefenseWins)</b></div>
+                    <div class="col-xs-6 col-sm-3"><b>@Model.Player.DefenseWins</b></div>
                     <div class="col-xs-6 col-sm-3"><b>BestTrophies:</b></div>
-                    <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Player.BestTrophies)</b></div>
+                    <div class="col-xs-6 col-sm-3"><b>@Model.Player.BestTrophies</b></div>
                     <div class="col-xs-6 col-sm-3"><b>TownHallLevel:</b></div>
-                    <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Player.TownHallLevel)</b></div>
+                    <div class="col-xs-6 col-sm-3"><b>@Model.Player.TownHallLevel</b></div>
                     <div class="col-xs-6 col-sm-3"><b>WarStars:</b></div>
-                    <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Player.WarStars)</b></div>
+                    <div class="col-xs-6 col-sm-3"><b>@Model.Player.WarStars</b></div>
                     <div class="col-xs-6 col-sm-3"><b>Role:</b></div>
-                    <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Player.RoleName)</b></div>
+                    <div class="col-xs-6 col-sm-3"><b>@Model.Player.RoleName</b></div>
                 </div>
             </div>
         </div>
@@ -103,12 +103,8 @@
                     @foreach (var hero in Model.Player.Heroes)
                     {
                         <tr>
-                            <td>
-                                @Html.DisplayFor(modelItem => hero.Name)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => hero.Level)
-                            </td>
+                            <td>@hero.Name</td>
+                            <td>@hero.Level</td>
                         </tr>
                     }
                 </tbody>
@@ -130,12 +126,8 @@
                     @foreach (var troop in Model.Player.Troops)
                     {
                         <tr>
-                            <td>
-                                @Html.DisplayFor(modelItem => troop.Name)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => troop.Level)
-                            </td>
+                            <td>@troop.Name (@troop.Village)</td>
+                            <td>@troop.Level</td>
                          </tr>
                     }
                 </tbody>
@@ -157,12 +149,8 @@
                     @foreach (var troop in Model.Player.Spells)
                     {
                         <tr>
-                            <td>
-                                @Html.DisplayFor(modelItem => troop.Name)
-                            </td>
-                            <td>
-                                @Html.DisplayFor(modelItem => troop.Level)
-                            </td>
+                            <td>@troop.Name</td>
+                            <td>@troop.Level</td>
                         </tr>
                     }
                 </tbody>
@@ -184,13 +172,15 @@
                             <td>
                                 @if (string.IsNullOrEmpty(achievement.CompletionInfo))
                                 {
-                                    @Html.DisplayFor(modelItem => achievement.Name)
-                                    <text>:</text>
-                                    @Html.DisplayFor(modelItem => achievement.Info)
+                                    @achievement.Name<text>: </text>@achievement.Info
+                                }
+                                else if (achievement.CompletionInfo == "Completed!")
+                                {
+                                    @achievement.Info<text>: </text>@achievement.CompletionInfo
                                 }
                                 else
                                 {
-                                    @Html.DisplayFor(modelItem => achievement.CompletionInfo)
+                                    @achievement.CompletionInfo
                                 }
                             </td>
                         </tr>
