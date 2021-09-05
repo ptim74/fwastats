@@ -1187,7 +1187,7 @@ namespace FWAStatsWeb.Controllers
                 {
                     if (CheckSubmitChanges(tag, DateTime.UtcNow.AddDays(-1)) > 100)
                     {
-                        ViewData["Message"] = "You have modified enough weights for today. Please login and link your player tags if you need to modify weights for more than one clan.";
+                        ViewData["Message"] = "Unable to save weights. Please contact HelpDesk.";
                         ViewData["ClanLink"] = clan.LinkID;
                         logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges");
                         return View("WeightError");
