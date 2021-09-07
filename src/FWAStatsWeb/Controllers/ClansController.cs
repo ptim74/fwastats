@@ -1185,11 +1185,33 @@ namespace FWAStatsWeb.Controllers
 
                 if (clan.SubmitRestriction == SubmitRestriction.Anyone && playerAccessLevel == 0)
                 {
-                    if (CheckSubmitChanges(tag, DateTime.UtcNow.AddDays(-1)) > 100)
+                    var dailyChanges = CheckSubmitChanges(tag, DateTime.UtcNow.AddDays(-1));
+                    var dailyChangesLimit = 100;
+                    if (dailyChanges >= dailyChangesLimit)
                     {
                         ViewData["Message"] = "Unable to save weights. Please contact HelpDesk.";
                         ViewData["ClanLink"] = clan.LinkID;
-                        logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges");
+                        logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {0}/{1}", dailyChanges, dailyChangesLimit);
+                        return View("WeightError");
+                    }
+
+                    var weeklyChanges = CheckSubmitChanges(tag, DateTime.UtcNow.AddDays(-7));
+                    var weeklyChangesLimit = 200;
+                    if (weeklyChanges >= weeklyChangesLimit)
+                    {
+                        ViewData["Message"] = "Unable to save weights. Please contact HelpDesk.";
+                        ViewData["ClanLink"] = clan.LinkID;
+                        logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {0}/{1}", weeklyChanges, weeklyChangesLimit);
+                        return View("WeightError");
+                    }
+
+                    var monthlyChanges = CheckSubmitChanges(tag, DateTime.UtcNow.AddDays(-30));
+                    var monthlyChangesLimit = 300;
+                    if (monthlyChanges >= monthlyChangesLimit)
+                    {
+                        ViewData["Message"] = "Unable to save weights. Please contact HelpDesk.";
+                        ViewData["ClanLink"] = clan.LinkID;
+                        logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {0}/{1}", monthlyChanges, monthlyChangesLimit);
                         return View("WeightError");
                     }
                 }
