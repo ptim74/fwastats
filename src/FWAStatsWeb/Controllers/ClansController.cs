@@ -1260,7 +1260,7 @@ namespace FWAStatsWeb.Controllers
                 .Select(l => l.Changes)
                 .Sum();
 
-            if(string.IsNullOrEmpty(cookie))
+            if(!string.IsNullOrEmpty(cookie))
             {
                 var changes2 = db.SubmitLogs
                 .Where(l => l.Cookie == cookie && l.Modified > since)
