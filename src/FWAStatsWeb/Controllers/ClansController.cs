@@ -1188,7 +1188,7 @@ namespace FWAStatsWeb.Controllers
                     //var monthlyChanges = CheckSubmitChanges(tag, DateTime.UtcNow.AddDays(-30));
                     //var monthlyChangesLimit = 300;
                     var monthlyChanges = CheckSubmittedClans(tag, DateTime.UtcNow.AddDays(-30));
-                    var monthlyChangesLimit = 6;
+                    var monthlyChangesLimit = 7;
                     if (monthlyChanges >= monthlyChangesLimit)
                     {
                         ViewData["Message"] = "You have reached the monthly weight submit limit. Please try again later.";
@@ -1200,7 +1200,7 @@ namespace FWAStatsWeb.Controllers
                     //var weeklyChanges = CheckSubmitChanges(tag, DateTime.UtcNow.AddDays(-7));
                     //var weeklyChangesLimit = 200;
                     var weeklyChanges = CheckSubmittedClans(tag, DateTime.UtcNow.AddDays(-7));
-                    var weeklyChangesLimit = 4;
+                    var weeklyChangesLimit = 5;
                     if (monthlyChanges != -1 && weeklyChanges >= weeklyChangesLimit)
                     {
                         ViewData["Message"] = "You have reached the weekly weight submit limit. Please try again in couple of days.";
@@ -1212,10 +1212,20 @@ namespace FWAStatsWeb.Controllers
                     //var dailyChanges = CheckSubmitChanges(tag, DateTime.UtcNow.AddDays(-1));
                     //var dailyChangesLimit = 100;
                     var dailyChanges = CheckSubmittedClans(tag, DateTime.UtcNow.AddDays(-1));
-                    var dailyChangesLimit = 2;
+                    var dailyChangesLimit = 3;
                     if (monthlyChanges != -1 && dailyChanges >= dailyChangesLimit)
                     {
                         ViewData["Message"] = "You have reached the daily weight submit limit. Please try again tomorrow.";
+                        ViewData["ClanLink"] = clan.LinkID;
+                        logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {0}/{1}", dailyChanges, dailyChangesLimit);
+                        return View("WeightError");
+                    }
+
+                    var hourlyChanges = CheckSubmittedClans(tag, DateTime.UtcNow.AddHours(-1));
+                    var hourlyChangesLimit = 1;
+                    if (monthlyChanges != -1 && hourlyChanges >= hourlyChangesLimit)
+                    {
+                        ViewData["Message"] = "You have reached the hourly weight submit limit. Please try again after an hour.";
                         ViewData["ClanLink"] = clan.LinkID;
                         logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {0}/{1}", dailyChanges, dailyChangesLimit);
                         return View("WeightError");
@@ -1302,25 +1312,25 @@ namespace FWAStatsWeb.Controllers
                     return -1;
             }
 
-            var otherSubmits = db.SubmitLogs
-               .Where(l => l.IpAddr == ipAddr && l.Modified > since && l.Tag != tag)
+            var allSubmits = db.SubmitLogs
+               .Where(l => l.IpAddr == ipAddr && l.Modified > since)
                .Select(l => l.Tag)
                .Distinct()
                .Count();
 
             if (!string.IsNullOrEmpty(cookie))
             {
-                var otherSubmitsByCookie = db.SubmitLogs
-                    .Where(l => l.Cookie == cookie && l.Modified > since && l.Tag != tag)
+                var allSubmitsByCookie = db.SubmitLogs
+                    .Where(l => l.Cookie == cookie && l.Modified > since)
                     .Select(l => l.Tag)
                     .Distinct()
                     .Count();
 
-                if (otherSubmitsByCookie > otherSubmits)
-                    otherSubmits = otherSubmitsByCookie;
+                if (allSubmitsByCookie > allSubmits)
+                    allSubmits = allSubmitsByCookie;
             }
 
-            return otherSubmits;
+            return allSubmits;
         }
 
         [Route("Clan/{id}/Donations")]
