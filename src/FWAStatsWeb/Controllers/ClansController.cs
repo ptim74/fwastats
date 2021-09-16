@@ -1227,7 +1227,7 @@ namespace FWAStatsWeb.Controllers
                     {
                         ViewData["Message"] = "You have reached the hourly weight submit limit. Please try again after an hour.";
                         ViewData["ClanLink"] = clan.LinkID;
-                        logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {0}/{1}", dailyChanges, dailyChangesLimit);
+                        logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {0}/{1}", hourlyChanges, hourlyChangesLimit);
                         return View("WeightError");
                     }
                 }
