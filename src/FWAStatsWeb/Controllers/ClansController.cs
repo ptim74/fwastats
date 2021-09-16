@@ -1185,33 +1185,39 @@ namespace FWAStatsWeb.Controllers
 
                 if (clan.SubmitRestriction == SubmitRestriction.Anyone && playerAccessLevel == 0)
                 {
-                    var dailyChanges = CheckSubmitChanges(tag, DateTime.UtcNow.AddDays(-1));
-                    var dailyChangesLimit = 100;
-                    if (dailyChanges >= dailyChangesLimit)
+                    //var monthlyChanges = CheckSubmitChanges(tag, DateTime.UtcNow.AddDays(-30));
+                    //var monthlyChangesLimit = 300;
+                    var monthlyChanges = CheckSubmittedClans(tag, DateTime.UtcNow.AddDays(-30));
+                    var monthlyChangesLimit = 6;
+                    if (monthlyChanges >= monthlyChangesLimit)
                     {
-                        ViewData["Message"] = "Unable to save weights. Please contact HelpDesk.";
+                        ViewData["Message"] = "You have reached the monthly weight submit limit. Please try again later.";
                         ViewData["ClanLink"] = clan.LinkID;
-                        logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {0}/{1}", dailyChanges, dailyChangesLimit);
+                        logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {0}/{1}", monthlyChanges, monthlyChangesLimit);
                         return View("WeightError");
                     }
 
-                    var weeklyChanges = CheckSubmitChanges(tag, DateTime.UtcNow.AddDays(-7));
-                    var weeklyChangesLimit = 200;
-                    if (weeklyChanges >= weeklyChangesLimit)
+                    //var weeklyChanges = CheckSubmitChanges(tag, DateTime.UtcNow.AddDays(-7));
+                    //var weeklyChangesLimit = 200;
+                    var weeklyChanges = CheckSubmittedClans(tag, DateTime.UtcNow.AddDays(-7));
+                    var weeklyChangesLimit = 4;
+                    if (monthlyChanges != -1 && weeklyChanges >= weeklyChangesLimit)
                     {
-                        ViewData["Message"] = "Unable to save weights. Please contact HelpDesk.";
+                        ViewData["Message"] = "You have reached the weekly weight submit limit. Please try again in couple of days.";
                         ViewData["ClanLink"] = clan.LinkID;
                         logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {0}/{1}", weeklyChanges, weeklyChangesLimit);
                         return View("WeightError");
                     }
 
-                    var monthlyChanges = CheckSubmitChanges(tag, DateTime.UtcNow.AddDays(-30));
-                    var monthlyChangesLimit = 300;
-                    if (monthlyChanges >= monthlyChangesLimit)
+                    //var dailyChanges = CheckSubmitChanges(tag, DateTime.UtcNow.AddDays(-1));
+                    //var dailyChangesLimit = 100;
+                    var dailyChanges = CheckSubmittedClans(tag, DateTime.UtcNow.AddDays(-1));
+                    var dailyChangesLimit = 2;
+                    if (monthlyChanges != -1 && dailyChanges >= dailyChangesLimit)
                     {
-                        ViewData["Message"] = "Unable to save weights. Please contact HelpDesk.";
+                        ViewData["Message"] = "You have reached the daily weight submit limit. Please try again tomorrow.";
                         ViewData["ClanLink"] = clan.LinkID;
-                        logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {0}/{1}", monthlyChanges, monthlyChangesLimit);
+                        logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {0}/{1}", dailyChanges, dailyChangesLimit);
                         return View("WeightError");
                     }
                 }
@@ -1272,6 +1278,49 @@ namespace FWAStatsWeb.Controllers
             }
 
             return changes;
+        }
+
+        protected int CheckSubmittedClans(string tag, DateTime since)
+        {
+            var ipAddr = GetIpAddr();
+            var cookie = GetGa();
+
+            var clanSubmitsByIp = db.SubmitLogs
+                .Where(l => l.IpAddr == ipAddr && l.Modified > since && l.Tag == tag )
+                .Count();
+
+            if (clanSubmitsByIp > 0) //Resubmit of same clan allowed
+                return -1;
+
+            if (!string.IsNullOrEmpty(cookie))
+            {
+                var clanSubmitsByCookie = db.SubmitLogs
+                .Where(l => l.Cookie == cookie && l.Modified > since && l.Tag == tag)
+                .Count();
+
+                if (clanSubmitsByCookie > 0) //Resubmit of same clan allowed
+                    return -1;
+            }
+
+            var otherSubmits = db.SubmitLogs
+               .Where(l => l.IpAddr == ipAddr && l.Modified > since && l.Tag != tag)
+               .Select(l => l.Tag)
+               .Distinct()
+               .Count();
+
+            if (!string.IsNullOrEmpty(cookie))
+            {
+                var otherSubmitsByCookie = db.SubmitLogs
+                    .Where(l => l.Cookie == cookie && l.Modified > since && l.Tag != tag)
+                    .Select(l => l.Tag)
+                    .Distinct()
+                    .Count();
+
+                if (otherSubmitsByCookie > otherSubmits)
+                    otherSubmits = otherSubmitsByCookie;
+            }
+
+            return otherSubmits;
         }
 
         [Route("Clan/{id}/Donations")]

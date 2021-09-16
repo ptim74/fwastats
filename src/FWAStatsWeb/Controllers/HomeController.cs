@@ -236,6 +236,13 @@ namespace FWAStatsWeb.Controllers
             return View();
         }
 
+        //default 24h cache
+        public IActionResult SubmitLimits()
+        {
+            logger.LogInformation("SubmitLimits");
+            return View();
+        }
+
         //[ResponseCache(Duration = Constants.CACHE_MIN)]
         public IActionResult Ping()
         {

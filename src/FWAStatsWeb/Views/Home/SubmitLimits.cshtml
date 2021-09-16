@@ -1,0 +1,113 @@
+﻿
+@{
+    ViewBag.Title = "Submit Limits";
+}
+
+<ol class="breadcrumb">
+    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+    <li class="active">Submit Limits</li>
+</ol>
+
+<h2>Submit Limits</h2>
+
+
+<h3>Why there are submit limits?</h3>
+
+<p>A few bad apples have abused the system and submitted a lot of clans in a short period of time.</p>
+<p>We added some limitations on how many changes one person can do within a time period.</p>
+<p>Having limits caused a problem that the limits may be too low for some people.</p>
+<p>That's why we added login-option and player linking to FWA stats.</p>
+<p>When you have proven that you own a player in the clan, then the limits don't affect you.</p>
+<p>We also introduced a feature that allows clan leaders and co-leaders to specify who is allowed to submit weights of their clan.</p>
+
+
+<h3>What I need to do submit my clan weights?</h3>
+
+<p>
+    If you are a representative of 1-2 FWA clans, you probably don't need to do anything,
+    but having more clans than that may hit the submit limits and require you to login and link your players.
+</p>
+<p>
+    There is no limit of how many players you can link,
+    for example if you have linked player in 10 different clan,
+    then you can submit weights of those 10 clans as often you want,
+    assuming that your clan leaders have not restricted submitting for higher rank than your player is.
+</p>
+<p>
+    For example, if your clan leaders have restricted submitting only for leader and co-leaders,
+    then you can't submit weights if your player is only member or elder.
+</p>
+
+
+<h3>How can I create a login account?</h3>
+
+<p>There is a <a asp-area="" asp-controller="Account" asp-action="Login">Login</a>-button in the menu.</p>
+<p>In <a asp-area="" asp-controller="Account" asp-action="Login">Login</a>-page there is <a asp-area="" asp-controller="Account" asp-action="Register">Register Here</a>-link.</p>
+<p>In <a asp-area="" asp-controller="Account" asp-action="Register">Register</a>-page you need to fill email address and password.</p>
+
+
+<h3>How can I change my password or delete my account?</h3>
+
+<p>You can do both from <a asp-area="" asp-controller="Manage" asp-action="Index">Manage my account</a>-page.</p>
+
+
+<h3>How do I link my players?</h3>
+
+<p>You first need to be logged in, click <a asp-area="" asp-controller="Account" asp-action="Login">Login</a> if you are not logged in.</p>
+<p>Browse to your clan page and click name of your player.</p>
+<p>There is a link icon on the upper right corner of player page, click that.</p>
+<p>On <a asp-area="" asp-controller="Players" asp-action="Link">Link Player</a>-page you see a form with "Player Tag" and "API Token".</p>
+<p>"Player Tag" should be prefilled if you clicked the link from player-page.</p>
+<p>For the "API Token" you need to open "Clash of Clans"-game and go to "Settings"-page.</p>
+<p>Click "More Settings"-button on "Settings"-page.</p>
+<p>On the bottom of "More Settings"-page you should see "Show"-button under "API Token"-section.</p>
+<p>Click "Show" button and either write the token down, or click "Copy"-button to copy the value to clipboard.</p>
+<p>Back in "Link Player"-page in FWA Stats fill the "API Token"-field and click "Link".</p>
+<p>You should now see the linked player in <a asp-area="" asp-controller="Players" asp-action="My">My Players</a>-page.</p>
+
+
+<h3>What I can do to protect submitting of my clan weights?</h3>
+
+<p>You should be logged in and have linked your player.</p>
+<p>In <a asp-area="" asp-controller="Clans" asp-action="My">My Clans</a>-page you should see a list of your FWA clans.</p>
+<p>You should see a "Submit Access"-field next to your clan name.</p>
+<p>Members and elders of your clan can only see the field, but co-leaders and leader can change the value.</p>
+<p>By default submit access is set to "Anyone", which means that anyone can submit weights of your clan, even when they are not logged in.</p>
+<p>Leader or co-leader can change submit access to clan members only and optionally require a specific rank.</p>
+<p>If rank is set to elders, then members can't submit weights, but elders, co-leaders and leader can.</p>
+<p>If leader has set the submit access to leader-only, then co-leaders are not allowed to change submit access or submit weights.</p>
+
+
+<h3>I forgot my password and can't login, what can I do?</h3>
+
+<p>In <a asp-area="" asp-controller="Account" asp-action="ForgotPassword">Forgot Password</a>-page you can send a recovery link to your email-address.</p>
+<p>With the recovery link you can change your password.</p>
+<p>If you have lost access to your email-address, then you can create a new login account with a different email-address and relink your players under that account.</p>
+
+
+<h3>My friend borrowed my phone and linked my player to his/her email-address, what can I do?</h3>
+
+<p>When you get your phone back, you can always relink your player back to your account.</p>
+
+
+<h3>What if I prefer to stay anonymous and don't want to login with my email-address?</h3>
+
+<p>If you reach the submit limit on one day, you can try again next day.</p>
+
+<p>
+    The email-address in <a asp-area="" asp-controller="Account" asp-action="Register">Register</a>-page doesn't have to be a real email-address.
+    You can for example use fwastats.com-domain if you don't want to use your own email-address.
+    You only lose the option to recover your account if you have lost your password when not using real email-address.
+    But if you choose to use a wrong email-address, please be sure that it doesn't belong to someone else.
+</p>
+
+
+<h3>Are there going to be more restrictions?</h3>
+
+<p>Maybe.</p>
+<p>
+    We are currently monitoring both the abuse and the problems caused by the limits.
+    The exact limits are subject to change.
+    The limits we have created are not bullet proof, it is still possible to abuse the system.
+    We have been thinking of making login mandatory for submitting weights.
+</p>
