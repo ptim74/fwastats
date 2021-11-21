@@ -1,0 +1,104 @@
+﻿parameters:
+- name: environmentName
+  default: FWAStats
+- name: resourceType
+  default: VirtualMachine
+- name: vmImage
+  default: ubuntu-latest
+- name: dotnetVersion
+  default: '6.0.x'
+- name: confuguration
+  default: 'Release'
+- name: architecture
+  default: 'linux-x86'
+- name: selfContained
+  default: 'false'
+- name: artifactName
+  default: 'FWAStatsWeb'
+- name: destinationFolder
+  default: '~/fwastats'
+- name: serviceName
+  default: 'fwastats.service'
+- name: testUrl
+  default: 'http://localhost:5000/update'
+
+stages:
+- stage: Build
+  pool:
+    vmImage: ${{parameters.vmImage}}
+  jobs:
+  - job: 'Build_Job'
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Install .NET Core SDK'
+      inputs:
+        version: ${{parameters.dotnetVersion}}
+    - task: DotNetCoreCLI@2
+      displayName: 'dotnet restore'
+      inputs:
+        command: 'restore'
+    - task: DotNetCoreCLI@2
+      displayName: 'dotnet build'
+      inputs:
+        command: 'build'
+        projects: '**/*.csproj'
+        arguments: '--configuration ${{parameters.confuguration}} -r ${{parameters.architecture}} --self-contained ${{parameters.selfContained}}'
+    - task: DotNetCoreCLI@2
+      displayName: 'dotnet publish'
+      inputs:
+        command: publish
+        publishWebProjects: True
+        arguments: '--configuration ${{parameters.confuguration}} -r ${{parameters.architecture}} --self-contained ${{parameters.selfContained}} --output $(Build.ArtifactStagingDirectory)'
+        zipAfterPublish: True
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)' 
+        artifactName: '${{parameters.artifactName}}'
+
+- stage: Deploy
+  jobs:
+  - deployment: 'Deploy_Job'
+    environment:
+      name: ${{parameters.environmentName}}
+      resourceType: ${{parameters.resourceType}}
+    workspace:
+      clean: true
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: ExtractFiles@1
+            displayName: 'Extract files'
+            inputs:
+              archiveFilePatterns: '$(Pipeline.Workspace)/${{parameters.artifactName}}/*.zip'
+              destinationFolder: '${{parameters.destinationFolder}}'
+              cleanDestinationFolder: false
+              overwriteExistingFiles: true
+          - task: FileTransform@1
+            displayName: 'Transform Appsettings'
+            inputs:
+              folderPath: '${{parameters.destinationFolder}}'
+              fileType: json
+              targetFiles: '**/appsettings.Sample.json'
+          - task: Bash@3
+            displayName: 'Bash Script'
+            inputs:
+              targetType: 'inline'
+              script: |
+                echo Copying Configuration
+                cp ${{parameters.destinationFolder}}/appsettings.Sample.json ${{parameters.destinationFolder}}/appsettings.Production.json
+                
+                echo Restarting Service
+                sudo systemctl restart ${{parameters.serviceName}}
+                
+                echo Checking Service Status
+                sudo systemctl status ${{parameters.serviceName}}
+                
+                echo Wait 5 Seconds
+                ping -c 5 localhost > /dev/null
+                
+                echo Test URL
+                wget -O /dev/null ${{parameters.testUrl}}
+                
+                echo Deployment Ended
+            
