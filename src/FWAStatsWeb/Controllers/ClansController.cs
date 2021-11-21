@@ -1259,35 +1259,10 @@ namespace FWAStatsWeb.Controllers
 
         protected string GetGa()
         {
-            var ga = string.Empty;
-            this.HttpContext.Request.Cookies.TryGetValue("_ga", out ga);
+            this.HttpContext.Request.Cookies.TryGetValue("_ga", out string ga);
             if (!string.IsNullOrEmpty(ga))
-                ga = ga.Substring(6); //remove GA1.x prefix
+                ga = ga[6..]; //remove GA1.x prefix
             return ga;
-        }
-
-        protected int CheckSubmitChanges(string tag, DateTime since)
-        {
-            var ipAddr = GetIpAddr();
-            var cookie = GetGa();
-
-            var changes = db.SubmitLogs
-                .Where(l => l.IpAddr == ipAddr && l.Modified > since)
-                .Select(l => l.Changes)
-                .Sum();
-
-            if(!string.IsNullOrEmpty(cookie))
-            {
-                var changes2 = db.SubmitLogs
-                .Where(l => l.Cookie == cookie && l.Modified > since)
-                .Select(l => l.Changes)
-                .Sum();
-
-                if (changes2 > changes)
-                    return changes2;
-            }
-
-            return changes;
         }
 
         protected int CheckSubmittedClans(string tag, DateTime since)

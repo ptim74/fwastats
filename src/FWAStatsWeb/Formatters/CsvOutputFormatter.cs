@@ -35,12 +35,12 @@ namespace FWAStatsWeb.Formatters
         {
 
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentNullException(nameof(type));
 
             return IsTypeOfIEnumerable(type);
         }
 
-        private bool IsTypeOfIEnumerable(Type type)
+        private static bool IsTypeOfIEnumerable(Type type)
         {
 
             foreach (Type interfaceType in type.GetInterfaces())
@@ -53,7 +53,7 @@ namespace FWAStatsWeb.Formatters
             return false;
         }
 
-        private Type GetEnumerableType(Type type)
+        private static Type GetEnumerableType(Type type)
         {
             foreach (Type intType in type.GetInterfaces())
             {
@@ -73,7 +73,7 @@ namespace FWAStatsWeb.Formatters
             Type type = context.Object.GetType();
             Type itemType = GetEnumerableType(type);
 
-            StringWriter _stringWriter = new StringWriter();
+            StringWriter _stringWriter = new();
 
             if (_options.UseSingleLineHeaderInCsv)
             {
@@ -104,15 +104,15 @@ namespace FWAStatsWeb.Formatters
                     {
                         string _val = String.Empty;
 
-                        if (val.Value is double)
-                            _val = ((double)val.Value).ToString(System.Globalization.CultureInfo.InvariantCulture);
-                        else if (val.Value is DateTime)
-                            _val = ((DateTime)val.Value).ToString("yyyy-MM-dd");
+                        if (val.Value is double doubleValue)
+                            _val = doubleValue.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                        else if (val.Value is DateTime timeValue)
+                            _val = timeValue.ToString("yyyy-MM-dd");
                         else
                             _val = val.Value.ToString();
 
                         //Check if quotes needed
-                        if (_val.Contains(",") || _val.Contains("\r") || _val.Contains("\n") || _val.Contains("\""))
+                        if (_val.Contains(',') || _val.Contains('\r') || _val.Contains('\n') || _val.Contains('"'))
                         {
                             //Double quote quotes
                             _val = _val.Replace("\"", "\"\"");

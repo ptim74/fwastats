@@ -25,7 +25,7 @@ namespace FWAStatsWeb.Formatters
         {
             var type = context.ModelType;
             var request = context.HttpContext.Request;
-            MediaTypeHeaderValue.TryParse(request.ContentType, out MediaTypeHeaderValue requestContentType);
+            //MediaTypeHeaderValue.TryParse(request.ContentType, out MediaTypeHeaderValue requestContentType);
 
             var result = ReadStream(type, request.Body);
             return InputFormatterResult.SuccessAsync(result);
@@ -35,12 +35,12 @@ namespace FWAStatsWeb.Formatters
         {
             var type = context.ModelType;
             if (type == null)
-                throw new ArgumentNullException("type");
+                throw new ArgumentException(nameof(type));
 
             return IsTypeOfIEnumerable(type);
         }
 
-        private bool IsTypeOfIEnumerable(Type type)
+        private static bool IsTypeOfIEnumerable(Type type)
         {
 
             foreach (Type interfaceType in type.GetInterfaces())

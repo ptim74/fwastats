@@ -20,7 +20,7 @@ namespace FWAStatsWeb.Models
                 if (string.IsNullOrEmpty(ret))
                     ret = Error.ToString();
                 else
-                    ret = $"{ret}, {Error.ToString()}";
+                    ret = $"{ret}, {Error}";
             }
 
             return ret;

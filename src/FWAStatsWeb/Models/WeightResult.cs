@@ -239,117 +239,66 @@ namespace FWAStatsWeb.Models
                     Base50 = weight;
                     break;
                 default:
-                    throw new ArgumentOutOfRangeException("n");
+                    throw new ArgumentOutOfRangeException(nameof(n));
             }
         }
 
         public int GetBase(int n)
         {
-            switch (n)
+            return n switch
             {
-                case 1:
-                    return Base01;
-                case 2:
-                    return Base02;
-                case 3:
-                    return Base03;
-                case 4:
-                    return Base04;
-                case 5:
-                    return Base05;
-                case 6:
-                    return Base06;
-                case 7:
-                    return Base07;
-                case 8:
-                    return Base08;
-                case 9:
-                    return Base09;
-                case 10:
-                    return Base10;
-                case 11:
-                    return Base11;
-                case 12:
-                    return Base12;
-                case 13:
-                    return Base13;
-                case 14:
-                    return Base14;
-                case 15:
-                    return Base15;
-                case 16:
-                    return Base16;
-                case 17:
-                    return Base17;
-                case 18:
-                    return Base18;
-                case 19:
-                    return Base19;
-                case 20:
-                    return Base20;
-                case 21:
-                    return Base21;
-                case 22:
-                    return Base22;
-                case 23:
-                    return Base23;
-                case 24:
-                    return Base24;
-                case 25:
-                    return Base25;
-                case 26:
-                    return Base26;
-                case 27:
-                    return Base27;
-                case 28:
-                    return Base28;
-                case 29:
-                    return Base29;
-                case 30:
-                    return Base30;
-                case 31:
-                    return Base31;
-                case 32:
-                    return Base32;
-                case 33:
-                    return Base33;
-                case 34:
-                    return Base34;
-                case 35:
-                    return Base35;
-                case 36:
-                    return Base36;
-                case 37:
-                    return Base37;
-                case 38:
-                    return Base38;
-                case 39:
-                    return Base39;
-                case 40:
-                    return Base40;
-                case 41:
-                    return Base41;
-                case 42:
-                    return Base42;
-                case 43:
-                    return Base43;
-                case 44:
-                    return Base44;
-                case 45:
-                    return Base45;
-                case 46:
-                    return Base46;
-                case 47:
-                    return Base47;
-                case 48:
-                    return Base48;
-                case 49:
-                    return Base49;
-                case 50:
-                    return Base50;
-                default:
-                    throw new ArgumentOutOfRangeException("n");
-            }
+                1 => Base01,
+                2 => Base02,
+                3 => Base03,
+                4 => Base04,
+                5 => Base05,
+                6 => Base06,
+                7 => Base07,
+                8 => Base08,
+                9 => Base09,
+                10 => Base10,
+                11 => Base11,
+                12 => Base12,
+                13 => Base13,
+                14 => Base14,
+                15 => Base15,
+                16 => Base16,
+                17 => Base17,
+                18 => Base18,
+                19 => Base19,
+                20 => Base20,
+                21 => Base21,
+                22 => Base22,
+                23 => Base23,
+                24 => Base24,
+                25 => Base25,
+                26 => Base26,
+                27 => Base27,
+                28 => Base28,
+                29 => Base29,
+                30 => Base30,
+                31 => Base31,
+                32 => Base32,
+                33 => Base33,
+                34 => Base34,
+                35 => Base35,
+                36 => Base36,
+                37 => Base37,
+                38 => Base38,
+                39 => Base39,
+                40 => Base40,
+                41 => Base41,
+                42 => Base42,
+                43 => Base43,
+                44 => Base44,
+                45 => Base45,
+                46 => Base46,
+                47 => Base47,
+                48 => Base48,
+                49 => Base49,
+                50 => Base50,
+                _ => throw new ArgumentOutOfRangeException(nameof(n)),
+            };
         }
 
     }

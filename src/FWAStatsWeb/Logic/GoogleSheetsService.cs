@@ -87,7 +87,7 @@ namespace FWAStatsWeb.Logic
             updateRequest.ValueInputOption =  SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.RAW;
             updateRequest.IncludeValuesInResponse = false;
 
-            var updateResponse = await updateRequest.ExecuteAsync();
+            await updateRequest.ExecuteAsync();
         }
 
         public async Task BatchUpdate(string sheetId, string majorDimension, Dictionary<string, IList<IList<object>>> values)
@@ -109,7 +109,7 @@ namespace FWAStatsWeb.Logic
             }
 
             var updateRequest = Service.Spreadsheets.Values.BatchUpdate(updateRequestBody, sheetId);
-            var updateResponse = await updateRequest.ExecuteAsync();
+            await updateRequest.ExecuteAsync();
         }
     }
 }

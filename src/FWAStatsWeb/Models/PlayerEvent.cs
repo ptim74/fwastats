@@ -54,48 +54,36 @@ namespace FWAStatsWeb.Models
         {
             get
             {
-                switch (Value)
+                return Value switch
                 {
-                    case 3:
-                        return "Leader";
-                    case 2:
-                        return "Co-leader";
-                    case 1:
-                        return "Elder";
-                    default:
-                        return "Member";
-                }
+                    3 => "Leader",
+                    2 => "Co-leader",
+                    1 => "Elder",
+                    _ => "Member",
+                };
             }
         }
 
         public static int RoleToValue(string role)
         {
-            switch (role)
+            return role switch
             {
-                case "leader":
-                    return 3;
-                case "coLeader":
-                    return 2;
-                case "admin":
-                    return 1;
-                default:
-                    return 0;
-            }
+                "leader" => 3,
+                "coLeader" => 2,
+                "admin" => 1,
+                _ => 0,
+            };
         }
 
         public static string ValueToRole(int value)
         {
-            switch (value)
+            return value switch
             {
-                case 3:
-                    return "leader";
-                case 2:
-                    return "coLeader";
-                case 1:
-                    return "admin";
-                default:
-                    return "member";
-            }
+                3 => "leader",
+                2 => "coLeader",
+                1 => "admin",
+                _ => "member",
+            };
         }
 
         public string TimeDesc()

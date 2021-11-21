@@ -51,7 +51,7 @@ namespace FWAStatsWeb.Controllers
                 data.Add(new ClanMemberModel
                 {
                     Donated = row.Member.Donations,
-                    InWar = row.Weight != null ? row.Weight.InWar : false,
+                    InWar = row.Weight != null && row.Weight.InWar,
                     League = row.Member.LeagueName,
                     Level = row.Member.ExpLevel,
                     Name = row.Member.Name,

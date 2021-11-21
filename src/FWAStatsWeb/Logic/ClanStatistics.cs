@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using System.Net.Http;
 
 namespace FWAStatsWeb.Logic
 {
@@ -33,28 +34,23 @@ namespace FWAStatsWeb.Logic
     {
         private readonly ApplicationDbContext db;
         private readonly IOptions<StatisicsOptions> options;
-        private readonly ILogger<ClanStatistics> logger;
+        private readonly IHttpClientFactory clientFactory;
 
         public ClanStatistics(
             ApplicationDbContext db,
             IOptions<StatisicsOptions> options,
-            ILogger<ClanStatistics> logger
+            IHttpClientFactory clientFactory
             )
         {
             this.db = db;
             this.options = options;
-            this.logger = logger;
+            this.clientFactory = clientFactory;
         }
 
         public async Task CalculateSyncs()
         {
-            var request = WebRequest.Create(options.Value.SyncURL);
-            var response = await request.GetResponseAsync();
-            var data = string.Empty;
-            using (var reader = new StreamReader(response.GetResponseStream()))
-            {
-                data = await reader.ReadToEndAsync();
-            }
+            var client = clientFactory.CreateClient();
+            var data = await client.GetStringAsync(options.Value.SyncURL);
 
             var syncDuration = new TimeSpan(2, 0, 0);
 
@@ -125,7 +121,7 @@ namespace FWAStatsWeb.Logic
             var syncs = db.WarSyncs.OrderBy(w => w.Start).ToList();
             var wars = db.Wars.OrderBy(w => w.PreparationStartTime).ToList();
 
-            if (syncs.Count() == 0 || validClans.Count() == 0 || wars.Count() == 0)
+            if (syncs.Count == 0 || validClans.Count == 0 || wars.Count == 0)
                 return;
 
             var syncId = 0;

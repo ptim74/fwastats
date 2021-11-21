@@ -15,7 +15,7 @@ namespace FWAStatsWeb.Controllers
     {
         private readonly ApplicationDbContext db;
         private readonly ILogger<HomeController> logger;
-        IGoogleSheetsService googleSheets;
+        readonly IGoogleSheetsService googleSheets;
 
         public HomeController(
             ApplicationDbContext db,
@@ -210,7 +210,7 @@ namespace FWAStatsWeb.Controllers
                         th.TH10 = teamSize - th.TH14 - th.TH13 - th.TH12 - th.TH11 - th.TH9 - th.TH8;
                     }
 
-                    if (thcounters.Values.Count() > 0)
+                    if (thcounters.Values.Count > 0)
                         model.TownhallCounters.Add(teamSize, thcounters.Values.OrderBy(v => v.Weight).ToList());
                 }
             }
@@ -252,7 +252,7 @@ namespace FWAStatsWeb.Controllers
         //[ResponseCache(Duration = Constants.CACHE_MIN)]
         public IActionResult DBPing()
         {
-            var test = db.Clans.FirstOrDefault();
+            db.Clans.FirstOrDefault();
             return Ok();
         }
 

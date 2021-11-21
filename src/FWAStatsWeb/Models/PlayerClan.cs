@@ -13,7 +13,7 @@ namespace FWAStatsWeb.Models
 
         public int ClanLevel { get; set; }
 
-        private BadgeUrls BadgeUrls { get; set; }
+        protected BadgeUrls BadgeUrls { get; set; }
 
         public string BadgeUrl { get; set; }
 

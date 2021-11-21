@@ -46,16 +46,6 @@ namespace FWAStatsWeb.Logic
 
         private ICollection<ClanObject> Objects { get; set; }
 
-        protected async Task<string> LoadUrl(string url)
-        {
-            var request = WebRequest.Create(url);
-            var response = await request.GetResponseAsync();
-            using (var reader = new StreamReader(response.GetResponseStream()))
-            {
-                return await reader.ReadToEndAsync();
-            }
-        }
-
         public async Task<ICollection<ClanObject>> Load(string listName)
         {
             Errors = new List<string>();

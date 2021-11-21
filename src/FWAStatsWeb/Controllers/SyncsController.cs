@@ -105,7 +105,7 @@ namespace FWAStatsWeb.Controllers
 
                 foreach (var clan in clans.Values)
                 {
-                    if (clan.Results.Count() < warCount)
+                    if (clan.Results.Count < warCount)
                     {
                         clan.Results.Add(new SyncIndexResult()
                         {

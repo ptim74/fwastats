@@ -24,13 +24,13 @@ namespace FWAStatsWeb.Controllers
         private readonly IClashApi api;
         private readonly IClanStatistics statistics;
         private readonly IMemberUpdater memberUpdater;
-        ILogger<UpdateController> logger;
-        IGoogleSheetsService googleSheets;
-        IOptions<WeightDatabaseOptions> weightDatabase;
-        IOptions<WeightResultOptions> resultDatabase;
+        private readonly ILogger<UpdateController> logger;
+        private readonly IGoogleSheetsService googleSheets;
+        private readonly IOptions<WeightDatabaseOptions> weightDatabase;
+        private readonly IOptions<WeightResultOptions> resultDatabase;
         private readonly IOptions<StatisicsOptions> options;
 
-        private static readonly object lockObject = new object();
+        private static readonly object lockObject = new();
 
         class PlayerWeight
         {
@@ -127,85 +127,6 @@ namespace FWAStatsWeb.Controllers
             }
 
             db.SaveChanges();
-        }
-
-        protected async Task UpdateWeightsOld()
-        {
-            var data = await googleSheets.Get(weightDatabase.Value.SheetId, "ROWS", weightDatabase.Value.Range);
-            if (data != null)
-            {
-                var weights = db.Weights.ToDictionary(w => w.Tag);
-                var updates = 0;
-                var dateZero = new DateTime(1899, 12, 30, 0, 0, 0);
-
-                foreach (var row in data)
-                {
-                    var tag = "";
-                    var weight = 0;
-                    DateTime timestamp = DateTime.MinValue;
-
-                    if (row.Count > weightDatabase.Value.TagColumn && row[weightDatabase.Value.TagColumn] != null)
-                        tag = row[weightDatabase.Value.TagColumn].ToString();
-                    if (row.Count > weightDatabase.Value.WeightColumn && row[weightDatabase.Value.WeightColumn] != null)
-                        int.TryParse(row[weightDatabase.Value.WeightColumn].ToString(), out weight);
-                    if (row.Count > weightDatabase.Value.TimestampColumn && row[weightDatabase.Value.TimestampColumn] != null)
-                    {
-                        try
-                        {
-                            timestamp = dateZero.AddDays(Convert.ToDouble(row[4]));
-                        }
-                        catch (Exception)
-                        {
-                            logger.LogError("Unable to convert to double: '{0}'", row[4]);
-                            timestamp = new DateTime(1900, 1, 1);
-                        }
-
-                        //round to second to eliminate unnecessary updates
-                        timestamp = new DateTime(timestamp.Year, timestamp.Month, timestamp.Day, timestamp.Hour, timestamp.Minute, timestamp.Second);
-                        timestamp = timestamp.Subtract(Utils.EasternTimeZone.GetUtcOffset(timestamp));
-                    }
-
-                    if (weight <= 200)
-                        weight *= 1000;
-
-                    tag = Utils.LinkIdToTag(tag);
-
-                    if (!string.IsNullOrEmpty(tag))
-                    {
-                        if (weights.TryGetValue(tag, out var w))
-                        {
-                            if (weight != w.WarWeight && timestamp > w.LastModified)
-                            {
-                                logger.LogInformation("UpdateWeight: {0} {1} -> {2} ({3} > {4})",tag, w.WarWeight, weight, timestamp, w.LastModified);
-                                w.WarWeight = weight;
-                                w.ExtWeight = weight;
-                                w.LastModified = timestamp;
-                                updates++;
-                            }
-                            else if(weight != w.ExtWeight)
-                            {
-                                w.ExtWeight = weight;
-                                updates++;
-                            }
-                        }
-                        else
-                        {
-                            logger.LogInformation("InsertWeight: {0} {1} ({2})", tag, weight, timestamp);
-                            var newWeight = new Weight { Tag = tag, WarWeight = weight, ExtWeight = weight, LastModified = timestamp };
-                            db.Weights.Add(newWeight);
-                            weights.Add(tag, newWeight);
-                            updates++;
-                        }
-                    }
-
-                    if(updates > 100)
-                    {
-                        db.SaveChanges();
-                        updates = 0;
-                    }
-                }
-                db.SaveChanges();
-            }
         }
 
         protected async Task UpdateWeights(bool fullUpdate)
@@ -966,7 +887,7 @@ namespace FWAStatsWeb.Controllers
         {
             logger.LogInformation("Index");
 
-            IndexViewModel model = null;
+            IndexViewModel model;
             try
             {
                 db.Database.Migrate();

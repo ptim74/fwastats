@@ -98,13 +98,6 @@ namespace FWAStatsWeb.Models
                     ClanBadgeUrl = Clan.BadgeUrls.Small;
                 }
 
-                ICollection<WarMember> opponentMembers = null;
-
-                if (Opponent != null && Opponent.Members != null)
-                    opponentMembers = Opponent.Members;
-                else
-                    opponentMembers = new List<WarMember>();
-
                 if (Clan.Members != null && Opponent.Members != null)
                 {
                     FixMembers(Clan.Members, Opponent.Members, false);

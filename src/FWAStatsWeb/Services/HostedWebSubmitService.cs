@@ -8,7 +8,7 @@ namespace FWAStatsWeb.Services
 {
     public class HostedWebSubmitService : HostedService
     {
-        private WeightSubmitService submitService;
+        private readonly WeightSubmitService submitService;
         public HostedWebSubmitService(WeightSubmitService submitService)
         {
             this.submitService = submitService;
@@ -17,7 +17,7 @@ namespace FWAStatsWeb.Services
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                await submitService.ProcessQueue(cancellationToken);
+                await submitService.ProcessQueue();
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
             }
         }

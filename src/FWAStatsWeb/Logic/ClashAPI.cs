@@ -56,7 +56,7 @@ namespace FWAStatsWeb.Logic
             this.clientFactory = clientFactory;
         }
 
-        private async Task<Stream> GetUncompressedResponseStream(HttpResponseMessage response)
+        private static async Task<Stream> GetUncompressedResponseStream(HttpResponseMessage response)
         {
             Stream responseStream = await response.Content.ReadAsStreamAsync();
             if (response.Content.Headers.Contains("Content-Encoding"))
@@ -73,41 +73,33 @@ namespace FWAStatsWeb.Logic
 
             try
             {
-                using (var request = new HttpRequestMessage(method ?? HttpMethod.Get, url))
+                using var request = new HttpRequestMessage(method ?? HttpMethod.Get, url);
+                request.Headers.Add("Authorization", string.Format("Bearer {0}", options.Value.Token));
+                request.Headers.Add("Accept-Encoding", "gzip");
+
+                if (method != null && method != HttpMethod.Get && content != null)
                 {
-                    request.Headers.Add("Authorization", string.Format("Bearer {0}", options.Value.Token));
-                    request.Headers.Add("Accept-Encoding", "gzip");
+                    request.Content = new StringContent(content);
+                }
 
-                    if(method != null && method != HttpMethod.Get && content != null)
+                using var response = await client.SendAsync(request);
+                using var responseStream = await GetUncompressedResponseStream(response);
+                using var reader = new StreamReader(responseStream);
+                var data = await reader.ReadToEndAsync();
+                if (!response.IsSuccessStatusCode)
+                {
+                    var error = JsonConvert.DeserializeObject<ClashApiError>(data);
+                    if (error != null)
                     {
-                        request.Content = new StringContent(content);
+                        var msg = $"API Error {response.ReasonPhrase}, Reason: {error.Reason}, Message: {error.Message}";
+                        throw new Exception(msg);
                     }
-
-                    using (var response = await client.SendAsync(request))
+                    else
                     {
-                        using (var responseStream = await GetUncompressedResponseStream(response))
-                        {
-                            using (var reader = new StreamReader(responseStream))
-                            {
-                                var data = await reader.ReadToEndAsync();
-                                if(!response.IsSuccessStatusCode)
-                                {
-                                    var error = JsonConvert.DeserializeObject<ClashApiError>(data);
-                                    if (error != null)
-                                    {
-                                        var msg = $"API Error {response.ReasonPhrase}, Reason: {error.Reason}, Message: {error.Message}";
-                                        throw new Exception(msg);
-                                    }
-                                    else
-                                    {
-                                        throw new Exception($"HTTP Error {response.ReasonPhrase}");
-                                    }
-                                }
-                                return data;
-                            }
-                        }
+                        throw new Exception($"HTTP Error {response.ReasonPhrase}");
                     }
                 }
+                return data;
             } 
             catch(Exception e)
             {
@@ -115,7 +107,7 @@ namespace FWAStatsWeb.Logic
             }
         }
 
-        private JsonSerializerSettings GetJsonSerializerSettings()
+        private static JsonSerializerSettings GetJsonSerializerSettings()
         {
             return new JsonSerializerSettings
             {
@@ -276,6 +268,7 @@ namespace FWAStatsWeb.Logic
             return data.status;
         }
 
+#pragma warning disable IDE1006 // Naming Styles
         private class PlayerVerifyRequest
         {
             public string token { get; set; }
@@ -287,5 +280,7 @@ namespace FWAStatsWeb.Logic
             public string token { get; set; }
             public string status { get; set; }
         }
+#pragma warning restore IDE1006 // Naming Styles
+
     }
 }

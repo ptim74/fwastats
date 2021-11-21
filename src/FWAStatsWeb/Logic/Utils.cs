@@ -42,22 +42,17 @@ namespace FWAStatsWeb.Logic
         
         public static string FixRoleName(string roleName)
         {
-            switch(roleName)
+            return roleName switch
             {
-                case "leader":
-                    return "Leader";
-                case "coLeader":
-                    return "Co-leader";
-                case "admin":
-                    return "Elder";
-                case "member":
-                    return "Member";
-                default:
-                    return "Unknown";
-            }
+                "leader" => "Leader",
+                "coLeader" => "Co-leader",
+                "admin" => "Elder",
+                "member" => "Member",
+                _ => "Unknown",
+            };
         }
 
-        private static DateTime D = new DateTime(2017, 1, 1);
+        private readonly static DateTime D = new(2017, 1, 1);
 
         public static long WarTimeToId(DateTime warDate)
         {

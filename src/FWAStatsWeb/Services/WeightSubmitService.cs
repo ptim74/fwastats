@@ -14,7 +14,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -22,15 +25,13 @@ namespace FWAStatsWeb.Services
 {
     public class WeightSubmitService
     {
-        private ConcurrentQueue<SubmitEntry> q = new ConcurrentQueue<SubmitEntry>();
+        private readonly ConcurrentQueue<SubmitEntry> q = new();
         private SubmitEntry currentEntry = null;
         private SubmitEntry previousEntry = null;
 
         private readonly ILogger<WeightSubmitService> logger;
         private readonly IOptions<WeightSubmitOptions> submitOptions;
-        private readonly IGoogleSheetsService googleSheets;
-        private readonly IOptions<WeightResultOptions> resultDatabase;
-        private readonly IClanLoader clanLoader;
+        private readonly IHttpClientFactory clientFactory;
 
         private readonly IServiceScopeFactory scopeFactory;
 
@@ -39,16 +40,12 @@ namespace FWAStatsWeb.Services
             IServiceScopeFactory scopeFactory,
             ILogger<WeightSubmitService> logger,
             IOptions<WeightSubmitOptions> submitOptions,
-            IGoogleSheetsService googleSheets,
-            IOptions<WeightResultOptions> resultDatabase,
-            IClanLoader clanLoader)
+            IHttpClientFactory clientFactory)
         {
             this.scopeFactory = scopeFactory;
             this.logger = logger;
             this.submitOptions = submitOptions;
-            this.googleSheets = googleSheets;
-            this.resultDatabase = resultDatabase;
-            this.clanLoader = clanLoader;
+            this.clientFactory = clientFactory;
         }
 
         public void Queue(SubmitRequest request)
@@ -88,7 +85,7 @@ namespace FWAStatsWeb.Services
             return new SubmitStatus { Timestamp = DateTime.UtcNow, Message = "Unknown", Phase = SubmitPhase.Unknown };
         }
 
-        public async Task ProcessQueue(CancellationToken cancellationToken)
+        public async Task ProcessQueue()
         {
             while (q.TryDequeue(out SubmitEntry entry))
             {
@@ -128,60 +125,47 @@ namespace FWAStatsWeb.Services
 
         protected int GetChangesCount(SubmitRequest request)
         {
-            using (var scope = scopeFactory.CreateScope())
+            using var scope = scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            int changes = 0;
+
+            foreach (var m in request.Members)
             {
-                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-                int changes = 0;
-
-                foreach(var m in request.Members)
-                {
-                    var weight = db.Weights.Where(w => w.Tag == m.Tag).SingleOrDefault();
-                    if (weight == null || weight.SyncWeight != weight.WarWeight)
-                        changes++;
-                }
-
-                return changes;
+                var weight = db.Weights.Where(w => w.Tag == m.Tag).SingleOrDefault();
+                if (weight == null || weight.SyncWeight != weight.WarWeight)
+                    changes++;
             }
+
+            return changes;
         }
 
         protected async Task UpdateOnSuccess(SubmitRequest request)
         {
-            using (var scope = scopeFactory.CreateScope())
+            using var scope = scopeFactory.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            foreach (var m in request.Members)
             {
-                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-                foreach (var m in request.Members)
-                {
-                    var weight = db.Weights.Where(w => w.Tag == m.Tag).SingleOrDefault();
-                    if(weight != null)
-                        weight.SyncWeight = weight.WarWeight;
-                }
-
-                await db.SaveChangesAsync();
+                var weight = db.Weights.Where(w => w.Tag == m.Tag).SingleOrDefault();
+                if (weight != null)
+                    weight.SyncWeight = weight.WarWeight;
             }
+
+            await db.SaveChangesAsync();
         }
 
         protected async Task<SubmitResponse> NewSubmit(SubmitRequest request)
         {
             try
             {
-                var webRequest = WebRequest.Create(submitOptions.Value.SubmitURL);
-                webRequest.Method = "POST";
+                var client = clientFactory.CreateClient();
                 var settings = new JsonSerializerSettings { ContractResolver = new CamelCasePropertyNamesContractResolver() };
                 var payloadText = JsonConvert.SerializeObject(request, settings);
-                byte[] postBytes = Encoding.UTF8.GetBytes(payloadText);
-                webRequest.ContentLength = postBytes.Length;
-                Stream requestStream = await webRequest.GetRequestStreamAsync();
-                await requestStream.WriteAsync(postBytes, 0, postBytes.Length);
-                requestStream.Close();
-                string responseText = null;
-                var webResponse = await webRequest.GetResponseAsync();
-                using (var reader = new StreamReader(webResponse.GetResponseStream()))
-                {
-                    responseText = await reader.ReadToEndAsync();
-                }
-
+                var stringContent = new StringContent(payloadText, Encoding.UTF8, "application/json");
+                var responseMessage = await client.PostAsync(submitOptions.Value.SubmitURL, stringContent);
+                responseMessage.EnsureSuccessStatusCode(); // throws if not 200-299
+                string responseText = await responseMessage.Content.ReadAsStringAsync();
                 var response = JsonConvert.DeserializeObject<SubmitResponse>(responseText);
                 return response;
             }
