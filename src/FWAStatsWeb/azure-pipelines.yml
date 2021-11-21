@@ -1,5 +1,5 @@
 ﻿trigger:
-- dotnet6
+- master
 
 stages:
 - stage: Build
