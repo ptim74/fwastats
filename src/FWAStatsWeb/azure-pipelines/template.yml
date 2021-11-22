@@ -27,7 +27,7 @@ stages:
   pool:
     vmImage: ${{parameters.vmImage}}
   jobs:
-  - job: 'Build_Job'
+  - job: 'Build_Web'
     steps:
     - task: UseDotNet@2
       displayName: 'Install .NET Core SDK'
@@ -57,7 +57,7 @@ stages:
 
 - stage: Deploy
   jobs:
-  - deployment: 'Deploy_Job'
+  - deployment: 'Deploy_Web'
     environment:
       name: ${{parameters.environmentName}}
       resourceType: ${{parameters.resourceType}}
