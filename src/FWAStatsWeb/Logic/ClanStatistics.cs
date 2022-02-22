@@ -52,13 +52,14 @@ namespace FWAStatsWeb.Logic
             var client = clientFactory.CreateClient();
             var data = await client.GetStringAsync(options.Value.SyncURL);
 
-            var syncDuration = new TimeSpan(2, 0, 0);
+            var syncDuration1 = new TimeSpan(1, 30, 0);
+            var syncDuration2 = new TimeSpan(2, 0, 0);
 
             var syncTimes = db.WarSyncs.Select(s => s.Start).ToHashSet();
 
             var cal = Calendar.Load(data);
 
-            foreach (var syncEvent in cal.Events.Where(a => a.Duration == syncDuration).OrderBy(a => a.Start))
+            foreach (var syncEvent in cal.Events.Where(a => a.Duration >= syncDuration1 && a.Duration <= syncDuration2).OrderBy(a => a.Start))
             {
                 var eventStart = syncEvent.Start.AsUtc;
                 var eventEnd = syncEvent.End.AsUtc;
