@@ -17,6 +17,8 @@ namespace FWAStatsWeb.Models
         public bool PendingResult { get; set; }
 
         public int TeamSize { get; set; }
+
+        public int TH15Count { get; set; }
         public int TH14Count { get; set; }
         public int TH13Count { get; set; }
         public int TH12Count { get; set; }

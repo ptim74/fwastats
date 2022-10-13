@@ -302,6 +302,7 @@ namespace FWAStatsWeb.Controllers
                                         result.TeamSize = resultDb.TeamSize;
 
                                         //TODO
+                                        result.TH15Count = 0;
                                         result.TH14Count = 0;
                                         result.TH13Count = 0;
                                         result.TH12Count = 0;
@@ -317,13 +318,16 @@ namespace FWAStatsWeb.Controllers
                                         for (int i = 11; i <= max; i++)
                                         {
                                             var weight = Convert.ToInt32(row[i + dataOffset]);
-                                            if (weight > Constants.MAXWEIGHT_TH14)
-                                                weight = Constants.MAXWEIGHT_TH14;
+                                            if (weight > Constants.MAXWEIGHT_TH15)
+                                                weight = Constants.MAXWEIGHT_TH15;
                                             if (weight < 0)
                                                 weight = 0;
                                             totalWeight += weight;
 
-                                            if (weight > Constants.MAXWEIGHT_TH13)
+
+                                            if (weight > Constants.MAXWEIGHT_TH14)
+                                                result.TH15Count++;
+                                            else if (weight > Constants.MAXWEIGHT_TH13)
                                                 result.TH14Count++;
                                             else if (weight > Constants.MAXWEIGHT_TH12)
                                                 result.TH13Count++;
@@ -348,7 +352,16 @@ namespace FWAStatsWeb.Controllers
                                             result.SetBase(i, 0);
                                         }
 
-                                        result.THSum = result.TH13Count * 13 + result.TH12Count * 12 + result.TH11Count * 11 + result.TH10Count * 10 + result.TH9Count * 9 + result.TH8Count * 8 + result.TH7Count * 7;
+                                        result.THSum = 
+                                            result.TH15Count * 15 + 
+                                            result.TH14Count * 14 + 
+                                            result.TH13Count * 13 + 
+                                            result.TH12Count * 12 + 
+                                            result.TH11Count * 11 + 
+                                            result.TH10Count * 10 + 
+                                            result.TH9Count * 9 + 
+                                            result.TH8Count * 8 + 
+                                            result.TH7Count * 7;
 
                                         result.Weight = totalWeight;
                                     }

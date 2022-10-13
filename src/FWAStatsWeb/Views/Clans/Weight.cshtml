@@ -130,6 +130,9 @@ else
                 var member_max = 0;
                 switch (member.TownHallLevel)
                 {
+                    case 15:
+                        member_max = Constants.MAXWEIGHT_TH15;
+                        break;
                     case 14:
                         member_max = Constants.MAXWEIGHT_TH14;
                         break;
@@ -162,7 +165,11 @@ else
                     <td>@member_pos</td>
                     <td>
                         <input type="hidden" name="Members[@member_id].Tag" value="@member.Tag" />
-                        @if (member.TownHallLevel == 13)
+                        @if (member.TownHallLevel == 15)
+                        {
+                            <span class="label label-default">@member.TownHallLevel</span>
+                        }
+                        else if (member.TownHallLevel == 13)
                         {
                             <span class="label label-info">@member.TownHallLevel</span>
                         }
@@ -450,6 +457,7 @@ else
 
             $('#war-members').text(members_in_war + ' / ' + members_total);
 
+            var th15_count = 0;
             var th14_count = 0;
             var th13_count = 0;
             var th12_count = 0;
@@ -466,7 +474,9 @@ else
                 if ($("input[name='" + checkName + "']").is(':checked'))
                 {
                     war_weight += member_weight;
-                    if (member_weight > @Constants.MAXWEIGHT_TH13)
+                    if (member_weight > @Constants.MAXWEIGHT_TH14)
+                        th15_count++;
+                    else if (member_weight > @Constants.MAXWEIGHT_TH13)
                         th14_count++;
                     else if (member_weight > @Constants.MAXWEIGHT_TH12)
                         th13_count++;
@@ -486,7 +496,7 @@ else
             });
 
             $('#war-weight').text(war_weight);
-            $('#war-composition').text(th14_count + ' / ' + th13_count + ' / ' + th12_count + ' / ' + th11_count + ' / ' + th10_count + ' / ' + th9_count + ' / ' + th8_count + ' / ' + th7_count);
+            $('#war-composition').text(th15_count + ' / ' + th14_count + ' / ' + th13_count + ' / ' + th12_count + ' / ' + th11_count + ' / ' + th10_count + ' / ' + th9_count + ' / ' + th8_count + ' / ' + th7_count);
 
             $('.btn-save').addClass((members_in_war == @Constants.WAR_SIZE1 || members_in_war == @Constants.WAR_SIZE2) ? 'btn-success' : 'btn-danger');
             $('.btn-save').removeClass((members_in_war == @Constants.WAR_SIZE1 || members_in_war == @Constants.WAR_SIZE2) ? 'btn-danger' : 'btn-success');
