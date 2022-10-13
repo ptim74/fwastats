@@ -130,6 +130,9 @@ else
                 var member_max = 0;
                 switch (member.TownHallLevel)
                 {
+                    case 16:
+                        member_max = Constants.MAXWEIGHT_TH16;
+                        break;
                     case 15:
                         member_max = Constants.MAXWEIGHT_TH15;
                         break;

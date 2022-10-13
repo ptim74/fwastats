@@ -318,8 +318,8 @@ namespace FWAStatsWeb.Controllers
                                         for (int i = 11; i <= max; i++)
                                         {
                                             var weight = Convert.ToInt32(row[i + dataOffset]);
-                                            if (weight > Constants.MAXWEIGHT_TH15)
-                                                weight = Constants.MAXWEIGHT_TH15;
+                                            if (weight > Constants.MAXWEIGHT_TH16)
+                                                weight = Constants.MAXWEIGHT_TH16;
                                             if (weight < 0)
                                                 weight = 0;
                                             totalWeight += weight;
