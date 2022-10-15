@@ -51,6 +51,8 @@ namespace FWAStatsWeb.Controllers
                 : message == ManageMessageId.Error ? "An error has occurred."
                 : message == ManageMessageId.AddPhoneSuccess ? "Your phone number was added."
                 : message == ManageMessageId.RemovePhoneSuccess ? "Your phone number was removed."
+                : message == ManageMessageId.AddLoginSuccess ? "The external login was added."
+                : message == ManageMessageId.RemoveLoginSuccess ? "The external login was removed."
                 : "";
 
             var user = await GetCurrentUserAsync();
@@ -59,6 +61,10 @@ namespace FWAStatsWeb.Controllers
                 return View("Error");
             }
 
+            var userLogins = await _userManager.GetLoginsAsync(user);
+            var otherLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).Where(auth => userLogins.All(ul => auth.Name != ul.LoginProvider)).ToList();
+            var showRemoveButton = user.PasswordHash != null || userLogins.Count > 1;
+
             var model = new IndexViewModel
             {
                 HasPassword = await _userManager.HasPasswordAsync(user),
@@ -66,7 +72,9 @@ namespace FWAStatsWeb.Controllers
                 TwoFactor = await _userManager.GetTwoFactorEnabledAsync(user),
                 Logins = await _userManager.GetLoginsAsync(user),
                 BrowserRemembered = await _signInManager.IsTwoFactorClientRememberedAsync(user),
-                EmailConfirmed = await _userManager.IsEmailConfirmedAsync(user)
+                EmailConfirmed = await _userManager.IsEmailConfirmedAsync(user),
+                OtherLogins = otherLogins,
+                ShowRemoveButton = showRemoveButton,
             };
             return View(model);
         }
@@ -88,7 +96,7 @@ namespace FWAStatsWeb.Controllers
                     message = ManageMessageId.RemoveLoginSuccess;
                 }
             }
-            return RedirectToAction(nameof(ManageLogins), new { Message = message });
+            return RedirectToAction(nameof(Index), new { Message = message });
         }
 
         //
@@ -342,30 +350,6 @@ namespace FWAStatsWeb.Controllers
             return RedirectToAction(nameof(Index), new { Message = ManageMessageId.Error });
         }
 
-        //GET: /Manage/ManageLogins
-        [HttpGet]
-        public async Task<IActionResult> ManageLogins(ManageMessageId? message = null)
-        {
-            ViewData["StatusMessage"] =
-                message == ManageMessageId.RemoveLoginSuccess ? "The external login was removed."
-                : message == ManageMessageId.AddLoginSuccess ? "The external login was added."
-                : message == ManageMessageId.Error ? "An error has occurred."
-                : "";
-            var user = await GetCurrentUserAsync();
-            if (user == null)
-            {
-                return View("Error");
-            }
-            var userLogins = await _userManager.GetLoginsAsync(user);
-            var otherLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).Where(auth => userLogins.All(ul => auth.Name != ul.LoginProvider)).ToList();
-            ViewData["ShowRemoveButton"] = user.PasswordHash != null || userLogins.Count > 1;
-            return View(new ManageLoginsViewModel
-            {
-                CurrentLogins = userLogins,
-                OtherLogins = otherLogins
-            });
-        }
-
         //
         // POST: /Manage/LinkLogin
         [HttpPost]
@@ -391,11 +375,11 @@ namespace FWAStatsWeb.Controllers
             var info = await _signInManager.GetExternalLoginInfoAsync(await _userManager.GetUserIdAsync(user));
             if (info == null)
             {
-                return RedirectToAction(nameof(ManageLogins), new { Message = ManageMessageId.Error });
+                return RedirectToAction(nameof(Index), new { Message = ManageMessageId.Error });
             }
             var result = await _userManager.AddLoginAsync(user, info);
             var message = result.Succeeded ? ManageMessageId.AddLoginSuccess : ManageMessageId.Error;
-            return RedirectToAction(nameof(ManageLogins), new { Message = message });
+            return RedirectToAction(nameof(Index), new { Message = message });
         }
 
         #region Helpers

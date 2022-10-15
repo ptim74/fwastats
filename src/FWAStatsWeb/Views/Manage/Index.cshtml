@@ -11,38 +11,60 @@
         </div>
         <div class="panel-body">
 
+            <p>@ViewData["StatusMessage"]</p>
+
             <div class="form-group">
-                <h5>Players:</h5>
-                <ul>
-                    <li><a asp-controller="Players" asp-action="My" class="text-info">My players</a></li>
-                    <li><a asp-controller="Players" asp-action="NewLink" class="text-info">Link new player</a></li>
-                </ul>
+                <h5>Players</h5>
+                <a asp-controller="Players" asp-action="My" class="btn btn-default">My players</a>
+                <a asp-controller="Players" asp-action="NewLink" class="btn btn-default">Link new player</a>
             </div>
 
             <div class="form-group">
-                <h5>Clans:</h5>
-                <ul>
-                    <li><a asp-controller="Clans" asp-action="My" class="text-info">My clans</a></li>
-                </ul>
+                <h5>Clans</h5>
+                <a asp-controller="Clans" asp-action="My" class="btn btn-default">My clans</a>
             </div>
 
             <div class="form-group">
-                <h5>Account actions:</h5>
-                <ul>
-                    @if (!Model.EmailConfirmed)
+                <h5>Account actions</h5>
+                @if (!Model.EmailConfirmed)
+                {
+                    <a asp-controller="Manage" asp-action="VerifyEmail" class="btn btn-default">Verify Email</a>
+                }
+                @if (Model.HasPassword)
+                {
+                    <a asp-controller="Manage" asp-action="ChangePassword" class="btn btn-default">Change Password</a>
+                }
+                else
+                {
+                    <a asp-controller="Manage" asp-action="SetPassword" class="btn btn-default">Create Password</a>
+                }
+                <a asp-controller="Account" asp-action="Delete" class="btn btn-danger">Delete Account</a>
+            </div>
+
+            <div class="form-group">
+                <h5>External logins</h5>
+                @foreach (var login in Model.Logins)
+                {
+                    @if (Model.ShowRemoveButton)
                     {
-                        <li><a asp-controller="Manage" asp-action="VerifyEmail" class="text-info">Verify Email</a></li>
-                    }
-                    @if (Model.HasPassword)
-                    {
-                        <li><a asp-controller="Manage" asp-action="ChangePassword" class="text-info">Change Password</a></li>
+                        <form asp-controller="Manage" asp-action="RemoveLogin" method="post">
+                            <input asp-for="@login.LoginProvider" name="LoginProvider" type="hidden" />
+                            <input asp-for="@login.ProviderKey" name="ProviderKey" type="hidden" />
+                            <button type="submit" class="btn btn-danger">Unlink from @login.LoginProvider</button>
+                        </form>
                     }
                     else
                     {
-                        <li><a asp-controller="Manage" asp-action="SetPassword" class="text-info">Create Password</a></li>
+                        <div class="btn btn-default disabled">Linked to @login.LoginProvider</div>
                     }
-                    <li><a asp-controller="Account" asp-action="Delete" class="text-danger">Delete Account</a></li>
-                </ul>
+                }
+                @foreach (var login in Model.OtherLogins)
+                {
+                    <form asp-controller="Manage" asp-action="LinkLogin" method="post">
+                        <input asp-for="@login.Name" name="provider" type="hidden" />
+                        <input type="submit" class="btn btn-primary" value="Link to @login.DisplayName" />
+                    </form>
+                }
             </div>
 
         </div>
