@@ -18,14 +18,11 @@ namespace FWAStatsWeb.Logic
         Task BatchUpdate(string sheetId, string majorDimension, Dictionary<string, IList<IList<object>>> values);
     }
 
-    public class GoogleSheetsService : IGoogleSheetsService
+    public class GoogleSheetsService : GoogleBaseService, IGoogleSheetsService
     {
-        private readonly IOptions<GoogleServiceOptions> googleOptions;
-
         public GoogleSheetsService(
-            IOptions<GoogleServiceOptions> googleOptions)
+            IOptions<GoogleServiceOptions> googleOptions) : base(googleOptions)
         {
-            this.googleOptions = googleOptions;
         }
 
         private SheetsService sheetsService = null;
@@ -34,19 +31,7 @@ namespace FWAStatsWeb.Logic
         {
             get
             {
-                if(sheetsService == null)
-                {
-                    sheetsService = new SheetsService(
-                        new BaseClientService.Initializer()
-                        {
-                            ApplicationName = googleOptions.Value.ApplicationName,
-                            HttpClientInitializer = new ServiceAccountCredential(
-                                new ServiceAccountCredential.Initializer(googleOptions.Value.ClientEmail)
-                                {
-                                    Scopes = new[] { SheetsService.Scope.Spreadsheets }
-                                }.FromPrivateKey(googleOptions.Value.PrivateKey))
-                        });
-                }
+                sheetsService ??= new SheetsService(Initializer(new[] { SheetsService.Scope.Spreadsheets }));
                 return sheetsService;
             }
         }

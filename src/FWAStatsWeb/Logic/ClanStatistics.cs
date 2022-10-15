@@ -19,6 +19,7 @@ namespace FWAStatsWeb.Logic
         public int Wars { get; set; }
         public int Members { get; set; }
         public string SyncURL { get; set; }
+        public string CalendarId { get; set; }
     }
 
     public interface IClanStatistics
@@ -35,20 +36,70 @@ namespace FWAStatsWeb.Logic
         private readonly ApplicationDbContext db;
         private readonly IOptions<StatisicsOptions> options;
         private readonly IHttpClientFactory clientFactory;
+        private readonly IGoogleCalendarService googleCalendarService;
 
         public ClanStatistics(
             ApplicationDbContext db,
             IOptions<StatisicsOptions> options,
-            IHttpClientFactory clientFactory
+            IHttpClientFactory clientFactory,
+            IGoogleCalendarService googleCalendarService
             )
         {
             this.db = db;
             this.options = options;
             this.clientFactory = clientFactory;
+            this.googleCalendarService = googleCalendarService;
         }
 
         public async Task CalculateSyncs()
         {
+            if (!string.IsNullOrEmpty(options.Value.CalendarId))
+            {
+                var events = await CalculateSyncsFromGoogleCalendar();
+                if(events == 0)
+                    await CalculateSyncsFromBandCalendar();
+            }
+            else if (string.IsNullOrEmpty(options.Value.SyncURL))
+            {
+                await CalculateSyncsFromBandCalendar();
+            }
+        }
+
+        public async Task<int> CalculateSyncsFromGoogleCalendar()
+        {
+            var eventCount = 0;
+
+            var startDate = DateTime.UtcNow.AddDays(options.Value.Wars * -1);
+            var endDate = DateTime.UtcNow.AddDays(1);
+
+            var syncEvents = await googleCalendarService.GetEvents(options.Value.CalendarId, startDate, endDate);
+
+            var syncTimes = db.WarSyncs.Select(s => s.Start).ToHashSet();
+
+            foreach (var syncEvent in syncEvents)
+            {
+                var eventStart = syncEvent.Start?.DateTime?.ToUniversalTime();
+                var eventEnd = syncEvent.End?.DateTime?.ToUniversalTime();
+                if(eventStart.HasValue && eventEnd.HasValue)
+                {
+                    if (!syncTimes.Contains(eventStart.Value))
+                    {
+                        if (eventStart < DateTime.UtcNow)
+                        {
+                            var sync = new WarSync { Start = eventStart.Value, Finish = eventEnd.Value };
+                            db.WarSyncs.Add(sync);
+                        }
+                    }
+                    eventCount++;
+                }
+            }
+
+            return eventCount;
+        }
+
+        public async Task<int> CalculateSyncsFromBandCalendar()
+        {
+            var eventCount = 0;
             var client = clientFactory.CreateClient();
             var data = await client.GetStringAsync(options.Value.SyncURL);
 
@@ -72,9 +123,11 @@ namespace FWAStatsWeb.Logic
                         db.WarSyncs.Add(sync);
                     }
                 }
+                eventCount++;
             }
 
             db.SaveChanges();
+            return eventCount;
         }
 
         public void UpdateValidities()

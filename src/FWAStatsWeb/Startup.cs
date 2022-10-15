@@ -111,6 +111,7 @@ namespace FWAStatsWeb
             services.AddTransient<IMemberUpdater, MemberUpdater>();
             services.AddTransient<IClanStatistics, ClanStatistics>();
             services.AddTransient<IClashApi, ClashApi>();
+            services.AddTransient<IGoogleCalendarService, GoogleCalendarService>();
             services.AddTransient<IGoogleSheetsService, GoogleSheetsService>();
             services.AddSingleton<WeightSubmitService>();
             services.AddSingleton<Microsoft.Extensions.Hosting.IHostedService, HostedWebSubmitService>();
