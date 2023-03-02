@@ -128,15 +128,28 @@ namespace FWAStatsWeb.Controllers
 
                 if(myPlayer == null)
                 {
-                    var newPlayer = await api.GetPlayer(player.Tag);
-                    myPlayer = new MyPlayerModel
+                    try
                     {
-                        Name = newPlayer.Name,
-                        Tag = newPlayer.Tag,
-                        ClanName = newPlayer.ClanName,
-                        ClanTag = newPlayer.ClanTag,
-                        IsFWA = false
-                    };
+                        var newPlayer = await api.GetPlayer(player.Tag);
+                        myPlayer = new MyPlayerModel
+                        {
+                            Name = newPlayer.Name,
+                            Tag = newPlayer.Tag,
+                            ClanName = newPlayer.ClanName,
+                            ClanTag = newPlayer.ClanTag,
+                            IsFWA = false
+                        };
+                    } 
+                    catch (Exception)
+                    {
+                        myPlayer = new MyPlayerModel
+                        {
+                            Name = player.Tag,
+                            Tag = player.Tag,
+                            IsError = true,
+                            IsFWA = false
+                        };
+                    }
                 }
 
                 myPlayers.Add(myPlayer);

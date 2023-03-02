@@ -40,7 +40,14 @@
                     <a asp-route-id="@player.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@player.Name</a>
                 </td>
                 <td>
-                    <a asp-route-id="@player.ClanLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@player.ClanName</a>
+                    @if(player.IsError)
+                    {
+                        <span class="text-danger">Failed to load player details</span>
+                    }
+                    else
+                    {
+                        <a asp-route-id="@player.ClanLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@player.ClanName</a>
+                    }
                 </td>
                 <td>
                     <a asp-area="" asp-route-id="@player.LinkID" asp-controller="Players" asp-action="Unlink" class="btn btn-danger">Unlink</a>

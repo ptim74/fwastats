@@ -27,6 +27,7 @@ namespace FWAStatsWeb.Models.PlayerViewModels
         }
 
         public bool IsFWA { get; set; }
+        public bool IsError { get; set; }
 
         public SubmitRestriction ClanSubmitRestriction { get; set; }
     }
