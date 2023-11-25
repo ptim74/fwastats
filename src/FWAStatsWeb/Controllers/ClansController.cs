@@ -507,6 +507,8 @@ namespace FWAStatsWeb.Controllers
                 }
 
                 var clan = db.Clans.FirstOrDefault(c => c.Tag == model.ClanTag);
+                string userTag = "";
+
                 if (model.SubmitRestriction != clan.SubmitRestriction)
                 {
                     var players = from pc in db.PlayerClaims
@@ -518,13 +520,25 @@ namespace FWAStatsWeb.Controllers
                     foreach (var player in players)
                     {
                         if (player.Role == "member" && playerAccessLevel <= 0)
+                        {
                             playerAccessLevel = 1;
+                            userTag = player.Tag;
+                        }
                         if (player.Role == "admin" && playerAccessLevel <= 1)
+                        {
                             playerAccessLevel = 2;
+                            userTag = player.Tag;
+                        }
                         if (player.Role == "coLeader" && playerAccessLevel <= 2)
+                        {
                             playerAccessLevel = 3;
+                            userTag = player.Tag;
+                        }
                         if (player.Role == "leader" && playerAccessLevel <= 3)
+                        {
                             playerAccessLevel = 4;
+                            userTag = player.Tag;
+                        }
                     }
                     if (playerAccessLevel < 4 && clan.SubmitRestriction == SubmitRestriction.Leader)
                     {
@@ -543,6 +557,7 @@ namespace FWAStatsWeb.Controllers
                     }
                     clan.SubmitRestriction = model.SubmitRestriction;
                     db.SaveChanges();
+                    logger.LogInformation($"Submit restriction of {clan.Tag} changed to {clan.SubmitRestriction} by {userTag} ({user.Id})");
                     return RedirectToAction(nameof(My));
                 }
                 else
