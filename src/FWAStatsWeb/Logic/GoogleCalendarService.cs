@@ -49,8 +49,8 @@ namespace FWAStatsWeb.Logic
             do
             {
                 var eventRequest = Service.Events.List(calendarId);
-                eventRequest.TimeMin = startDate;
-                eventRequest.TimeMax = endTime;
+                eventRequest.TimeMinDateTimeOffset = startDate;
+                eventRequest.TimeMaxDateTimeOffset = endTime;
                 eventRequest.PageToken = nextPageToken;
                 var eventResponse = await eventRequest.ExecuteAsync();
                 events.AddRange(eventResponse.Items);

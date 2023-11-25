@@ -78,8 +78,8 @@ namespace FWAStatsWeb.Logic
 
             foreach (var syncEvent in syncEvents)
             {
-                var eventStart = syncEvent.Start?.DateTime?.ToUniversalTime();
-                var eventEnd = syncEvent.End?.DateTime?.ToUniversalTime();
+                var eventStart = syncEvent.Start?.DateTimeDateTimeOffset?.ToUniversalTime().DateTime;
+                var eventEnd = syncEvent.End?.DateTimeDateTimeOffset?.ToUniversalTime().DateTime;
                 if(eventStart.HasValue && eventEnd.HasValue)
                 {
                     if (!syncTimes.Contains(eventStart.Value))
