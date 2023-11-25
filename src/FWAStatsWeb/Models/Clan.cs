@@ -87,6 +87,12 @@ namespace FWAStatsWeb.Models
         [DataMember]
         public SubmitRestriction SubmitRestriction { get; set; }
 
+        [DataMember]
+        public string SubmitRestrictionChangedBy { get; set; }
+
+        [DataMember]
+        public DateTime? SubmitRestrictionChangedAt { get; set; }
+
         public int WarCount { get; set; }
         public double MatchPercentage { get; set; }
         public double WinPercentage { get; set; }

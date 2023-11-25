@@ -43,8 +43,6 @@
             </th>
             <th>
             </th>
-            <th>
-            </th>
         </tr>
     </thead>
     <tbody>
@@ -52,6 +50,11 @@
         {
             string resultType = "text-success";
             string resultMessage = "";
+            string submitRestrictionChangedAt = "";
+            if(clan.SubmitRestrictionChangedAt.HasValue)
+            {
+                submitRestrictionChangedAt =  FWAStatsWeb.Logic.Utils.TimeSpanToString(DateTime.UtcNow.Subtract(clan.SubmitRestrictionChangedAt.Value));
+            }
             if (clan.PendingWeightSubmit)
             {
                 resultType = "text-warning";
@@ -95,13 +98,26 @@
                                 <button type="submit" class="btn btn-primary">Change</button>
                             </span>
                         </div>
+                        @if (!string.IsNullOrEmpty(clan.SubmitRestrictionChangedByTag))
+                        {
+                            <div>
+                                Changed by
+                                <a asp-area="" asp-controller="Players" asp-action="Details" asp-route-id="@clan.SubmitRestrictionChangedByID">@clan.SubmitRestrictionChangedByName</a>
+                                @submitRestrictionChangedAt
+                            </div>
+                        }
+                        else
+                        {
+                            <div>
+                                <strong>Note!</strong>
+                                Next change will be logged and shown here.
+                            </div>
+                        }
                     </form>
                 </td>
                 <td>
                     <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Weight" class="btn btn-default">Weights</a>
-                </td>
-                <td>
-                    <span class="@resultType">@resultMessage</span>
+                    <div class="@resultType">@resultMessage</div>
                 </td>
             </tr>
         }

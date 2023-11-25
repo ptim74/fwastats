@@ -29,10 +29,21 @@ namespace FWAStatsWeb.Models.ClanViewModels
         public int EstimatedWeight { get; set; }
 
         public SubmitRestriction SubmitRestriction { get; set; }
+        public DateTime? SubmitRestrictionChangedAt { get; set; }
+        public string SubmitRestrictionChangedByTag { get; set; }
+        public string SubmitRestrictionChangedByName { get; set; }
 
         public DateTime WeightSubmitDate { get; set; }
 
         public bool PendingWeightSubmit { get; set; }
+
+        public string SubmitRestrictionChangedByID
+        {
+            get
+            {
+                return Logic.Utils.TagToLinkId(SubmitRestrictionChangedByTag);
+            }
+        }
 
         public string LinkID
         {

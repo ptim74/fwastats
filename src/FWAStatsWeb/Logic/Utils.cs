@@ -23,8 +23,18 @@ namespace FWAStatsWeb.Logic
 
         public static string TimeSpanToString(TimeSpan timeSpan)
         {
-            if (timeSpan > TimeSpan.FromDays(3650))
+            if (timeSpan > TimeSpan.FromDays(7300))
                 return "never";
+            else if(timeSpan > TimeSpan.FromDays(365))
+            {
+                var years = 0;
+                while(timeSpan > TimeSpan.FromDays(365))
+                {
+                    years++;
+                    timeSpan -= TimeSpan.FromDays(365);
+                }
+                return string.Format("{0}y {1}d ago", years, timeSpan.Days);
+            }
             else if (timeSpan > TimeSpan.FromDays(10))
                 return string.Format("{0}d ago", timeSpan.Days);
             else if (timeSpan > TimeSpan.FromDays(1))

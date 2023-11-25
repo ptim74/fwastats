@@ -76,7 +76,9 @@ namespace FWAStatsWeb.Controllers
                 MatchPercentage = c.MatchPercentage,
                 WinPercentage = c.WinPercentage,
                 EstimatedWeight = c.EstimatedWeight,
-                SubmitRestriction = c.SubmitRestriction
+                SubmitRestriction = c.SubmitRestriction,
+                SubmitRestrictionChangedAt = c.SubmitRestrictionChangedAt,
+                SubmitRestrictionChangedByTag = string.IsNullOrEmpty(userId) ? null : c.SubmitRestrictionChangedBy,
             });
 
             if(!string.IsNullOrEmpty(userId))
@@ -93,6 +95,15 @@ namespace FWAStatsWeb.Controllers
 
             foreach (var clan in clanQ.OrderBy(c => c.Name.ToLower()))
             {
+                if (clans.IsMyClans && !string.IsNullOrEmpty(clan.SubmitRestrictionChangedByTag))
+                {
+                    clan.SubmitRestrictionChangedByName = clan.SubmitRestrictionChangedByTag;
+                    var changedBy = db.Players.FirstOrDefault(p => p.Tag == clan.SubmitRestrictionChangedByTag);
+                    if (changedBy != null)
+                    {
+                        clan.SubmitRestrictionChangedByName = changedBy.Name;
+                    }
+                }
                 clans.Add(clan);
             }
 
@@ -511,7 +522,7 @@ namespace FWAStatsWeb.Controllers
                 }
 
                 var clan = db.Clans.FirstOrDefault(c => c.Tag == model.ClanTag);
-                string userTag = "";
+                string userTag = null;
 
                 if (model.SubmitRestriction != clan.SubmitRestriction)
                 {
@@ -560,6 +571,8 @@ namespace FWAStatsWeb.Controllers
                         return View(model);
                     }
                     clan.SubmitRestriction = model.SubmitRestriction;
+                    clan.SubmitRestrictionChangedBy = userTag;
+                    clan.SubmitRestrictionChangedAt = DateTime.UtcNow;
                     db.SaveChanges();
                     logger.LogInformation($"Submit restriction of {clan.Tag} changed to {clan.SubmitRestriction} by {userTag} ({user.Id})");
                     return RedirectToAction(nameof(My));
