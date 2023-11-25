@@ -62,6 +62,7 @@ namespace FWAStatsWeb.Controllers
                 Name = c.Name,
                 Members = c.Members,
                 BadgeUrl = c.BadgeUrl,
+                Th16Count = c.Th16Count,
                 Th15Count = c.Th15Count,
                 Th14Count = c.Th14Count,
                 Th13Count = c.Th13Count,
@@ -306,6 +307,7 @@ namespace FWAStatsWeb.Controllers
                 }
             }
 
+            details.Clan.Th16Count = 0;
             details.Clan.Th15Count = 0;
             details.Clan.Th14Count = 0;
             details.Clan.Th13Count = 0;
@@ -323,7 +325,9 @@ namespace FWAStatsWeb.Controllers
                 if (member != null)
                 {
                     member.TownHallLevel = thlevel.TownHallLevel;
-                    if (member.TownHallLevel == 15)
+                    if (member.TownHallLevel == 16)
+                        details.Clan.Th16Count++;
+                    else if (member.TownHallLevel == 15)
                         details.Clan.Th15Count++;
                     else if (member.TownHallLevel == 14)
                         details.Clan.Th14Count++;

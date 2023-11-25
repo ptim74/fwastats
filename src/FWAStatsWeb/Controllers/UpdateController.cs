@@ -302,6 +302,7 @@ namespace FWAStatsWeb.Controllers
                                         result.TeamSize = resultDb.TeamSize;
 
                                         //TODO
+                                        result.TH16Count = 0;
                                         result.TH15Count = 0;
                                         result.TH14Count = 0;
                                         result.TH13Count = 0;
@@ -324,8 +325,9 @@ namespace FWAStatsWeb.Controllers
                                                 weight = 0;
                                             totalWeight += weight;
 
-
-                                            if (weight > Constants.MAXWEIGHT_TH14)
+                                            if (weight > Constants.MAXWEIGHT_TH15)
+                                                result.TH16Count++;
+                                            else if (weight > Constants.MAXWEIGHT_TH14)
                                                 result.TH15Count++;
                                             else if (weight > Constants.MAXWEIGHT_TH13)
                                                 result.TH14Count++;
@@ -352,7 +354,8 @@ namespace FWAStatsWeb.Controllers
                                             result.SetBase(i, 0);
                                         }
 
-                                        result.THSum = 
+                                        result.THSum =
+                                            result.TH16Count * 16 +
                                             result.TH15Count * 15 + 
                                             result.TH14Count * 14 + 
                                             result.TH13Count * 13 + 

@@ -296,6 +296,7 @@ namespace FWAStatsWeb.Logic
 
                 if (weights.TryGetValue(clan.Tag, out WeightCalculator.Results weight))
                 {
+                    clan.Th16Count = weight.Th16Count;
                     clan.Th15Count = weight.Th15Count;
                     clan.Th14Count = weight.Th14Count;
                     clan.Th13Count = weight.Th13Count;

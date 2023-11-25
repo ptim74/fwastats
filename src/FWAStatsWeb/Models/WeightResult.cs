@@ -18,6 +18,7 @@ namespace FWAStatsWeb.Models
 
         public int TeamSize { get; set; }
 
+        public int TH16Count { get; set; }
         public int TH15Count { get; set; }
         public int TH14Count { get; set; }
         public int TH13Count { get; set; }

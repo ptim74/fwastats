@@ -11,6 +11,7 @@ namespace FWAStatsWeb.Logic
         public class Results
         {
             public string Tag { get; set; }
+            public int Th16Count { get; set; }
             public int Th15Count { get; set; }
             public int Th14Count { get; set; }
             public int Th13Count { get; set; }
@@ -45,6 +46,9 @@ namespace FWAStatsWeb.Logic
                 {
                     switch (th.TownHallLevel)
                     {
+                        case 16:
+                            ret.Th16Count = th.Count;
+                            break;
                         case 15:
                             ret.Th15Count = th.Count;
                             break;
@@ -78,8 +82,12 @@ namespace FWAStatsWeb.Logic
                 //Calculate estimated max weight
                 var availableMembers = Constants.WAR_SIZE1; //TODO
 
-                var thLevelMembers = ret.Th15Count < availableMembers ? ret.Th15Count : availableMembers;
-                var maxWeight = thLevelMembers * Constants.MAXWEIGHT_TH15 / 1000 - 5;
+                var thLevelMembers = ret.Th16Count < availableMembers ? ret.Th16Count : availableMembers;
+                var maxWeight = thLevelMembers * Constants.MAXWEIGHT_TH16 / 1000 - 5;
+                availableMembers -= thLevelMembers;
+
+                thLevelMembers = ret.Th15Count < availableMembers ? ret.Th15Count : availableMembers;
+                maxWeight += thLevelMembers * Constants.MAXWEIGHT_TH15 / 1000 - 5;
                 availableMembers -= thLevelMembers;
 
                 thLevelMembers = ret.Th14Count < availableMembers ? ret.Th14Count : availableMembers;
