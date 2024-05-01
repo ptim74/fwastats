@@ -1,0 +1,13 @@
+﻿trigger: none
+pr: none
+
+variables:
+- group: FwaStatsWeb-Thor
+
+extends:
+  template: template.yml
+  parameters:
+    environmentName: $(EnvironmentName)
+    architecture: $(Architecture)
+    selfContained: $(SelfContained)
+    destinationFolder: $(DestinationFolder)
