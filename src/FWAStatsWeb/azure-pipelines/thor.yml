@@ -2,6 +2,7 @@
 - master
 
 variables:
+- group: FwaStatsCommon
 - group: FwaStatsWeb-Thor
 
 extends:
