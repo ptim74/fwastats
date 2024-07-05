@@ -285,8 +285,14 @@ namespace FWAStatsWeb.Controllers
                     
                 }
             }
+            catch (ClashApiException e)
+            {
+                logger.LogWarning($"GetDetails: {tag}, API Exception: {e.Message}");
+                clan.Description = e.Message;
+            }
             catch (Exception e)
             {
+                logger.LogWarning($"GetDetails: {tag},{e.GetType().FullName}: {e.Message}");
                 clan.Description = e.Message;
             }
             return clan;
@@ -482,16 +488,16 @@ namespace FWAStatsWeb.Controllers
 
             var war = await db.Wars.Where(w => w.ClanTag == tag && w.EndTime == endTime).SingleOrDefaultAsync();
 
-            if(war != null)
+            if (war != null)
             {
                 war.Members = await db.WarMembers.Where(m => m.WarID == war.ID).OrderBy(m => m.Tag).ToListAsync();
                 var attacks = await db.WarAttacks.Where(a => a.WarID == war.ID).OrderBy(a => a.Order).ToListAsync();
 
                 var memberDict = war.Members.ToDictionary(m => m.Tag);
 
-                foreach(var attack in attacks)
+                foreach (var attack in attacks)
                 {
-                    if(memberDict.TryGetValue(attack.AttackerTag,out var member))
+                    if (memberDict.TryGetValue(attack.AttackerTag, out var member))
                     {
                         if (member.Attacks == null)
                             member.Attacks = new List<WarAttack>();
@@ -501,7 +507,9 @@ namespace FWAStatsWeb.Controllers
             }
             else
             {
-                throw new Exception("War not found.");
+                logger.LogWarning("War {0} {1}, War does not exist.", id, warId);
+                ViewData["Message"] = $"War does not exist.";
+                return View("../Home/Error");
             }
 
             return View(war);

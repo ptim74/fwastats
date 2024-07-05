@@ -10,6 +10,7 @@ using FWAStatsWeb.Logic;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Azure;
 
 namespace FWAStatsWeb.Controllers
 {
@@ -166,51 +167,66 @@ namespace FWAStatsWeb.Controllers
         {
             logger.LogInformation("Details {0}", id);
 
-            var tag = Utils.LinkIdToTag(id);
-
-            var ret = new DetailsViewModel
+            try
             {
-                Events = new List<PlayerDetailsEvent>(),
-                Player = await api.GetPlayer(tag)
-            };
+                var tag = Utils.LinkIdToTag(id);
 
-            var user = await GetCurrentUserAsync();
-            if(user != null)
-            {
-                var userClaim = db.PlayerClaims.FirstOrDefault(p => p.Tag == tag);
-                if(userClaim != null && userClaim.UserId == user.Id)
+                var ret = new DetailsViewModel
                 {
-                    ret.Claimed = true;
+                    Events = new List<PlayerDetailsEvent>(),
+                    Player = await api.GetPlayer(tag)
+                };
+
+                var user = await GetCurrentUserAsync();
+                if (user != null)
+                {
+                    var userClaim = db.PlayerClaims.FirstOrDefault(p => p.Tag == tag);
+                    if (userClaim != null && userClaim.UserId == user.Id)
+                    {
+                        ret.Claimed = true;
+                    }
                 }
+
+                memberUpdater.UpdatePlayer(ret.Player, !ret.Claimed);
+
+                var events = from e in db.PlayerEvents
+                             join v in db.ClanValidities on e.ClanTag equals v.Tag
+                             where e.PlayerTag == tag
+                             orderby e.EventDate descending
+                             select new { Event = e, v.Name };
+
+                foreach (var clanEvent in events.Take(100))
+                {
+                    var e = new PlayerDetailsEvent { Tag = clanEvent.Event.ClanTag, Name = clanEvent.Name, EventDate = clanEvent.Event.EventDate, EventType = clanEvent.Event.EventType, TimeDesc = clanEvent.Event.TimeDesc() };
+                    if (e.EventType == PlayerEventType.Promote || e.EventType == PlayerEventType.Demote)
+                    {
+                        e.Value = clanEvent.Event.RoleName;
+                    }
+                    else if (e.EventType == PlayerEventType.NameChange)
+                    {
+                        e.Value = clanEvent.Event.StringValue;
+                    }
+                    else
+                    {
+                        e.Value = clanEvent.Event.Value.ToString();
+                    }
+                    ret.Events.Add(e);
+                }
+
+                return View(ret);
             }
-
-            memberUpdater.UpdatePlayer(ret.Player, !ret.Claimed);
-
-            var events = from e in db.PlayerEvents
-                         join v in db.ClanValidities on e.ClanTag equals v.Tag
-                         where e.PlayerTag == tag
-                         orderby e.EventDate descending
-                         select new { Event = e, v.Name };
-
-            foreach (var clanEvent in events.Take(100))
+            catch (ClashApiException e)
             {
-                var e = new PlayerDetailsEvent { Tag = clanEvent.Event.ClanTag, Name = clanEvent.Name, EventDate = clanEvent.Event.EventDate, EventType = clanEvent.Event.EventType, TimeDesc = clanEvent.Event.TimeDesc() };
-                if (e.EventType == PlayerEventType.Promote || e.EventType == PlayerEventType.Demote)
-                {
-                    e.Value = clanEvent.Event.RoleName;
-                }
-                else if (e.EventType == PlayerEventType.NameChange)
-                {
-                    e.Value = clanEvent.Event.StringValue;
-                }
-                else
-                {
-                    e.Value = clanEvent.Event.Value.ToString();
-                }
-                ret.Events.Add(e);
+                logger.LogWarning("Details {0}: API Exception: {1}", id, e.Message);
+                ViewData["Message"] = $"Failed to get player data, API Error: {e.Message}";
+                return View("../Home/Error");
             }
-
-            return View(ret);
+            catch (Exception e)
+            {
+                logger.LogWarning("Details {0}: {1}", id, e.ToString());
+                ViewData["Message"] = "Failed to get player data.";
+                return View("../Home/Error");
+            }
         }
 
         [Authorize]

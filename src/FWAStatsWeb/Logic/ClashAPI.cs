@@ -6,9 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace FWAStatsWeb.Logic
@@ -26,6 +24,8 @@ namespace FWAStatsWeb.Logic
     {
         public string Reason { get; set; }
         public string Message { get; set; }
+        public string Type { get; set; }
+        public object Detail { get; set; }
     }
 
     public class ClashApiOptions
@@ -71,40 +71,33 @@ namespace FWAStatsWeb.Logic
             var url = string.Format("{0}/{1}", options.Value.Url, page);
             var client = clientFactory.CreateClient();
 
-            try
-            {
-                using var request = new HttpRequestMessage(method ?? HttpMethod.Get, url);
-                request.Headers.Add("Authorization", string.Format("Bearer {0}", options.Value.Token));
-                request.Headers.Add("Accept-Encoding", "gzip");
+            using var request = new HttpRequestMessage(method ?? HttpMethod.Get, url);
+            request.Headers.Add("Authorization", string.Format("Bearer {0}", options.Value.Token));
+            request.Headers.Add("Accept-Encoding", "gzip");
 
-                if (method != null && method != HttpMethod.Get && content != null)
-                {
-                    request.Content = new StringContent(content);
-                }
-
-                using var response = await client.SendAsync(request);
-                using var responseStream = await GetUncompressedResponseStream(response);
-                using var reader = new StreamReader(responseStream);
-                var data = await reader.ReadToEndAsync();
-                if (!response.IsSuccessStatusCode)
-                {
-                    var error = JsonConvert.DeserializeObject<ClashApiError>(data);
-                    if (error != null)
-                    {
-                        var msg = $"API Error {response.ReasonPhrase}, Reason: {error.Reason}, Message: {error.Message}";
-                        throw new Exception(msg);
-                    }
-                    else
-                    {
-                        throw new Exception($"HTTP Error {response.ReasonPhrase}");
-                    }
-                }
-                return data;
-            } 
-            catch(Exception e)
+            if (method != null && method != HttpMethod.Get && content != null)
             {
-                throw new ClashApiException(string.Format("Failed to get '{0}'", page), e);
+                request.Content = new StringContent(content);
             }
+
+            using var response = await client.SendAsync(request);
+            using var responseStream = await GetUncompressedResponseStream(response);
+            using var reader = new StreamReader(responseStream);
+            var data = await reader.ReadToEndAsync();
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = JsonConvert.DeserializeObject<ClashApiError>(data);
+                if (error != null)
+                {
+                    var message = string.IsNullOrEmpty(error.Message) ? error.Reason : $"{error.Reason}: {error.Message}";
+                    throw new ClashApiException(message);
+                }
+                else
+                {
+                    throw new Exception($"HTTP Error {response.ReasonPhrase}");
+                }
+            }
+            return data;
         }
 
         private static JsonSerializerSettings GetJsonSerializerSettings()
