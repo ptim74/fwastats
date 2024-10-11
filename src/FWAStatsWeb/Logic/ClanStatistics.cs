@@ -209,7 +209,7 @@ namespace FWAStatsWeb.Logic
                 }
                 war.Matched = matched;
 
-                if (war.PreparationStartTime >= currentSync.Start && war.PreparationStartTime <= currentSync.Finish && (war.TeamSize == Constants.WAR_SIZE1 || war.TeamSize == Constants.WAR_SIZE2) && clanIsValid && !war.Friendly)
+                if (war.PreparationStartTime >= currentSync.Start && war.PreparationStartTime <= currentSync.Finish && (war.TeamSize == Constants.WAR_SIZE1 || war.TeamSize == Constants.WAR_SIZE2 || war.TeamSize == Constants.WAR_SIZE3) && clanIsValid && !war.Friendly)
                 {
                     war.Synced = true;
                     if (war.Matched)

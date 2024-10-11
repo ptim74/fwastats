@@ -12,6 +12,7 @@ namespace FWAStatsWeb
         public const int CACHE_MIN = 60;
 
         public const int WAR_SIZE1 = 40;
+        public const int WAR_SIZE3 = 45;
         public const int WAR_SIZE2 = 50;
         public const int CACHE_TIME = 5;
         public const double HIDE_TIME = 2.25;

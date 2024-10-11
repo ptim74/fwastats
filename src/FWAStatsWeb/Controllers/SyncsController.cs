@@ -166,10 +166,10 @@ namespace FWAStatsWeb.Controllers
             {
                 var wars = db.Wars.Where(w => w.PreparationStartTime >= model.Sync.Start.AddHours(-2) && w.PreparationStartTime <= model.Sync.Finish.AddHours(2) && w.Friendly == false);
 
-                if (teamSize == Constants.WAR_SIZE1 || teamSize == Constants.WAR_SIZE2)
+                if (teamSize == Constants.WAR_SIZE1 || teamSize == Constants.WAR_SIZE2 || teamSize == Constants.WAR_SIZE3)
                     wars = wars.Where(w => w.TeamSize == teamSize);
                 else
-                    wars = wars.Where(w => w.TeamSize == Constants.WAR_SIZE1 || w.TeamSize == Constants.WAR_SIZE2);
+                    wars = wars.Where(w => w.TeamSize == Constants.WAR_SIZE1 || w.TeamSize == Constants.WAR_SIZE2 || w.TeamSize == Constants.WAR_SIZE3);
 
                 foreach (var war in wars)
                 {

@@ -13,14 +13,16 @@
 <h2>@ViewBag.Title</h2>
 
 @{ 
-    var team00Active = Model.TeamSize != Constants.WAR_SIZE1 && Model.TeamSize != Constants.WAR_SIZE2 ? "active" : "";
+    var team00Active = Model.TeamSize != Constants.WAR_SIZE1 && Model.TeamSize != Constants.WAR_SIZE2 && Model.TeamSize != Constants.WAR_SIZE3 ? "active" : "";
     var team40Active = Model.TeamSize == Constants.WAR_SIZE1 ? "active" : "";
-    var team50Active = Model.TeamSize == Constants.WAR_SIZE2 ? "active": "";
+    var team50Active = Model.TeamSize == Constants.WAR_SIZE2 ? "active" : "";
+    var team45Active = Model.TeamSize == Constants.WAR_SIZE3 ? "active" : "";
 }
 
 <ul class="pagination">
     <li class="@team00Active"><a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@Model.Sync.ID" asp-route-teamSize="">All</a></li>
     <li class="@team40Active"><a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@Model.Sync.ID" asp-route-teamSize="40">40 vs 40</a></li>
+    <li class="@team45Active"><a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@Model.Sync.ID" asp-route-teamSize="45">45 vs 45</a></li>
     <li class="@team50Active"><a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@Model.Sync.ID" asp-route-teamSize="50">50 vs 50</a></li>
 </ul>
 

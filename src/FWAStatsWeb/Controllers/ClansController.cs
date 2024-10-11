@@ -260,7 +260,7 @@ namespace FWAStatsWeb.Controllers
                                 if(!warLookup.TryGetValue(warKey, out War clanWar))
                                 {
                                     var synced = syncTimes.Where(s => s.Start <= war.PreparationStartTime && s.Finish >= war.PreparationStartTime).FirstOrDefault();
-                                    if (synced != null && (war.TeamSize == Constants.WAR_SIZE1 || war.TeamSize == Constants.WAR_SIZE2))
+                                    if (synced != null && (war.TeamSize == Constants.WAR_SIZE1 || war.TeamSize == Constants.WAR_SIZE2 || war.TeamSize == Constants.WAR_SIZE3))
                                         war.Synced = true;
 
                                     wars.Add(war);
@@ -860,7 +860,7 @@ namespace FWAStatsWeb.Controllers
                 }
             }
 
-            if(memberCount == Constants.WAR_SIZE1 || memberCount == Constants.WAR_SIZE2)
+            if(memberCount == Constants.WAR_SIZE1 || memberCount == Constants.WAR_SIZE2 || memberCount == Constants.WAR_SIZE3)
             {
                 var maxWeight = clanWeight + Constants.WEIGHT_COMPARE; //30000
                 var minWeight = clanWeight - Constants.WEIGHT_COMPARE;
@@ -935,12 +935,14 @@ namespace FWAStatsWeb.Controllers
 
             var model = WeightData(id, WarID);
 
-            if (model.Members.Count != Constants.WAR_SIZE1 && model.Members.Count != Constants.WAR_SIZE2)
+            if (model.Members.Count != Constants.WAR_SIZE1 && model.Members.Count != Constants.WAR_SIZE2 && model.Members.Count != Constants.WAR_SIZE3)
                 throw new Exception("Select 40 or 50 members");
 
             var form_id = "1FAIpQLSfckkdP851e2Ri_nHtO0XEWe2u3o0aA4NbJrMub06-zRkCzTQ";
             if (model.Members.Count == Constants.WAR_SIZE1)
                 form_id = "1FAIpQLSfYtzGV7C7VHWQs0Z7r0aAOTtNR-9IbraAyvAEaNApIQNsiQQ";
+            if (model.Members.Count == Constants.WAR_SIZE3)
+                form_id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
 
             var url = string.Format("https://docs.google.com/forms/d/e/{0}/viewform?usp=pp_url", form_id);
 

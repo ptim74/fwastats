@@ -48,7 +48,7 @@ namespace FWAStatsWeb.Controllers
 
                 var fromDate = recentSyncs.Last().Start;
                 var loadedWars = (from w in db.Wars
-                                  where w.PreparationStartTime >= fromDate && w.Synced == true && w.Friendly == false && (w.TeamSize == Constants.WAR_SIZE1 || w.TeamSize == Constants.WAR_SIZE2)
+                                  where w.PreparationStartTime >= fromDate && w.Synced == true && w.Friendly == false && (w.TeamSize == Constants.WAR_SIZE1 || w.TeamSize == Constants.WAR_SIZE2 || w.TeamSize == Constants.WAR_SIZE3)
                                   select new { w.Result, w.PreparationStartTime, w.ClanTag, w.OpponentTag, w.TeamSize }).ToList();
 
                 var loadedValidities = db.ClanValidities.ToList();
@@ -69,7 +69,7 @@ namespace FWAStatsWeb.Controllers
                 var lastSync = recentSyncs.FirstOrDefault();
 
                 if (lastSync != null)
-                    foreach (var teamSize in new int[] { Constants.WAR_SIZE1, Constants.WAR_SIZE2 })
+                    foreach (var teamSize in new int[] { Constants.WAR_SIZE1, Constants.WAR_SIZE2, Constants.WAR_SIZE3 })
                         model.LastStats.Add(teamSize, new SyncStats { ID = lastSync.ID, DisplayName = lastSync.DisplayName });
 
                 foreach (var currentSync in recentSyncs.OrderBy(w => w.Start))
@@ -159,8 +159,10 @@ namespace FWAStatsWeb.Controllers
                 {
                     if (lastStat.Key == Constants.WAR_SIZE1)
                         model.Counters.TeamSize40Wars = lastStat.Value.AllianceMatches + lastStat.Value.WarMatches;
+                    else if (lastStat.Key == Constants.WAR_SIZE2)
+                        model.Counters.TeamSize40Wars = lastStat.Value.AllianceMatches + lastStat.Value.WarMatches;
                     else
-                        model.Counters.TeamSize50Wars = lastStat.Value.AllianceMatches + lastStat.Value.WarMatches;
+                        model.Counters.TeamSize45Wars = lastStat.Value.AllianceMatches + lastStat.Value.WarMatches;
                 }
 
                 var totalWars = totalMatches + totalMismatches;
@@ -170,7 +172,7 @@ namespace FWAStatsWeb.Controllers
                     model.Counters.WinPercentage = Math.Round(totalWins * 100.0 / totalWars, 1);
                 }
 
-                foreach (var teamSize in new int[] { Constants.WAR_SIZE1, Constants.WAR_SIZE2 })
+                foreach (var teamSize in new int[] { Constants.WAR_SIZE1, Constants.WAR_SIZE2, Constants.WAR_SIZE3 })
                 {
                     var limitDate = DateTime.UtcNow.AddDays(-28);
                     var results = db.WeightResults.Where(r => r.Weight > 3500000 && r.TeamSize == teamSize && r.Timestamp > limitDate).ToList();

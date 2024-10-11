@@ -91,7 +91,7 @@ else
     if (Model.WarID == 0)
     {
         <div class="caption">
-            <p class="small">To see the weight chart please fill weights for @Constants.WAR_SIZE1 or @Constants.WAR_SIZE2 selected members.</p>
+            <p class="small">To see the weight chart please fill weights for @Constants.WAR_SIZE1 or @Constants.WAR_SIZE2 or @Constants.WAR_SIZE3 selected members.</p>
         </div>
     }
     else
@@ -500,8 +500,8 @@ else
             $('#war-weight').text(war_weight);
             $('#war-composition').text(th16_count + ' / ' + th15_count + ' / ' + th14_count + ' / ' + th13_count + ' / ' + th12_count + ' / ' + th11_count + ' / ' + th10_count + ' / ' + th9_count + ' / ' + th8_count + ' / ' + th7_count);
 
-            $('.btn-save').addClass((members_in_war == @Constants.WAR_SIZE1 || members_in_war == @Constants.WAR_SIZE2) ? 'btn-success' : 'btn-danger');
-            $('.btn-save').removeClass((members_in_war == @Constants.WAR_SIZE1 || members_in_war == @Constants.WAR_SIZE2) ? 'btn-danger' : 'btn-success');
+            $('.btn-save').addClass((members_in_war == @Constants.WAR_SIZE1 || members_in_war == @Constants.WAR_SIZE2 || members_in_war == @Constants.WAR_SIZE3) ? 'btn-success' : 'btn-danger');
+            $('.btn-save').removeClass((members_in_war == @Constants.WAR_SIZE1 || members_in_war == @Constants.WAR_SIZE2 || members_in_war == @Constants.WAR_SIZE3) ? 'btn-danger' : 'btn-success');
         }
 
         function resizeChart()
