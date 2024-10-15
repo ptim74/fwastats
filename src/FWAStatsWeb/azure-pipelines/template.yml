@@ -78,6 +78,7 @@ stages:
             displayName: 'Transform Appsettings'
             inputs:
               folderPath: '${{parameters.destinationFolder}}'
+              xmlTransformationRules: 
               jsonTargetFiles: '**/appsettings.Sample.json'
           - task: Bash@3
             displayName: 'Bash Script'
