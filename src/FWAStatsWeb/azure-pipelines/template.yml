@@ -74,12 +74,11 @@ stages:
               destinationFolder: '${{parameters.destinationFolder}}'
               cleanDestinationFolder: false
               overwriteExistingFiles: true
-          - task: FileTransform@1
+          - task: FileTransform@2
             displayName: 'Transform Appsettings'
             inputs:
               folderPath: '${{parameters.destinationFolder}}'
-              fileType: json
-              targetFiles: '**/appsettings.Sample.json'
+              jsonTargetFiles: '**/appsettings.Sample.json'
           - task: Bash@3
             displayName: 'Bash Script'
             inputs:
