@@ -222,6 +222,7 @@ namespace FWAStatsWeb.Controllers
             {
                 if (weights.TryGetValue(row.Tag, out WeightCalculator.Results weight))
                 {
+                    row.Th17Count = weight.Th17Count;
                     row.Th16Count = weight.Th16Count;
                     row.Th15Count = weight.Th15Count;
                     row.Th14Count = weight.Th14Count;

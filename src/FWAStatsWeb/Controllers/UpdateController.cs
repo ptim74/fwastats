@@ -302,6 +302,7 @@ namespace FWAStatsWeb.Controllers
                                         result.TeamSize = resultDb.TeamSize;
 
                                         //TODO
+                                        result.TH17Count = 0;
                                         result.TH16Count = 0;
                                         result.TH15Count = 0;
                                         result.TH14Count = 0;
@@ -319,13 +320,15 @@ namespace FWAStatsWeb.Controllers
                                         for (int i = 11; i <= max; i++)
                                         {
                                             var weight = Convert.ToInt32(row[i + dataOffset]);
-                                            if (weight > Constants.MAXWEIGHT_TH16)
-                                                weight = Constants.MAXWEIGHT_TH16;
+                                            if (weight > Constants.MAXWEIGHT_TH17)
+                                                weight = Constants.MAXWEIGHT_TH17;
                                             if (weight < 0)
                                                 weight = 0;
                                             totalWeight += weight;
 
-                                            if (weight > Constants.MAXWEIGHT_TH15)
+                                            if (weight > Constants.MAXWEIGHT_TH16)
+                                                result.TH17Count++;
+                                            else if (weight > Constants.MAXWEIGHT_TH15)
                                                 result.TH16Count++;
                                             else if (weight > Constants.MAXWEIGHT_TH14)
                                                 result.TH15Count++;
@@ -355,6 +358,7 @@ namespace FWAStatsWeb.Controllers
                                         }
 
                                         result.THSum =
+                                            result.TH17Count * 17 +
                                             result.TH16Count * 16 +
                                             result.TH15Count * 15 + 
                                             result.TH14Count * 14 + 

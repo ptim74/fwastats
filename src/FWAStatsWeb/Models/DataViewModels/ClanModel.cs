@@ -30,6 +30,7 @@ namespace FWAStatsWeb.Models.DataViewModels
         public string Image { get; set; }
         public string Description { get; set; }
 
+        public int Th17Count { get; set; }
         public int Th16Count { get; set; }
         public int Th15Count { get; set; }
         public int Th14Count { get; set; }

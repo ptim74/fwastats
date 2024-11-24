@@ -60,6 +60,7 @@ namespace FWAStatsWeb.Models.HomeViewModels
     {
         public int Clans { get; set; }
         public int Weight { get; set; }
+        public double TH17 { get; set; }
         public double TH16 { get; set; }
         public double TH15 { get; set; }
         public double TH14 { get; set; }

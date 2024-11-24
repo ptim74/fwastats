@@ -22,6 +22,7 @@ namespace FWAStatsWeb
 
         public const int WEIGHT_COMPARE = 30000;
 
+        public const int MAXWEIGHT_TH17 = 170000;
         public const int MAXWEIGHT_TH16 = 160000;
         public const int MAXWEIGHT_TH15 = 150000;
         public const int MAXWEIGHT_TH14 = 140000;
