@@ -63,7 +63,8 @@ namespace FWAStatsWeb
         public const string LIST_FWA = "FWA";
         public const string LIST_BLACKLISTED = "Blacklisted";
 
-        //public const string KUILIN_NET = "https://fwa.chocolateclash.com/cc_n";
+        public const string FWAPOINTS = "https://points.fwafarm.com";
+        public const string CHOCOLATECLASH = "https://cc.fwafarm.com/cc_n";
         public const string CLASHOFSTATS = "https://www.clashofstats.com";
     }
 }
