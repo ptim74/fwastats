@@ -13,33 +13,35 @@
     var estimatedWeightMembers = Model.Clan.Members == Constants.WAR_SIZE2 ? Constants.WAR_SIZE2 : Constants.WAR_SIZE1;
 }
 
-<ol class="breadcrumb">
-    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-    <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
-    @if (Model.Validity != null && !Model.Validity.IsValid())
-    {
-        <li><a asp-area="" asp-controller="Clans" asp-action="Departed">Departed</a></li>
-    }
-    else if (!Model.InAlliance)
-    {
-        <li><a asp-area="" asp-controller="Clans" asp-action="Following">Following</a></li>
-    }
-    <li class="active">@Model.Clan.Name</li>
-</ol>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
+        @if (Model.Validity != null && !Model.Validity.IsValid())
+        {
+            <li class="breadcrumb-item"><a asp-area="" asp-controller="Clans" asp-action="Departed">Departed</a></li>
+        }
+        else if (!Model.InAlliance)
+        {
+            <li class="breadcrumb-item"><a asp-area="" asp-controller="Clans" asp-action="Following">Following</a></li>
+        }
+        <li class="breadcrumb-item active" aria-current="page">@Model.Clan.Name</li>
+    </ol>
+</nav>
 
-<div class="well" style="margin-top:20px;">
+<div class="well card p-3 mt-4">
     <div class="row">
         <div class="col">
-            <img src="@Model.Clan.BadgeUrl" height="70" width="70" style="float:left;margin-right:10px;margin-left:10px;margin-top:-15px;" />
-            <h3 style="margin-top:10px;margin-bottom:0px">@Model.Clan.Name</h3>
+            <img src="@Model.Clan.BadgeUrl" class="badge-70 float-start me-2 ms-2" />
+            <h3 class="mt-2 mb-0">@Model.Clan.Name</h3>
             <div class="text-muted">
                 @Model.Clan.Tag
-                <a class="text-muted" href="@Constants.CHOCOLATECLASH/clan.php?tag=@Model.Clan.LinkID"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">hocolate</span>C<span class="hidden-xs">lash</span></a>
+                <a class="text-muted" href="@Constants.CHOCOLATECLASH/clan.php?tag=@Model.Clan.LinkID"><i class="fas fa-link"></i>C<span class="d-none d-sm-inline">hocolate</span>C<span class="d-none d-sm-inline">lash</span></a>
                 @if (Model.InAlliance)
                 {
-                    <a class="text-muted" href="@Constants.FWAPOINTS/clan?tag=@Model.Clan.LinkID"><span class="glyphicon glyphicon-link"></span><span class="hidden-xs">FWA </span>P<span class="hidden-xs">oin</span>ts</a>
+                    <a class="text-muted" href="@Constants.FWAPOINTS/clan?tag=@Model.Clan.LinkID"><i class="fas fa-link"></i><span class="d-none d-sm-inline">FWA </span>P<span class="d-none d-sm-inline">oin</span>ts</a>
                 }
-                <a class="text-muted" href="@Constants.CLASHOFSTATS/clans/@Model.Clan.LinkID"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">lash </span>o<span class="hidden-xs">f </span>S<span class="hidden-xs">tats</span></a>
+                <a class="text-muted" href="@Constants.CLASHOFSTATS/clans/@Model.Clan.LinkID"><i class="fas fa-link"></i>C<span class="d-none d-sm-inline">lash </span>o<span class="d-none d-sm-inline">f </span>S<span class="d-none d-sm-inline">tats</span></a>
             </div>
         </div>
     </div>
@@ -47,30 +49,32 @@
         <div class="col">
             <p>@Model.Clan.Description</p>
         </div>
+    </div>
+    <div class="row">
         <div class="col">
             <div class="row">
-                <div class="col-xs-6 col-sm-3"><b>Location:</b></div>
-                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.LocationName)</b></div>
-                <div class="col-xs-6 col-sm-3"><b>War freq.:</b></div>
-                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.WarFrequency)</b></div>
-                <div class="col-xs-6 col-sm-3"><b>Members:</b></div>
-                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.Members)/50</b></div>
-                <div class="col-xs-6 col-sm-3"><b>Level:</b></div>
-                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.ClanLevel)</b></div>
-                <div class="col-xs-6 col-sm-3"><b>W<span class="hidden-xs">in</span>/T<span class="hidden-xs">ie</span>/L<span class="hidden-xs">oss</span>:</b></div>
-                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.WarWins)/@Html.DisplayFor(model => model.Clan.WarTies)/@Html.DisplayFor(model => model.Clan.WarLosses)</b></div>
-                <div class="col-xs-6 col-sm-3"><b>Points:</b></div>
-                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.ClanPoints)</b></div>
-                <div class="col-xs-6 col-sm-3"><b>Streak:</b></div>
-                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.WarWinStreak)</b></div>
-                <div class="col-xs-6 col-sm-3"><b>Trophies:</b></div>
-                <div class="col-xs-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.RequiredTrophies)</b></div>
+                <div class="col-6 col-sm-3"><b>Location:</b></div>
+                <div class="col-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.LocationName)</b></div>
+                <div class="col-6 col-sm-3"><b>War freq.:</b></div>
+                <div class="col-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.WarFrequency)</b></div>
+                <div class="col-6 col-sm-3"><b>Members:</b></div>
+                <div class="col-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.Members)/50</b></div>
+                <div class="col-6 col-sm-3"><b>Level:</b></div>
+                <div class="col-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.ClanLevel)</b></div>
+                <div class="col-6 col-sm-3"><b>W<span class="d-none d-sm-inline">in</span>/T<span class="d-none d-sm-inline">ie</span>/L<span class="d-none d-sm-inline">oss</span>:</b></div>
+                <div class="col-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.WarWins)/@Html.DisplayFor(model => model.Clan.WarTies)/@Html.DisplayFor(model => model.Clan.WarLosses)</b></div>
+                <div class="col-6 col-sm-3"><b>Points:</b></div>
+                <div class="col-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.ClanPoints)</b></div>
+                <div class="col-6 col-sm-3"><b>Streak:</b></div>
+                <div class="col-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.WarWinStreak)</b></div>
+                <div class="col-6 col-sm-3"><b>Trophies:</b></div>
+                <div class="col-6 col-sm-3"><b>@Html.DisplayFor(model => model.Clan.RequiredTrophies)</b></div>
                 @if (Model.InAlliance)
                 {
-                <div class="col-xs-6 col-sm-3"><b>TH Composition:</b></div>
-                    <div class="col-xs-6 col-sm-3"><b>@Model.Clan.Th17Count / @Model.Clan.Th16Count / @Model.Clan.Th15Count / @Model.Clan.Th14Count / @Model.Clan.Th13Count / @Model.Clan.Th12Count / @Model.Clan.Th11Count / @Model.Clan.Th10Count / @Model.Clan.Th9Count / @Model.Clan.Th8Count / @Model.Clan.ThLowCount</b></div>
-                <div class="col-xs-6 col-sm-3"><b>Est.Weight:</b></div>
-                <div class="col-xs-6 col-sm-3"><b>@Model.Clan.EstimatedWeight (@estimatedWeightMembers members)</b></div>
+                <div class="col-6 col-sm-3"><b>TH Composition:</b></div>
+                    <div class="col-6 col-sm-3"><b>@Model.Clan.Th17Count / @Model.Clan.Th16Count / @Model.Clan.Th15Count / @Model.Clan.Th14Count / @Model.Clan.Th13Count / @Model.Clan.Th12Count / @Model.Clan.Th11Count / @Model.Clan.Th10Count / @Model.Clan.Th9Count / @Model.Clan.Th8Count / @Model.Clan.ThLowCount</b></div>
+                <div class="col-6 col-sm-3"><b>Est.Weight:</b></div>
+                <div class="col-6 col-sm-3"><b>@Model.Clan.EstimatedWeight (@estimatedWeightMembers members)</b></div>
 
                 }
             </div>
@@ -88,29 +92,29 @@
 
 @if (Model.InAlliance)
 {
-    <div style="margin-bottom:20px;">
-        <a class="btn btn-default" asp-route-id="@Model.Clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Weight">Edit War Weights</a>
-        <a class="btn btn-default" asp-route-id="@Model.Clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Track">Track Donations</a>
-        <a class="btn btn-default" asp-route-id="@Model.Clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Attacks">Attack Summary</a>
+    <div class="mb-4">
+        <a class="btn btn-outline-primary" asp-route-id="@Model.Clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Weight">Edit War Weights</a>
+        <a class="btn btn-outline-primary" asp-route-id="@Model.Clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Track">Track Donations</a>
+        <a class="btn btn-outline-primary" asp-route-id="@Model.Clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Attacks">Attack Summary</a>
     </div>
 }
 
 <ul class="nav nav-tabs">
-    <li class="active"><a data-toggle="tab" href="#members">Members</a></li>
-    <li><a data-toggle="tab" href="#wars">Wars</a></li>
-    <li><a data-toggle="tab" href="#events">Events</a></li>
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#members">Members</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#wars">Wars</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#events">Events</a></li>
 </ul>
 
 <div class="tab-content">
-    <div id="members" class="tab-pane active">
+    <div id="members" class="tab-pane fade show active">
         @if (Model.Clan.MemberList != null)
         {
-            <table class="table table-condensed table-hover table-responsive tablesorter">
+            <table class="table table-sm table-hover table-responsive table-sort">
                 <thead>
                     <tr>
-                        <th width="36"></th>
+                        <th width="36" data-sort-method="none"></th>
                         <th>
-                            L<span class="hidden-xs">evel</span>
+                            L<span class="d-none d-sm-inline">evel</span>
                         </th>
                         @if (Model.InAlliance)
                         {
@@ -122,13 +126,13 @@
                             Name
                         </th>
                         <th>
-                            D<span class="hidden-xs">onations</span>
+                            D<span class="d-none d-sm-inline">onations</span>
                         </th>
                         <th>
-                            R<span class="hidden-xs">eceived</span>
+                            R<span class="d-none d-sm-inline">eceived</span>
                         </th>
                         <th>
-                            T<span class="hidden-xs">rophies</span>
+                            T<span class="d-none d-sm-inline">rophies</span>
                         </th>
                     </tr>
                 </thead>
@@ -140,25 +144,25 @@
             var member_role2 = "";
             if (member.Role == "leader")
             {
-                member_class = "label-danger";
+                member_class = "badge text-bg-danger";
                 member_role = "L";
                 member_role2 = "eader";
             }
             else if (member.Role == "coLeader")
             {
-                member_class = "label-primary";
+                member_class = "badge text-bg-primary";
                 member_role = "C";
                 member_role2 = "o-Leader";
             }
             else if (member.Role == "admin")
             {
-                member_class = "label-info";
+                member_class = "badge text-bg-info";
                 member_role = "E";
                 member_role2 = "lder";
             }
             <tr>
-                <td style="padding:0px;">
-                    <img src="@member.BadgeUrl" width="36" height="36" />
+                <td class="p-0">
+                    <img src="@member.BadgeUrl" class="badge-35" />
                 </td>
                 <td>
                     @member.ExpLevel
@@ -173,7 +177,7 @@
                     <a asp-route-id="@member.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@member.Name</a>
                     @if (member_role != "")
                     {
-                        <span class="text-right label @member_class">@member_role<span class="hidden-xs">@member_role2</span></span>
+                        <span class="text-right label @member_class">@member_role<span class="d-none d-sm-inline">@member_role2</span></span>
                     }
                 </td>
                 <td>
@@ -191,18 +195,18 @@
             </table>
         }
     </div>
-    <div id="wars" class="tab-pane">
+    <div id="wars" class="tab-pane fade">
         @if (Model.Clan.Wars != null)
         {
-            <table class="table table-condensed table-hover table-responsive tablesorter">
+            <table class="table table-sm table-hover table-responsive table-sort">
                 <thead>
                     <tr>
-                        <th class="text-right">Clan</th>
-                        <th width="35"></th>
-                        <th class="text-nowrap text-center" width="35">
+                        <th class="text-end" data-sort-method="none">Clan</th>
+                        <th width="35" data-sort-method="none"></th>
+                        <th class="text-nowrap text-center" width="35" data-sort-method="none">
                             Result
                         </th>
-                        <th width="35"></th>
+                        <th width="35" data-sort-method="none"></th>
                         <th>
                             Opponent
                         </th>
@@ -236,28 +240,28 @@
                         {
                             valid_alliance_clan = true;
                         }
-                        <tr class="@war_class">
+                        <tr>
                             <td class="text-right text-nowrap">
                                 @if (!valid_alliance_clan)
                                 {
-                                    <span class="label label-danger">W<span class="hidden-xs">ar clan</span></span>
+                                    <span class="label badge text-bg-danger">W<span class="d-none d-sm-inline">ar clan</span></span>
                                 }
-                                @war.ClanName
+                                <span class="@war_class">@war.ClanName</span>
                                 <br />
                                 <small class="text-info">@war.ClanExpEarned xp</small>
                                 <small class="text-muted">@war.ClanDestructionPercentage.ToString("0.#") %</small>
-                                <small class="text-warning" style="font-weight:bold">@war.ClanStars <span class="glyphicon glyphicon-star" /></small>
+                                <small class="text-warning fw-bold">@war.ClanStars <i class="fas fa-star"></i></small>
                             </td>
-                            <td style="vertical-align:middle">
-                                <img src="@war.ClanBadgeUrl" width="35" height="35" />
+                            <td class="align-middle">
+                                <img src="@war.ClanBadgeUrl" class="badge-35" />
                             </td>
                             <td class="text-nowrap text-center" width="35">
-                                @war.Result
+                                <span class="@war_class">@war.Result</span>
                                 <br />
                                 <small class="text-muted text-center text-nowrap">@war.TeamSize vs @war.TeamSize</small>
                             </td>
-                            <td style="vertical-align:middle">
-                                <img src="@war.OpponentBadgeUrl" width="35" height="35" />
+                            <td class="align-middle">
+                                <img src="@war.OpponentBadgeUrl" class="badge-35" />
                             </td>
                             <td class="text-nowrap">
                                 <a class="@opp_class" asp-route-id="@war.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.OpponentName</a>
@@ -265,40 +269,39 @@
                                 {
                                     if (war.Blacklisted)
                                     {
-                                        <small class="label label-default">B<span class="hidden-xs">lacklisted</span></small>
+                                        <small class="label badge text-bg-secondary">B<span class="d-none d-sm-inline">lacklisted</span></small>
                                     }
                                     else
                                     {
-                                        <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
+                                        <small class="label badge text-bg-danger">W<span class="d-none d-sm-inline">ar clan</span></small>
                                     }
                                 }
                                 <br />
-                                <small class="text-warning" style="font-weight:bold">@war.OpponentStars <span class="glyphicon glyphicon-star" /></small>
+                                <small class="text-warning fw-bold">@war.OpponentStars <i class="fas fa-star"></i></small>
                                 <small class="text-muted">@war.OpponentDestructionPercentage.ToString("0.#") %</small>
                             </td>
-                            <td class="text-nowrap">
-                                <span class="hidden-xs">@war.SearchTime.ToString("yyyy-MM-dd")</span>
-                                <span class="visible-xs">@DateTime.UtcNow.Subtract(@war.SearchTime).Days<span>d ago</span></span>
+                            <td class="text-nowrap" data-sort="@war.SearchTime.ToString("yyyy-MM-dd")">
+                                <span class="d-inline @war_class">@DateTime.UtcNow.Subtract(@war.SearchTime).Days<span>d ago</span></span>
                                 <br />
                                 @if (Model.WarsWithDetails.Contains(war.ID))
                                 {
-                                    <a class="label label-info" asp-route-id="@war.ClanLinkID" asp-route-warid="@war.WarLinkID" asp-area="" asp-controller="Clans" asp-action="WarDetails">Details</a>
+                                    <a class="label badge text-bg-info" asp-route-id="@war.ClanLinkID" asp-route-warid="@war.WarLinkID" asp-area="" asp-controller="Clans" asp-action="WarDetails">Details</a>
                                 }
                                 @if (valid_alliance_clan && !war.Synced)
                                 {
-                                    <small class="label label-warning">Out of sync</small>
+                                    <small class="label badge text-bg-warning">Out of sync</small>
                                 }
                                 @if (!valid_alliance_clan && war.Synced && !war.Matched)
                                 {
-                                    <small class="label label-warning">Synced</small>
+                                    <small class="label badge text-bg-warning">Synced</small>
                                 }
                                 @if (!valid_alliance_clan && war.Synced && war.Matched)
                                 {
-                                    <small class="label label-danger">Synced</small>
+                                    <small class="label badge text-bg-danger">Synced</small>
                                 }
                                 @if (war.Friendly)
                                 {
-                                    <small class="label label-success">Friendly</small>
+                                    <small class="label badge text-bg-success">Friendly</small>
                                 }
                             </td>
                         </tr>
@@ -307,10 +310,10 @@
             </table>
         }
     </div>
-    <div id="events" class="tab-pane">
+    <div id="events" class="tab-pane fade">
         @if (Model.Events != null)
         {
-            <table class="table table-condensed table-hover table-responsive tablesorter">
+            <table class="table table-sm table-hover table-responsive table-sort">
                 <thead>
                     <tr>
                         <th>Event</th>
@@ -349,7 +352,7 @@
                         {
                             <td class="text-warning"><b><a class="text-warning" asp-route-id="@clanEvent.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@clanEvent.Value</a></b> changed name to <b>@clanEvent.Name</b></td>
                         }
-                            <td>
+                            <td data-sort="@clanEvent.EventDate.ToString("s")">
                                 @clanEvent.TimeDesc
                             </td>
                         </tr>
@@ -359,3 +362,11 @@
         }
     </div>
 </div>
+
+@section scripts {
+    <script type="text/javascript">
+        (function() {
+            initClansDetails();
+        })();
+    </script>
+}

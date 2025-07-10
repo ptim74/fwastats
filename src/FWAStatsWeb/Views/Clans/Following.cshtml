@@ -5,30 +5,34 @@
     ViewBag.MetaRobots = "noindex, nofollow";
 }
 
-<ol class="breadcrumb">
-    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-    <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
-    <li class="active">Following Clans</li>
-</ol>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Following Clans</li>
+    </ol>
+</nav>
 
 <h2>Following Clans</h2>
 
-<ul class="pagination">
-    <li><a asp-area="" asp-controller="Clans" asp-action="Index">Active</a></li>
-    <li><a asp-area="" asp-controller="Clans" asp-action="Departed">Departed</a></li>
-    <li class="active"><a asp-area="" asp-controller="Clans" asp-action="Following">Following</a></li>
-    <li><a asp-area="" asp-controller="Clans" asp-action="My">My clans</a></li>
-</ul>
+<nav aria-label="Clan navigation">
+    <ul class="pagination">
+        <li class="page-item"><a class="page-link" asp-area="" asp-controller="Clans" asp-action="Index">Active</a></li>
+        <li class="page-item"><a class="page-link" asp-area="" asp-controller="Clans" asp-action="Departed">Departed</a></li>
+        <li class="page-item active"><a class="page-link" asp-area="" asp-controller="Clans" asp-action="Following">Following</a></li>
+        <li class="page-item"><a class="page-link" asp-area="" asp-controller="Clans" asp-action="My">My clans</a></li>
+    </ul>
+</nav>
 
-<div class="input-group" style="margin-bottom:20px;">
-    <span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-search"></span></span>
+<div class="input-group mb-4">
+    <span class="input-group-text" id="basic-addon1"><span class="fas fa-search"></span></span>
     <input type="text" id="search" class="form-control" placeholder="Search" aria-describedby="basic-addon1" />
 </div>
 
-<table id="table" class="table table-hover table-responsive tablesorter">
+<table id="table" class="table table-hover table-responsive table-sort">
     <thead>
         <tr>
-            <th width="35"></th>
+            <th width="35" data-sort-method="none"></th>
             <th>
                 Clan
             </th>
@@ -47,14 +51,14 @@
         @foreach (var clan in Model)
         {
             <tr>
-                <td style="padding:0px;">
-                    <img src="@clan.BadgeURL" width="35" height="35" />
+                <td class="p-0">
+                    <img src="@clan.BadgeURL" class="badge-35" />
                 </td>
-                <td class="search">
-                    <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
+                <td>
+                    <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details" class="table-search">@clan.Name</a>
                     @if (clan.Blacklisted)
                     {
-                        <small class="label label-default">B<span class="hidden-xs">lacklisted</span></small>
+                        <small class="badge text-bg-secondary">B<span class="d-none d-sm-inline">lacklisted</span></small>
                     }
                 </td>
                 <td>
@@ -73,14 +77,8 @@
 
 @section scripts {
     <script type="text/javascript">
-
-        $('#search').keyup(function () {
-            var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
-            $('#table > tbody > tr').show().filter(function () {
-                var text = $(this).children(".search").text().replace(/\s+/g, ' ').toLowerCase();
-                return !~text.indexOf(val);
-            }).hide();
-        });
-
+        (function() {
+            initClansFollowing();
+        })();
     </script>
 }

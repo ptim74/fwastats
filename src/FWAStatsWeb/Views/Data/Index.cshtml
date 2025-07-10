@@ -5,10 +5,12 @@
     string sample_url;
 }
 
-<ol class="breadcrumb">
-    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-    <li class="active">Data</li>
-</ol>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Data</li>
+    </ol>
+</nav>
 
 <h2>API methods</h2>
 
@@ -17,8 +19,8 @@
 <table class="table table-bordered">
     <tbody>
         <tr>
-            <th class="col-xs-4">Description</th>
-            <td class="col-xs-8">Get list of clan members, including TH level and weight (if manually filled)</td>
+            <th class="col-4">Description</th>
+            <td class="col-8">Get list of clan members, including TH level and weight (if manually filled)</td>
         </tr>
         <tr>
             <th>URL</th>
@@ -47,8 +49,8 @@
 <table class="table table-bordered">
     <tbody>
         <tr>
-            <th class="col-xs-4">Description</th>
-            <td class="col-xs-8">Get list of clan members in current war</td>
+            <th class="col-4">Description</th>
+            <td class="col-8">Get list of clan members in current war</td>
         </tr>
         <tr>
             <th>URL</th>
@@ -81,8 +83,8 @@
 <table class="table table-bordered">
     <tbody>
         <tr>
-            <th class="col-xs-4">Description</th>
-            <td class="col-xs-8">Get list of clan wars</td>
+            <th class="col-4">Description</th>
+            <td class="col-8">Get list of clan wars</td>
         </tr>
         <tr>
             <th>URL</th>
@@ -111,8 +113,8 @@
 <table class="table table-bordered">
     <tbody>
         <tr>
-            <th class="col-xs-4">Description</th>
-            <td class="col-xs-8">Get list of clans</td>
+            <th class="col-4">Description</th>
+            <td class="col-8">Get list of clans</td>
         </tr>
         <tr>
             <th>URL</th>
@@ -141,8 +143,8 @@
 <table class="table table-bordered">
     <tbody>
         <tr>
-            <th class="col-xs-4">Description</th>
-            <td class="col-xs-8">Get list of all member weights</td>
+            <th class="col-4">Description</th>
+            <td class="col-8">Get list of all member weights</td>
         </tr>
         <tr>
             <th>URL</th>
@@ -167,16 +169,16 @@
 </table>
 
 <h2>HOW TO</h2>
-<div class="panel-group">
+<div class="accordion" id="accordionExample">
 
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <h4 class="panel-title">
-                <a data-toggle="collapse" href="#collapse1">Import data to Google Sheets</a>
-            </h4>
-        </div>
-        <div id="collapse1" class="panel-collapse collapse">
-            <div class="panel-body">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="heading1">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" aria-expanded="false" aria-controls="collapse1">
+                Import data to Google Sheets
+            </button>
+        </h2>
+        <div id="collapse1" class="accordion-collapse collapse" aria-labelledby="heading1" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
                 <p>
                     Import all fields from CSV with <a href="https://support.google.com/docs/answer/3093335">IMPORTDATA</a> function
                 </p>
@@ -201,14 +203,14 @@
         </div>
     </div>
 
-    <div class="panel panel-default">
-        <div class="panel-heading">
-            <h4 class="panel-title">
-                <a data-toggle="collapse" href="#collapse2">Import data to Excel</a>
-            </h4>
-        </div>
-        <div id="collapse2" class="panel-collapse collapse">
-            <div class="panel-body">
+    <div class="accordion-item">
+        <h2 class="accordion-header" id="heading2">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2" aria-expanded="false" aria-controls="collapse2">
+                Import data to Excel
+            </button>
+        </h2>
+        <div id="collapse2" class="accordion-collapse collapse" aria-labelledby="heading2" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
 
                 <p>Click <b>DATA > From Web</b></p>
 

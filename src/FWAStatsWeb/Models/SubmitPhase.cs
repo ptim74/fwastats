@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿namespace FWAStatsWeb.Models;
 
-namespace FWAStatsWeb.Models
+public enum SubmitPhase
 {
-    public enum SubmitPhase
-    {
-        Unknown,
-        Queued,
-        Running,
-        Succeeded,
-        Failed
-    }
+    Unknown,
+    Queued,
+    Running,
+    Succeeded,
+    Failed
 }

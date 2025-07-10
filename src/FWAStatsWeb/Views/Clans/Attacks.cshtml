@@ -7,23 +7,25 @@
     ICollection<WarAttack> attacks;
 }
 
-<ol class="breadcrumb">
-    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-    <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
-    <li><a asp-area="" asp-controller="Clans" asp-action="Details" asp-route-id="@Model.LinkID">@Model.Name</a></li>
-    <li class="active">Attack Summary</li>
-</ol>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Clans" asp-action="Details" asp-route-id="@Model.LinkID">@Model.Name</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Attack Summary</li>
+    </ol>
+</nav>
 
-<div class="well" style="margin-top:20px;">
+<div class="well card p-3 mt-4">
     <div class="row">
         <div class="col">
-            <img src="@Model.BadgeUrl" height="70" width="70" style="float:left;margin-right:10px;margin-left:10px;margin-top:-15px;" />
-            <h3 style="margin-top:10px;margin-bottom:0px">@Model.Name</h3>
+            <img src="@Model.BadgeUrl" class="badge-70 float-start me-2 ms-2" />
+            <h3 class="mt-2 mb-0">@Model.Name</h3>
             <div class="text-muted">
                 @Model.Tag
-                <a class="text-muted" href="@Constants.CHOCOLATECLASH/clan.php?tag=@Model.LinkID"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">hocolate</span>C<span class="hidden-xs">lash</span></a>
-                <a class="text-muted" href="@Constants.FWAPOINTS/clan?tag=@Model.LinkID"><span class="glyphicon glyphicon-link"></span><span class="hidden-xs">FWA </span>P<span class="hidden-xs">oin</span>ts</a>
-                <a class="text-muted" href="@Constants.CLASHOFSTATS/clans/@Model.LinkID"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">lash </span>o<span class="hidden-xs">f </span>S<span class="hidden-xs">tats</span></a>
+                <a class="text-muted" href="@Constants.CHOCOLATECLASH/clan.php?tag=@Model.LinkID"><span class="fas fa-link"></span>C<span class="d-none d-sm-inline">hocolate</span>C<span class="d-none d-sm-inline">lash</span></a>
+                <a class="text-muted" href="@Constants.FWAPOINTS/clan?tag=@Model.LinkID"><span class="fas fa-link"></span><span class="d-none d-sm-inline">FWA </span>P<span class="d-none d-sm-inline">oin</span>ts</a>
+                <a class="text-muted" href="@Constants.CLASHOFSTATS/clans/@Model.LinkID"><span class="fas fa-link"></span>C<span class="d-none d-sm-inline">lash </span>o<span class="d-none d-sm-inline">f </span>S<span class="d-none d-sm-inline">tats</span></a>
             </div>
         </div>
     </div>
@@ -31,7 +33,7 @@
 
 <h4>Attack Summary</h4>
 
-<table class="table table-condensed table-hover table-responsive tablesorter">
+<table class="table table-sm table-hover table-responsive table-sort">
     <thead>
         <tr>
             <th>Name</th>
@@ -48,7 +50,7 @@
             <td><a asp-route-id="@member.LinkID" asp-area="" asp-controller="Players" asp-action="Details">@member.Name</a></td>
             @foreach (var war in Model.Wars)
             {
-                <td style="white-space: nowrap">
+                <td class="text-nowrap">
                     @if (member.Attacks.TryGetValue(war.ID, out attacks))
                     {
                         foreach (var attack in attacks)
@@ -59,20 +61,20 @@
                             }
                             if (attack.Stars == 0)
                             {
-                                <span class="label label-info">0 Stars</span>
+                                <span class="badge text-bg-info">0 Stars</span>
                             }
                             <span>#@attack.DefenderMapPosition</span>
                             <br />
                         }
                         for (int i = attacks.Count; i < 2; i++)
                         {
-                            <span class="label label-default">Not Used</span>
+                            <span class="badge text-bg-secondary">Not Used</span>
                             <br />
                         }
                     }
                     else
                     {
-                        <span class="label label-danger">Opt Out</span>
+                        <span class="badge text-bg-danger">Opt Out</span>
                     }
                 </td>
             }
@@ -80,4 +82,11 @@
         }
     </tbody>
 </table>
- 
+
+@section scripts {
+    <script type="text/javascript">
+        (function() {
+            initClansAttacks();
+        })();
+    </script>
+}

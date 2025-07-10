@@ -6,31 +6,33 @@
     ViewBag.MetaRobots = "noindex, nofollow";
 }
 
-<ol class="breadcrumb">
-    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-    <li class="active">Players</li>
-</ol>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Players</li>
+    </ol>
+</nav>
 
 <h2>Players</h2>
 
-<ul class="pagination">
-    <li class="active"><a asp-area="" asp-controller="Players" asp-action="Index">Search players</a></li>
-    <li><a asp-area="" asp-controller="Players" asp-action="My">My players</a></li>
-</ul>
+<nav aria-label="Player navigation">
+    <ul class="pagination">
+        <li class="page-item active"><a class="page-link" asp-area="" asp-controller="Players" asp-action="Index">Search players</a></li>
+        <li class="page-item"><a class="page-link" asp-area="" asp-controller="Players" asp-action="My">My players</a></li>
+    </ul>
+</nav>
 
 <form asp-action="Index" method="get">
-    <div class="input-group" style="margin-bottom:20px;">
-        <span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-search"></span></span>
+    <div class="input-group mb-4">
+        <span class="input-group-text" id="basic-addon1"><span class="fas fa-search"></span></span>
         <input type="text" id="q" name="q" value="@Model.Query" class="form-control" placeholder="Search by Name or Tag" aria-describedby="basic-addon1" />
-        <span class="input-group-btn">
-            <input type="submit" class="btn btn-success" value="Go" />
-        </span>
+        <button type="submit" class="btn btn-success">Go</button>
     </div>
 </form>
 
 @if (Model.Results != null && Model.Results.Count > 0)
 {
-    <table class="table table-hover table-responsive tablesorter">
+    <table class="table table-hover table-responsive table-sort">
         <thead>
             <tr>
                 <th>
@@ -58,7 +60,7 @@
                     <td>
                         <a asp-route-id="@player.ClanLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@player.ClanName</a>
                     </td>
-                    <td>
+                    <td data-sort="@player.LastSeen.ToString("s")">
                         @player.TimeDesc()
                     </td>
                 </tr>
@@ -79,6 +81,14 @@
     <div class="alert alert-info">
         <strong>Info: </strong>Showing only first 100 results.
     </div>
+}
+
+@section scripts {
+    <script type="text/javascript">
+        (function() {
+            initPlayersIndex();
+        })();
+    </script>
 }
 
 

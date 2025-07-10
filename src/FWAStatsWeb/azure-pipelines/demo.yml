@@ -1,0 +1,14 @@
+trigger: none
+
+variables:
+- group: FwaStatsCommon
+- group: FwaStatsWeb-Demo
+
+extends:
+  template: template-webapp.yml
+  parameters:
+    environmentName: 'FwaStats-Demo'
+    appType: $(WebAppType)
+    azureServiceConnection: $(AzureServiceConnection)
+    webAppName: $(WebAppName)
+    startUpCommand: $(WebAppStartUpCommand)

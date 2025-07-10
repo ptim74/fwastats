@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿namespace FWAStatsWeb.Models;
 
-namespace FWAStatsWeb.Models
+public enum SubmitRestriction
 {
-    public enum SubmitRestriction
-    {
-        Anyone,
-        Members,
-        Elders,
-        CoLeaders,
-        Leader
-    }
+    Anyone,
+    Members,
+    Elders,
+    CoLeaders,
+    Leader
 }

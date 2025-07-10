@@ -1,21 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Serialization;
-using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
 
-namespace FWAStatsWeb.Models
+namespace FWAStatsWeb.Models;
+
+[DataContract]
+public class BadgeUrls
 {
-    [DataContract]
-    public class BadgeUrls
-    {
-        [DataMember]
-        public string Small { get; set; }
+    [DataMember]
+    public string Small { get; set; }
 
-        [DataMember]
-        public string Medium { get; set; }
+    [DataMember]
+    public string Medium { get; set; }
 
-        [DataMember]
-        public string Large { get; set; }
-    }
+    [DataMember]
+    public string Large { get; set; }
 }

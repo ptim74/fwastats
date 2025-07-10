@@ -6,24 +6,26 @@
     ViewBag.MetaRobots = "noindex, nofollow";
 }
 
-<ol class="breadcrumb">
-    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-    <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
-    <li><a asp-area="" asp-controller="Clans" asp-action="Details" asp-route-id="@Model.ClanLink">@Model.ClanName</a></li>
-    <li><a asp-area="" asp-controller="Clans" asp-action="Weight" asp-route-id="@Model.ClanLink">Weight</a></li>
-    <li class="active">Submit</li>
-</ol>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Clans" asp-action="Details" asp-route-id="@Model.ClanLink">@Model.ClanName</a></li>
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Clans" asp-action="Weight" asp-route-id="@Model.ClanLink">Weight</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Submit</li>
+    </ol>
+</nav>
 
-<div class="well" style="margin-top:20px;">
+<div class="well card p-3 mt-4">
     <div class="row">
         <div class="col">
-            <img src="@Model.ClanBadge" height="70" width="70" style="float:left;margin-right:10px;margin-left:10px;margin-top:-15px;" />
-            <h3 style="margin-top:10px;margin-bottom:0px">@Model.ClanName</h3>
+            <img src="@Model.ClanBadge" class="badge-70 float-start me-2 ms-2" />
+            <h3 class="mt-2 mb-0">@Model.ClanName</h3>
             <div class="text-muted">
                 @Model.ClanTag
-                <a class="text-muted" href="@Constants.CHOCOLATECLASH/clan.php?tag=@Model.ClanLink"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">hocolate</span>C<span class="hidden-xs">lash</span></a>
-                <a class="text-muted" href="@Constants.FWAPOINTS/clan?tag=@Model.ClanLink"><span class="glyphicon glyphicon-link"></span><span class="hidden-xs">FWA </span>P<span class="hidden-xs">oin</span>ts</a>
-                <a class="text-muted" href="@Constants.CLASHOFSTATS/clans/@Model.ClanLink"><span class="glyphicon glyphicon-link"></span>C<span class="hidden-xs">lash </span>o<span class="hidden-xs">f </span>S<span class="hidden-xs">tats</span></a>
+                <a class="text-muted" href="@Constants.CHOCOLATECLASH/clan.php?tag=@Model.ClanLink"><span class="fas fa-link"></span>C<span class="d-none d-sm-inline">hocolate</span>C<span class="d-none d-sm-inline">lash</span></a>
+                <a class="text-muted" href="@Constants.FWAPOINTS/clan?tag=@Model.ClanLink"><span class="fas fa-link"></span><span class="d-none d-sm-inline">FWA </span>P<span class="d-none d-sm-inline">oin</span>ts</a>
+                <a class="text-muted" href="@Constants.CLASHOFSTATS/clans/@Model.ClanLink"><span class="fas fa-link"></span>C<span class="d-none d-sm-inline">lash </span>o<span class="d-none d-sm-inline">f </span>S<span class="d-none d-sm-inline">tats</span></a>
             </div>
         </div>
     </div>
@@ -33,15 +35,15 @@
 {
     <div class="alert alert-success"><strong>Success!</strong> @Model.Message</div>
     <div>
-        <a class="btn btn-default" asp-area="" asp-controller="Clans" asp-action="Weight" asp-route-id="@Model.ClanLink">Back to Clan Weight</a>
-        <a class="btn btn-default" href="@Model.SheetUrl">View Result Sheet</a>
+        <a class="btn btn-primary" asp-area="" asp-controller="Clans" asp-action="Weight" asp-route-id="@Model.ClanLink">Back to Clan Weight</a>
+        <a class="btn btn-primary" href="@Model.SheetUrl">View Result Sheet</a>
     </div>
 }
 else
 {
     <div class="alert alert-danger"><strong>Error!</strong> @Model.Message</div>
     <div>
-        <a class="btn btn-default" asp-area="" asp-controller="Clans" asp-action="Weight" asp-route-id="@Model.ClanLink">Back to Clan Weight</a>
-        <a class="btn btn-default" href="@Model.SheetUrl">View Submit Sheet</a>
+        <a class="btn btn-primary" asp-area="" asp-controller="Clans" asp-action="Weight" asp-route-id="@Model.ClanLink">Back to Clan Weight</a>
+        <a class="btn btn-primary" href="@Model.SheetUrl">View Submit Sheet</a>
     </div>
 }

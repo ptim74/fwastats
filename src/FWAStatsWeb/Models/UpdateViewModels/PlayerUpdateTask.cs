@@ -1,21 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿namespace FWAStatsWeb.Models.UpdateViewModels;
 
-namespace FWAStatsWeb.Models.UpdateViewModels
+public class PlayerUpdateTask
 {
-    public class PlayerUpdateTask
-    {
-        public string Tag { get; set; }
-        public string Name { get; set; }
+    public string Tag { get; set; }
+    public string Name { get; set; }
 
-        public string LinkID
+    public string LinkID
+    {
+        get
         {
-            get
-            {
-                return Logic.Utils.TagToLinkId(Tag);
-            }
+            return Logic.Utils.TagToLinkId(Tag);
         }
     }
 }

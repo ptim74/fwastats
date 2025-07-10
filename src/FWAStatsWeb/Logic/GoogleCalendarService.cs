@@ -5,59 +5,58 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace FWAStatsWeb.Logic
+namespace FWAStatsWeb.Logic;
+
+public interface IGoogleCalendarService
 {
-    public interface IGoogleCalendarService
+    Task<IList<Event>> GetEvents(string calendarId, DateTime startDate, DateTime endTime);
+}
+public class GoogleCalendarService : GoogleBaseService, IGoogleCalendarService
+{
+    public GoogleCalendarService(
+        IOptions<GoogleServiceOptions> googleOptions) : base(googleOptions)
     {
-        Task<IList<Event>> GetEvents(string calendarId, DateTime startDate, DateTime endTime);
     }
-    public class GoogleCalendarService : GoogleBaseService, IGoogleCalendarService
+
+    private CalendarService calendarService = null;
+
+    protected CalendarService Service
     {
-        public GoogleCalendarService(
-            IOptions<GoogleServiceOptions> googleOptions) : base(googleOptions)
+        get
         {
+            calendarService ??= new CalendarService(Initializer(new[] { CalendarService.Scope.Calendar, CalendarService.Scope.CalendarEvents }));
+            return calendarService;
         }
+    }
 
-        private CalendarService calendarService = null;
-
-        protected CalendarService Service
+    protected async Task EnsureCalendarExists(string calendarId)
+    {
+        try
         {
-            get
-            {
-                calendarService ??= new CalendarService(Initializer(new[] { CalendarService.Scope.Calendar, CalendarService.Scope.CalendarEvents }));
-                return calendarService;
-            }
+            await Service.Calendars.Get(calendarId).ExecuteAsync();
         }
-
-        protected async Task EnsureCalendarExists(string calendarId)
+        catch(Exception)
         {
-            try
-            {
-                await Service.Calendars.Get(calendarId).ExecuteAsync();
-            }
-            catch(Exception)
-            {
-                await Service.CalendarList.Insert(new CalendarListEntry { Id = calendarId }).ExecuteAsync();
-            }
+            await Service.CalendarList.Insert(new CalendarListEntry { Id = calendarId }).ExecuteAsync();
         }
+    }
 
-        public async Task<IList<Event>> GetEvents(string calendarId, DateTime startDate, DateTime endTime)
+    public async Task<IList<Event>> GetEvents(string calendarId, DateTime startDate, DateTime endTime)
+    {
+        var events = new List<Event>();
+        await EnsureCalendarExists(calendarId);
+        string nextPageToken = null;
+        do
         {
-            var events = new List<Event>();
-            await EnsureCalendarExists(calendarId);
-            string nextPageToken = null;
-            do
-            {
-                var eventRequest = Service.Events.List(calendarId);
-                eventRequest.TimeMinDateTimeOffset = startDate;
-                eventRequest.TimeMaxDateTimeOffset = endTime;
-                eventRequest.PageToken = nextPageToken;
-                var eventResponse = await eventRequest.ExecuteAsync();
-                events.AddRange(eventResponse.Items);
-                nextPageToken = eventResponse.NextPageToken;
-            }
-            while (nextPageToken != null);
-            return events;
+            var eventRequest = Service.Events.List(calendarId);
+            eventRequest.TimeMinDateTimeOffset = startDate;
+            eventRequest.TimeMaxDateTimeOffset = endTime;
+            eventRequest.PageToken = nextPageToken;
+            var eventResponse = await eventRequest.ExecuteAsync();
+            events.AddRange(eventResponse.Items);
+            nextPageToken = eventResponse.NextPageToken;
         }
+        while (nextPageToken != null);
+        return events;
     }
 }

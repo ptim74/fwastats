@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿namespace FWAStatsWeb.Models.GraphViewModels;
 
-namespace FWAStatsWeb.Models.GraphViewModels
+public class GraphNode
 {
-    public class GraphNode
-    {
-        public int Id { get; set; }
-        public string Label { get; set; }
-    }
+    public int Id { get; set; }
+    public string Label { get; set; }
 }

@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
-namespace FWAStatsWeb.Models.PlayerViewModels
+namespace FWAStatsWeb.Models.PlayerViewModels;
+
+public class SearchViewModel
 {
-    public class SearchViewModel
-    {
-        public string Query { get; set; }
-        public ICollection<SearchResultModel> Results { get; set; }
-    }
+    public string Query { get; set; }
+    public ICollection<SearchResultModel> Results { get; set; }
 }

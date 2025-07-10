@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿namespace FWAStatsWeb.Logic;
 
-namespace FWAStatsWeb.Logic
+public class ClanObject
 {
-    public class ClanObject
-    {
-        public string Tag { get; set; }
-        public string Name { get; set; }
-        public string Group { get; set; }
-    }
+    public string Tag { get; set; }
+    public string Name { get; set; }
+    public string Group { get; set; }
 }

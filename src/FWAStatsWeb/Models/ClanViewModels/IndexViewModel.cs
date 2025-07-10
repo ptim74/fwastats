@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
-namespace FWAStatsWeb.Models.ClanViewModels
+namespace FWAStatsWeb.Models.ClanViewModels;
+
+public class IndexViewModel : List<ClanIndexClan>
 {
-    public class IndexViewModel : List<ClanIndexClan>
-    {
-        public bool IsMyClans { get; set; }
-    }
+    public bool IsMyClans { get; set; }
 }

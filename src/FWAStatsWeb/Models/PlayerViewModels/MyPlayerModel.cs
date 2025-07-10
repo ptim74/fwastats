@@ -1,34 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿namespace FWAStatsWeb.Models.PlayerViewModels;
 
-namespace FWAStatsWeb.Models.PlayerViewModels
+public class MyPlayerModel
 {
-    public class MyPlayerModel
+    public string Tag { get; set; }
+    public string Name { get; set; }
+    public string LinkID
     {
-        public string Tag { get; set; }
-        public string Name { get; set; }
-        public string LinkID
+        get
         {
-            get
-            {
-                return Logic.Utils.TagToLinkId(Tag);
-            }
+            return Logic.Utils.TagToLinkId(Tag);
         }
-        public string ClanTag { get; set; }
-        public string ClanName { get; set; }
-        public string ClanLinkID
-        {
-            get
-            {
-                return Logic.Utils.TagToLinkId(ClanTag);
-            }
-        }
-
-        public bool IsFWA { get; set; }
-        public bool IsError { get; set; }
-
-        public SubmitRestriction ClanSubmitRestriction { get; set; }
     }
+    public string ClanTag { get; set; }
+    public string ClanName { get; set; }
+    public string ClanLinkID
+    {
+        get
+        {
+            return Logic.Utils.TagToLinkId(ClanTag);
+        }
+    }
+
+    public bool IsFWA { get; set; }
+    public bool IsError { get; set; }
+
+    public SubmitRestriction ClanSubmitRestriction { get; set; }
 }

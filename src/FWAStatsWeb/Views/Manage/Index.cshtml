@@ -4,44 +4,44 @@
     var submitRestrictionList = Html.GetEnumSelectList(typeof(SubmitRestriction));
 }
 
-<div class="col-md-6 col-md-offset-3 col-sm-8 col-sm-offset-2">
-    <div class="panel panel-info">
-        <div class="panel-heading">
-            <div class="panel-title">@ViewData["Title"]</div>
+<div class="col-md-6 offset-md-3 col-sm-8 offset-sm-2">
+    <div class="card">
+        <div class="card-header">
+            @ViewData["Title"]
         </div>
-        <div class="panel-body">
+        <div class="card-body">
 
             <p>@ViewData["StatusMessage"]</p>
 
-            <div class="form-group">
+            <div class="mb-3">
                 <h5>Players</h5>
-                <a asp-controller="Players" asp-action="My" class="btn btn-default">My players</a>
-                <a asp-controller="Players" asp-action="NewLink" class="btn btn-default">Link new player</a>
+                <a asp-controller="Players" asp-action="My" class="btn btn-outline-primary">My players</a>
+                <a asp-controller="Players" asp-action="NewLink" class="btn btn-outline-primary">Link new player</a>
             </div>
 
-            <div class="form-group">
+            <div class="mb-3">
                 <h5>Clans</h5>
-                <a asp-controller="Clans" asp-action="My" class="btn btn-default">My clans</a>
+                <a asp-controller="Clans" asp-action="My" class="btn btn-outline-primary">My clans</a>
             </div>
 
-            <div class="form-group">
+            <div class="mb-3">
                 <h5>Account actions</h5>
                 @if (!Model.EmailConfirmed)
                 {
-                    <a asp-controller="Manage" asp-action="VerifyEmail" class="btn btn-default">Verify Email</a>
+                    <a asp-controller="Manage" asp-action="VerifyEmail" class="btn btn-outline-primary">Verify Email</a>
                 }
                 @if (Model.HasPassword)
                 {
-                    <a asp-controller="Manage" asp-action="ChangePassword" class="btn btn-default">Change Password</a>
+                    <a asp-controller="Manage" asp-action="ChangePassword" class="btn btn-outline-primary">Change Password</a>
                 }
                 else
                 {
-                    <a asp-controller="Manage" asp-action="SetPassword" class="btn btn-default">Create Password</a>
+                    <a asp-controller="Manage" asp-action="SetPassword" class="btn btn-outline-primary">Create Password</a>
                 }
                 <a asp-controller="Account" asp-action="Delete" class="btn btn-danger">Delete Account</a>
             </div>
 
-            <div class="form-group">
+            <div class="mb-3">
                 <h5>External logins</h5>
                 @foreach (var login in Model.Logins)
                 {
@@ -55,14 +55,14 @@
                     }
                     else
                     {
-                        <div class="btn btn-default disabled">Linked to @login.LoginProvider</div>
+                        <div class="btn btn-outline-primary disabled">Linked to @login.LoginProvider</div>
                     }
                 }
                 @foreach (var login in Model.OtherLogins)
                 {
                     <form asp-controller="Manage" asp-action="LinkLogin" method="post">
                         <input asp-for="@login.Name" name="provider" type="hidden" />
-                        <input type="submit" class="btn btn-primary" value="Link to @login.DisplayName" />
+                        <input type="submit" class="btn btn-outline-primary" value="Link to @login.DisplayName" />
                     </form>
                 }
             </div>

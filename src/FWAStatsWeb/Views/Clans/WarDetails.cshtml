@@ -5,12 +5,14 @@
     ViewBag.MetaRobots = "noindex, nofollow";
 }
 
-<ol class="breadcrumb">
-    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-    <li><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
-    <li><a asp-area="" asp-controller="Clans" asp-action="Details" asp-route-id="@Model.ClanLinkID">@Model.ClanName</a></li>
-    <li class="active">War</li>
-</ol>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Clans" asp-action="Index">Clans</a></li>
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Clans" asp-action="Details" asp-route-id="@Model.ClanLinkID">@Model.ClanName</a></li>
+        <li class="breadcrumb-item active" aria-current="page">War</li>
+    </ol>
+</nav>
 
 @{
     var war_class = "";
@@ -32,7 +34,7 @@
     }
 }
 
-<div class="well" style="margin-top:20px;">
+<div class="well mt-4">
     <table>
         <tr class="@war_class">
             <td class="text-right text-nowrap">
@@ -40,27 +42,27 @@
                 <br />
                 <small class="text-info">@Model.ClanExpEarned xp</small>
                 <small class="text-muted">@Model.ClanDestructionPercentage.ToString("0.#") %</small>
-                <small class="text-warning" style="font-weight:bold">@Model.ClanStars <span class="glyphicon glyphicon-star" /></small>
+                <small class="text-warning fw-bold">@Model.ClanStars <i class="fas fa-star"></i></small>
             </td>
-            <td style="vertical-align:middle">
-                <img src="@Model.ClanBadgeUrl" width="35" height="35" />
+            <td class="align-middle">
+                <img src="@Model.ClanBadgeUrl" class="badge-35" />
             </td>
             <td class="text-nowrap text-center" width="35">
                 @Model.Result
                 <br />
                 <small class="text-muted text-center text-nowrap">@Model.TeamSize vs @Model.TeamSize</small>
             </td>
-            <td style="vertical-align:middle">
-                <img src="@Model.OpponentBadgeUrl" width="35" height="35" />
+            <td class="align-middle">
+                <img src="@Model.OpponentBadgeUrl" class="badge-35" />
             </td>
             <td class="text-nowrap">
                 <a class="@opp_class" asp-route-id="@Model.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@Model.OpponentName</a>
                 @if (!Model.Matched)
                 {
-                    <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
+                    <small class="badge text-bg-danger">W<span class="d-none d-sm-inline">ar clan</span></small>
                 }
                 <br />
-                <small class="text-warning" style="font-weight:bold">@Model.OpponentStars <span class="glyphicon glyphicon-star" /></small>
+                <small class="text-warning fw-bold">@Model.OpponentStars <i class="fas fa-star"></i></small>
                 <small class="text-muted">@Model.OpponentDestructionPercentage.ToString("0.#") %</small>
             </td>
         </tr>
@@ -68,13 +70,13 @@
 </div>
 
 <ul class="nav nav-tabs">
-    <li class="active"><a data-toggle="tab" href="#clanmembers">@Model.ClanName</a></li>
-    <li><a data-toggle="tab" href="#opponentmembers">@Model.OpponentName</a></li>
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#clanmembers">@Model.ClanName</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#opponentmembers">@Model.OpponentName</a></li>
 </ul>
 
 <div class="tab-content">
-    <div id="clanmembers" class="tab-pane active">
-        <table class="table table-condensed table-hover table-responsive tablesorter">
+    <div id="clanmembers" class="tab-pane fade show active">
+        <table class="table table-condensed table-hover table-responsive table-sort">
             <thead>
                 <tr>
                     <th>#</th>
@@ -121,8 +123,8 @@
         </table>
     </div>
 
-    <div id="opponentmembers" class="tab-pane">
-        <table class="table table-condensed table-hover table-responsive tablesorter">
+    <div id="opponentmembers" class="tab-pane fade">
+        <table class="table table-condensed table-hover table-responsive table-sort">
             <thead>
                 <tr>
                     <th>#</th>
@@ -169,6 +171,14 @@
         </table>
     </div>
 
-    <div id="attacks" class="tab-pane">
+    <div id="attacks" class="tab-pane fade">
     </div>
 </div>
+
+@section scripts {
+    <script type="text/javascript">
+        (function() {
+            initClansWarDetails();
+        })();
+    </script>
+}

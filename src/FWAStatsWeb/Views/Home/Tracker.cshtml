@@ -9,15 +9,16 @@
     }
 }
 
-<ol class="breadcrumb">
-    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-    <li class="active">Tracker</li>
-</ol>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Tracker</li>
+    </ol>
+</nav>
 
 <h3>Create Clash of Clans donation tracker in Google Sheets</h3>
 
-<div class="alert alert-warning alert-dismissable">
-    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+<div class="alert alert-warning">
     <strong>Note!</strong>
     You don't need to ask permissions for the tracker template, I'm not going to respond to permission requests since it's not needed if you follow the instructions.
     If you still think that you need to ask permissions, please note that I can see your Google profile name, picture and email in the permission request.

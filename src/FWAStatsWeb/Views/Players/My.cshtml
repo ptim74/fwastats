@@ -6,19 +6,23 @@
     ViewBag.MetaRobots = "noindex, nofollow";
 }
 
-<ol class="breadcrumb">
-    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-    <li class="active">My Players</li>
-</ol>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">My Players</li>
+    </ol>
+</nav>
 
 <h2>My Players</h2>
 
-<ul class="pagination">
-    <li><a asp-area="" asp-controller="Players" asp-action="Index">Search players</a></li>
-    <li class="active"><a asp-area="" asp-controller="Players" asp-action="My">My players</a></li>
-</ul>
+<nav aria-label="Player navigation">
+    <ul class="pagination">
+        <li class="page-item"><a class="page-link" asp-area="" asp-controller="Players" asp-action="Index">Search players</a></li>
+        <li class="page-item active"><a class="page-link" asp-area="" asp-controller="Players" asp-action="My">My players</a></li>
+    </ul>
+</nav>
 
-<table class="table table-hover table-responsive tablesorter">
+<table class="table table-hover table-responsive table-sort">
     <thead>
         <tr>
             <th>
@@ -27,7 +31,7 @@
             <th>
                 Clan
             </th>
-            <th>
+            <th data-sort-method="none">
 
             </th>
         </tr>
@@ -57,9 +61,17 @@
     </tbody>
 </table>
 
-<a asp-controller="Players" asp-action="NewLink" class="btn btn-default">Link new player</a>
+<a asp-controller="Players" asp-action="NewLink" class="btn btn-primary">Link new player</a>
 
-<div style="margin-top: 20px;" class="alert alert-info">
+<div class="alert alert-info mt-4">
     <strong>Info!</strong>
     You can link players if you click the link on upper right corner in player details page.
 </div>
+
+@section scripts {
+    <script type="text/javascript">
+        (function() {
+            initPlayersMy();
+        })();
+    </script>
+}

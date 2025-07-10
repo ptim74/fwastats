@@ -1,15 +1,11 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace FWAStatsWeb.Models.ManageViewModels
+namespace FWAStatsWeb.Models.ManageViewModels;
+
+public class ConfigureTwoFactorViewModel
 {
-    public class ConfigureTwoFactorViewModel
-    {
-        public string SelectedProvider { get; set; }
+    public string SelectedProvider { get; set; }
 
-        public ICollection<SelectListItem> Providers { get; set; }
-    }
+    public ICollection<SelectListItem> Providers { get; set; }
 }

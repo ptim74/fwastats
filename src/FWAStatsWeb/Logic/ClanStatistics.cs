@@ -1,382 +1,378 @@
-﻿using Ical.Net;
-using FWAStatsWeb.Data;
+﻿using FWAStatsWeb.Data;
 using FWAStatsWeb.Models;
+using Ical.Net;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
 using System.Net.Http;
+using System.Threading.Tasks;
 
-namespace FWAStatsWeb.Logic
+namespace FWAStatsWeb.Logic;
+
+public class StatisticsOptions
 {
-    public class StatisicsOptions
+    public int Wars { get; set; }
+    public int Members { get; set; }
+    public string SyncURL { get; set; }
+    public string CalendarId { get; set; }
+}
+
+public interface IClanStatistics
+{
+    void DeleteHistory();
+    void UpdateValidities();
+    Task CalculateSyncs();
+    void UpdateSyncMatch();
+    void UpdateClanStats();
+}
+
+public class ClanStatistics : IClanStatistics
+{
+    private readonly ApplicationDbContext db;
+    private readonly IOptions<StatisticsOptions> options;
+    private readonly IHttpClientFactory clientFactory;
+    private readonly IGoogleCalendarService googleCalendarService;
+
+    public ClanStatistics(
+        ApplicationDbContext db,
+        IOptions<StatisticsOptions> options,
+        IHttpClientFactory clientFactory,
+        IGoogleCalendarService googleCalendarService
+        )
     {
-        public int Wars { get; set; }
-        public int Members { get; set; }
-        public string SyncURL { get; set; }
-        public string CalendarId { get; set; }
+        this.db = db;
+        this.options = options;
+        this.clientFactory = clientFactory;
+        this.googleCalendarService = googleCalendarService;
     }
 
-    public interface IClanStatistics
+    public async Task CalculateSyncs()
     {
-        void DeleteHistory();
-        void UpdateValidities();
-        Task CalculateSyncs();
-        void UpdateSyncMatch();
-        void UpdateClanStats();
-    }
-
-    public class ClanStatistics : IClanStatistics
-    {
-        private readonly ApplicationDbContext db;
-        private readonly IOptions<StatisicsOptions> options;
-        private readonly IHttpClientFactory clientFactory;
-        private readonly IGoogleCalendarService googleCalendarService;
-
-        public ClanStatistics(
-            ApplicationDbContext db,
-            IOptions<StatisicsOptions> options,
-            IHttpClientFactory clientFactory,
-            IGoogleCalendarService googleCalendarService
-            )
+        if (!string.IsNullOrEmpty(options.Value.CalendarId))
         {
-            this.db = db;
-            this.options = options;
-            this.clientFactory = clientFactory;
-            this.googleCalendarService = googleCalendarService;
-        }
-
-        public async Task CalculateSyncs()
-        {
-            if (!string.IsNullOrEmpty(options.Value.CalendarId))
-            {
-                var events = await CalculateSyncsFromGoogleCalendar();
-                if(events == 0)
-                    await CalculateSyncsFromBandCalendar();
-            }
-            else if (string.IsNullOrEmpty(options.Value.SyncURL))
-            {
+            var events = await CalculateSyncsFromGoogleCalendar();
+            if(events == 0)
                 await CalculateSyncsFromBandCalendar();
-            }
         }
-
-        public async Task<int> CalculateSyncsFromGoogleCalendar()
+        else if (string.IsNullOrEmpty(options.Value.SyncURL))
         {
-            var eventCount = 0;
-
-            var startDate = DateTime.UtcNow.AddDays(options.Value.Wars * -1);
-            var endDate = DateTime.UtcNow.AddDays(1);
-
-            var syncEvents = await googleCalendarService.GetEvents(options.Value.CalendarId, startDate, endDate);
-
-            var syncTimes = db.WarSyncs.Select(s => s.Start).ToHashSet();
-
-            foreach (var syncEvent in syncEvents)
-            {
-                var eventStart = syncEvent.Start?.DateTimeDateTimeOffset?.ToUniversalTime().DateTime;
-                var eventEnd = syncEvent.End?.DateTimeDateTimeOffset?.ToUniversalTime().DateTime;
-                if(eventStart.HasValue && eventEnd.HasValue)
-                {
-                    if (!syncTimes.Contains(eventStart.Value))
-                    {
-                        if (eventStart < DateTime.UtcNow)
-                        {
-                            var sync = new WarSync { Start = eventStart.Value, Finish = eventEnd.Value };
-                            db.WarSyncs.Add(sync);
-                        }
-                    }
-                    eventCount++;
-                }
-            }
-
-            return eventCount;
+            await CalculateSyncsFromBandCalendar();
         }
+    }
 
-        public async Task<int> CalculateSyncsFromBandCalendar()
+    public async Task<int> CalculateSyncsFromGoogleCalendar()
+    {
+        var eventCount = 0;
+
+        var startDate = DateTime.UtcNow.AddDays(options.Value.Wars * -1);
+        var endDate = DateTime.UtcNow.AddDays(1);
+
+        var syncEvents = await googleCalendarService.GetEvents(options.Value.CalendarId, startDate, endDate);
+
+        var syncTimes = db.WarSyncs.Select(s => s.Start).ToHashSet();
+
+        foreach (var syncEvent in syncEvents)
         {
-            var eventCount = 0;
-            var client = clientFactory.CreateClient();
-            var data = await client.GetStringAsync(options.Value.SyncURL);
-
-            var syncDuration1 = new TimeSpan(1, 30, 0);
-            var syncDuration2 = new TimeSpan(2, 0, 0);
-
-            var syncTimes = db.WarSyncs.Select(s => s.Start).ToHashSet();
-
-            var cal = Calendar.Load(data);
-
-            foreach (var syncEvent in cal.Events.Where(a => a.Duration >= syncDuration1 && a.Duration <= syncDuration2).OrderBy(a => a.Start))
+            var eventStart = syncEvent.Start?.DateTimeDateTimeOffset?.ToUniversalTime().DateTime;
+            var eventEnd = syncEvent.End?.DateTimeDateTimeOffset?.ToUniversalTime().DateTime;
+            if(eventStart.HasValue && eventEnd.HasValue)
             {
-                var eventStart = syncEvent.Start.AsUtc;
-                var eventEnd = syncEvent.End.AsUtc;
-
-                if (!syncTimes.Contains(eventStart))
+                if (!syncTimes.Contains(eventStart.Value))
                 {
                     if (eventStart < DateTime.UtcNow)
                     {
-                        var sync = new WarSync { Start = eventStart, Finish = eventEnd };
+                        var sync = new WarSync { Start = eventStart.Value, Finish = eventEnd.Value };
                         db.WarSyncs.Add(sync);
                     }
                 }
                 eventCount++;
             }
-
-            db.SaveChanges();
-            return eventCount;
         }
 
-        public void UpdateValidities()
+        return eventCount;
+    }
+
+    public async Task<int> CalculateSyncsFromBandCalendar()
+    {
+        var eventCount = 0;
+        var client = clientFactory.CreateClient();
+        var data = await client.GetStringAsync(options.Value.SyncURL);
+
+        var syncDuration1 = new TimeSpan(1, 30, 0);
+        var syncDuration2 = new TimeSpan(2, 0, 0);
+
+        var syncTimes = db.WarSyncs.Select(s => s.Start).ToHashSet();
+
+        var cal = Calendar.Load(data);
+
+        foreach (var syncEvent in cal.Events.Where(a => a.Duration >= syncDuration1 && a.Duration <= syncDuration2).OrderBy(a => a.Start))
         {
-            var currentClans = db.Clans.ToDictionary(c => c.Tag);
-            var validClans = db.ClanValidities.ToDictionary(l => l.Tag);
+            var eventStart = syncEvent.Start.AsUtc;
+            var eventEnd = syncEvent.End.AsUtc;
 
-            //Deleted clans
-            foreach (var clan in validClans)
+            if (!syncTimes.Contains(eventStart))
             {
-                if(!currentClans.ContainsKey(clan.Key))
+                if (eventStart < DateTime.UtcNow)
                 {
-                    var validClan = clan.Value;
-                    if (validClan.ValidTo > DateTime.UtcNow)
-                    {
-                        validClan.ValidTo = DateTime.UtcNow;
-                    }
+                    var sync = new WarSync { Start = eventStart, Finish = eventEnd };
+                    db.WarSyncs.Add(sync);
                 }
             }
-
-            //New or existing clans
-            foreach(var clan in currentClans)
-            {
-                var currentClan = clan.Value;
-                if (validClans.TryGetValue(clan.Key, out ClanValidity validClan))
-                {
-                    if (validClan.ValidTo < DateTime.UtcNow)
-                    {
-                        validClan.ValidTo = DateTime.MaxValue;
-                    }
-                }
-                else
-                {
-                    validClan = new ClanValidity() { Tag = clan.Key, Name = currentClan.Name, ValidFrom = DateTime.UtcNow, ValidTo = DateTime.MaxValue, Group = currentClan.Group };
-                    db.ClanValidities.Add(validClan);
-                }
-            }
-
-            db.SaveChanges();
+            eventCount++;
         }
 
-        public void UpdateSyncMatch()
+        db.SaveChanges();
+        return eventCount;
+    }
+
+    public void UpdateValidities()
+    {
+        var currentClans = db.Clans.ToDictionary(c => c.Tag);
+        var validClans = db.ClanValidities.ToDictionary(l => l.Tag);
+
+        //Deleted clans
+        foreach (var clan in validClans)
         {
-            var validClans = db.ClanValidities.ToDictionary(l => l.Tag);
-            var syncs = db.WarSyncs.OrderBy(w => w.Start).ToList();
-            var wars = db.Wars.OrderBy(w => w.PreparationStartTime).ToList();
-
-            if (syncs.Count == 0 || validClans.Count == 0 || wars.Count == 0)
-                return;
-
-            var syncId = 0;
-            var currentSync = syncs[syncId++];
-            var allianceMatches = 0;
-            var warMatches = 0;
-
-            foreach (var war in wars)
+            if(!currentClans.ContainsKey(clan.Key))
             {
-                var clanIsValid = false;
-                if (validClans.TryGetValue(war.ClanTag, out ClanValidity validClan))
+                var validClan = clan.Value;
+                if (validClan.ValidTo > DateTime.UtcNow)
                 {
-                    if (validClan.ValidFrom < war.PreparationStartTime && validClan.ValidTo > war.PreparationStartTime)
-                        clanIsValid = true;
-                }
-                while(war.PreparationStartTime > currentSync.Finish && syncId < syncs.Count)
-                {
-                    currentSync.AllianceMatches = allianceMatches;
-                    currentSync.WarMatches = warMatches;
-                    currentSync = syncs[syncId++];
-                    allianceMatches = 0;
-                    warMatches = 0;
-                }
-
-                var matched = false;
-                if (validClans.TryGetValue(war.OpponentTag, out validClan))
-                {
-                    var searchTime = war.PreparationStartTime;
-                    if (validClan.ValidFrom < searchTime && validClan.ValidTo > searchTime)
-                        matched = true;
-                }
-                war.Matched = matched;
-
-                if (war.PreparationStartTime >= currentSync.Start && war.PreparationStartTime <= currentSync.Finish && (war.TeamSize == Constants.WAR_SIZE1 || war.TeamSize == Constants.WAR_SIZE2 || war.TeamSize == Constants.WAR_SIZE3) && clanIsValid && !war.Friendly)
-                {
-                    war.Synced = true;
-                    if (war.Matched)
-                        allianceMatches++;
-                    else
-                        warMatches++;
-                }
-                else
-                {
-                    war.Synced = false;
+                    validClan.ValidTo = DateTime.UtcNow;
                 }
             }
-
-            currentSync.AllianceMatches = allianceMatches;
-            currentSync.WarMatches = warMatches;
-
-            foreach(var sync in syncs)
-            {
-                var clanCount = 0;
-                foreach(var validClan in validClans)
-                {
-                    if (validClan.Value.ValidFrom < sync.Start && validClan.Value.ValidTo > sync.Finish)
-                        clanCount++;
-                }
-                sync.MissedStarts = clanCount - sync.AllianceMatches - sync.WarMatches;
-                if (sync.AllianceMatches > 50 && sync.Finish < DateTime.UtcNow)
-                    sync.Verified = true;
-                else
-                    sync.Verified = false;
-            }
-
-            db.SaveChanges();
         }
 
-        public void UpdateClanStats()
+        //New or existing clans
+        foreach(var clan in currentClans)
         {
-            var temp = (from w in db.Wars
-                        join v in db.ClanValidities on w.ClanTag equals v.Tag
-                        where w.PreparationStartTime > v.ValidFrom && w.PreparationStartTime < v.ValidTo
-                        select new { w.ClanTag, w.Synced, w.Matched, w.Result }).ToList();
-
-            var wars = (from w in temp
-                        where w.Synced == true
-                        group w by w.ClanTag into g
-                        select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
-
-            var wins = (from w in temp
-                        where w.Synced == true && w.Result == "win"
-                        group w by w.ClanTag into g
-                        select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
-
-            var matches = (from w in temp
-                           where w.Synced == true && w.Matched == true
-                           group w by w.ClanTag into g
-                           select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
-
-            var weights = new WeightCalculator(db).Calculate().ToDictionary(w => w.Tag);
-
-            foreach( var clan in db.Clans )
+            var currentClan = clan.Value;
+            if (validClans.TryGetValue(clan.Key, out ClanValidity validClan))
             {
-                if (wars.TryGetValue(clan.Tag, out int warCount))
+                if (validClan.ValidTo < DateTime.UtcNow)
                 {
-                    clan.WarCount = warCount;
+                    validClan.ValidTo = DateTime.MaxValue;
                 }
+            }
+            else
+            {
+                validClan = new ClanValidity() { Tag = clan.Key, Name = currentClan.Name, ValidFrom = DateTime.UtcNow, ValidTo = DateTime.MaxValue, Group = currentClan.Group };
+                db.ClanValidities.Add(validClan);
+            }
+        }
+
+        db.SaveChanges();
+    }
+
+    public void UpdateSyncMatch()
+    {
+        var validClans = db.ClanValidities.ToDictionary(l => l.Tag);
+        var syncs = db.WarSyncs.OrderBy(w => w.Start).ToList();
+        var wars = db.Wars.OrderBy(w => w.PreparationStartTime).ToList();
+
+        if (syncs.Count == 0 || validClans.Count == 0 || wars.Count == 0)
+            return;
+
+        var syncId = 0;
+        var currentSync = syncs[syncId++];
+        var allianceMatches = 0;
+        var warMatches = 0;
+
+        foreach (var war in wars)
+        {
+            var clanIsValid = false;
+            if (validClans.TryGetValue(war.ClanTag, out ClanValidity validClan))
+            {
+                if (validClan.ValidFrom < war.PreparationStartTime && validClan.ValidTo > war.PreparationStartTime)
+                    clanIsValid = true;
+            }
+            while(war.PreparationStartTime > currentSync.Finish && syncId < syncs.Count)
+            {
+                currentSync.AllianceMatches = allianceMatches;
+                currentSync.WarMatches = warMatches;
+                currentSync = syncs[syncId++];
+                allianceMatches = 0;
+                warMatches = 0;
+            }
+
+            var matched = false;
+            if (validClans.TryGetValue(war.OpponentTag, out validClan))
+            {
+                var searchTime = war.PreparationStartTime;
+                if (validClan.ValidFrom < searchTime && validClan.ValidTo > searchTime)
+                    matched = true;
+            }
+            war.Matched = matched;
+
+            if (war.PreparationStartTime >= currentSync.Start && war.PreparationStartTime <= currentSync.Finish && (war.TeamSize == Constants.WAR_SIZE1 || war.TeamSize == Constants.WAR_SIZE2 || war.TeamSize == Constants.WAR_SIZE3) && clanIsValid && !war.Friendly)
+            {
+                war.Synced = true;
+                if (war.Matched)
+                    allianceMatches++;
                 else
-                {
-                    clan.WarCount = 0;
+                    warMatches++;
+            }
+            else
+            {
+                war.Synced = false;
+            }
+        }
+
+        currentSync.AllianceMatches = allianceMatches;
+        currentSync.WarMatches = warMatches;
+
+        foreach(var sync in syncs)
+        {
+            var clanCount = 0;
+            foreach(var validClan in validClans)
+            {
+                if (validClan.Value.ValidFrom < sync.Start && validClan.Value.ValidTo > sync.Finish)
+                    clanCount++;
+            }
+            sync.MissedStarts = clanCount - sync.AllianceMatches - sync.WarMatches;
+            if (sync.AllianceMatches > 50 && sync.Finish < DateTime.UtcNow)
+                sync.Verified = true;
+            else
+                sync.Verified = false;
+        }
+
+        db.SaveChanges();
+    }
+
+    public void UpdateClanStats()
+    {
+        var temp = (from w in db.Wars
+                    join v in db.ClanValidities on w.ClanTag equals v.Tag
+                    where w.PreparationStartTime > v.ValidFrom && w.PreparationStartTime < v.ValidTo
+                    select new { w.ClanTag, w.Synced, w.Matched, w.Result }).ToList();
+
+        var wars = (from w in temp
+                    where w.Synced == true
+                    group w by w.ClanTag into g
+                    select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
+
+        var wins = (from w in temp
+                    where w.Synced == true && w.Result == "win"
+                    group w by w.ClanTag into g
+                    select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
+
+        var matches = (from w in temp
+                       where w.Synced == true && w.Matched == true
+                       group w by w.ClanTag into g
+                       select new { Tag = g.Key, Count = g.Count() }).ToDictionary(w => w.Tag, w => w.Count);
+
+        var weights = new WeightCalculator(db).Calculate().ToDictionary(w => w.Tag);
+
+        foreach( var clan in db.Clans )
+        {
+            if (wars.TryGetValue(clan.Tag, out int warCount))
+            {
+                clan.WarCount = warCount;
+            }
+            else
+            {
+                clan.WarCount = 0;
+                clan.WinPercentage = 0;
+                clan.MatchPercentage = 0;
+            }
+
+            if (clan.WarCount > 0)
+            {
+                if (wins.TryGetValue(clan.Tag, out int winCount))
+                    clan.WinPercentage = winCount * 100 / clan.WarCount;
+                else
                     clan.WinPercentage = 0;
+
+                if (matches.TryGetValue(clan.Tag, out int matchCount))
+                    clan.MatchPercentage = matchCount * 100 / clan.WarCount;
+                else
                     clan.MatchPercentage = 0;
-                }
-
-                if (clan.WarCount > 0)
-                {
-                    if (wins.TryGetValue(clan.Tag, out int winCount))
-                        clan.WinPercentage = winCount * 100 / clan.WarCount;
-                    else
-                        clan.WinPercentage = 0;
-
-                    if (matches.TryGetValue(clan.Tag, out int matchCount))
-                        clan.MatchPercentage = matchCount * 100 / clan.WarCount;
-                    else
-                        clan.MatchPercentage = 0;
-                }
-
-                if (weights.TryGetValue(clan.Tag, out WeightCalculator.Results weight))
-                {
-                    clan.Th17Count = weight.Th17Count;
-                    clan.Th16Count = weight.Th16Count;
-                    clan.Th15Count = weight.Th15Count;
-                    clan.Th14Count = weight.Th14Count;
-                    clan.Th13Count = weight.Th13Count;
-                    clan.Th12Count = weight.Th12Count;
-                    clan.Th11Count = weight.Th11Count;
-                    clan.Th10Count = weight.Th10Count;
-                    clan.Th9Count = weight.Th9Count;
-                    clan.Th8Count = weight.Th8Count;
-                    clan.ThLowCount = weight.ThLowCount;
-                    clan.EstimatedWeight = weight.EstimatedWeight;
-                }
             }
 
-            db.SaveChanges();
+            if (weights.TryGetValue(clan.Tag, out WeightCalculator.Results weight))
+            {
+                clan.Th17Count = weight.Th17Count;
+                clan.Th16Count = weight.Th16Count;
+                clan.Th15Count = weight.Th15Count;
+                clan.Th14Count = weight.Th14Count;
+                clan.Th13Count = weight.Th13Count;
+                clan.Th12Count = weight.Th12Count;
+                clan.Th11Count = weight.Th11Count;
+                clan.Th10Count = weight.Th10Count;
+                clan.Th9Count = weight.Th9Count;
+                clan.Th8Count = weight.Th8Count;
+                clan.ThLowCount = weight.ThLowCount;
+                clan.EstimatedWeight = weight.EstimatedWeight;
+            }
         }
 
-        public void DeleteHistory()
+        db.SaveChanges();
+    }
+
+    public void DeleteHistory()
+    {
+        var keepEventsSince = DateTime.UtcNow.AddDays(-1.0);
+
+        db.Database.ExecuteSqlRawAsync("DELETE FROM ClanEvents WHERE EventDate < {0}", keepEventsSince);
+
+        var keepAttacksSince = DateTime.UtcNow.AddDays(-7.0);
+
+        //Don't remove half sync
+        var isInMiddleSync2 = db.WarSyncs.Where(s => s.Start >= keepAttacksSince && s.Finish <= keepAttacksSince).FirstOrDefault();
+        if (isInMiddleSync2 != null)
+            keepAttacksSince = isInMiddleSync2.Start.AddHours(-1);
+
+        db.Database.ExecuteSqlRawAsync("DELETE FROM WarMembers WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} )", keepAttacksSince);
+
+        db.Database.ExecuteSqlRawAsync("DELETE FROM WarAttacks WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} )", keepAttacksSince);
+
+        if (options.Value.Members > 0)
         {
-            var keepEventsSince = DateTime.UtcNow.AddDays(-1.0);
+            var keepMembersSince = DateTime.UtcNow.AddDays(-1.0 * options.Value.Members);
 
-            db.Database.ExecuteSqlRawAsync("DELETE FROM ClanEvents WHERE EventDate < {0}", keepEventsSince);
+            db.Database.ExecuteSqlRawAsync("DELETE FROM PlayerEvents WHERE EventDate < {0}", keepMembersSince);
 
-            var keepAttacksSince = DateTime.UtcNow.AddDays(-7.0);
+            var keepPlayersSince = DateTime.UtcNow.AddDays(-60);
+
+            db.Database.ExecuteSqlRawAsync("DELETE FROM Players WHERE Tag NOT IN (SELECT Tag FROM PlayerClaims) AND LastUpdated < {0}", keepPlayersSince);
+
+            var keepWeightsSince = DateTime.UtcNow.AddDays(-365);
+            db.Database.ExecuteSqlRawAsync("DELETE FROM Weights WHERE LastModified < {0}", keepWeightsSince);
+        }
+
+        if (options.Value.Wars > 0)
+        {
+            var keepWarsSince = DateTime.UtcNow.AddDays(-1.0 * options.Value.Wars);
 
             //Don't remove half sync
-            var isInMiddleSync2 = db.WarSyncs.Where(s => s.Start >= keepAttacksSince && s.Finish <= keepAttacksSince).FirstOrDefault();
-            if (isInMiddleSync2 != null)
-                keepAttacksSince = isInMiddleSync2.Start.AddHours(-1);
+            var isInMiddleSync = db.WarSyncs.Where(s => s.Start >= keepWarsSince && s.Finish <= keepWarsSince).FirstOrDefault();
+            if (isInMiddleSync != null)
+                keepWarsSince = isInMiddleSync.Start.AddHours(-1);
 
-            db.Database.ExecuteSqlRawAsync("DELETE FROM WarMembers WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} )", keepAttacksSince);
+            db.Database.ExecuteSqlRawAsync("DELETE FROM WarSyncs WHERE Finish < {0}", keepWarsSince);
 
-            db.Database.ExecuteSqlRawAsync("DELETE FROM WarAttacks WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} )", keepAttacksSince);
+            db.Database.ExecuteSqlRawAsync("DELETE FROM Wars WHERE EndTime < {0}", keepWarsSince);
 
-            if (options.Value.Members > 0)
-            {
-                var keepMembersSince = DateTime.UtcNow.AddDays(-1.0 * options.Value.Members);
-
-                db.Database.ExecuteSqlRawAsync("DELETE FROM PlayerEvents WHERE EventDate < {0}", keepMembersSince);
-
-                var keepPlayersSince = DateTime.UtcNow.AddDays(-60);
-
-                db.Database.ExecuteSqlRawAsync("DELETE FROM Players WHERE Tag NOT IN (SELECT Tag FROM PlayerClaims) AND LastUpdated < {0}", keepPlayersSince);
-
-                var keepWeightsSince = DateTime.UtcNow.AddDays(-365);
-                db.Database.ExecuteSqlRawAsync("DELETE FROM Weights WHERE LastModified < {0}", keepWeightsSince);
-            }
-
-            if (options.Value.Wars > 0)
-            {
-                var keepWarsSince = DateTime.UtcNow.AddDays(-1.0 * options.Value.Wars);
-
-                //Don't remove half sync
-                var isInMiddleSync = db.WarSyncs.Where(s => s.Start >= keepWarsSince && s.Finish <= keepWarsSince).FirstOrDefault();
-                if (isInMiddleSync != null)
-                    keepWarsSince = isInMiddleSync.Start.AddHours(-1);
-
-                db.Database.ExecuteSqlRawAsync("DELETE FROM WarSyncs WHERE Finish < {0}", keepWarsSince);
-
-                db.Database.ExecuteSqlRawAsync("DELETE FROM Wars WHERE EndTime < {0}", keepWarsSince);
-
-                db.Database.ExecuteSqlRawAsync("DELETE FROM ClanValidities WHERE ValidTo < {0}", keepWarsSince);
-            }
-
-            var keepInvalidWarsSince = DateTime.UtcNow.AddDays(-1.0);
-            //Endtime is in past but war is not finished -> delete
-            db.Database.ExecuteSqlRawAsync("DELETE FROM WarMembers WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} AND Result IN({1},{2}))", keepInvalidWarsSince, "preparation", "inWar");
-            db.Database.ExecuteSqlRawAsync("DELETE FROM WarAttacks WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} AND Result IN({1},{2}))", keepInvalidWarsSince, "preparation", "inWar");
-            db.Database.ExecuteSqlRawAsync("DELETE FROM Wars WHERE EndTime < {0} AND Result IN({1},{2})", keepInvalidWarsSince, "preparation", "inWar");
-
-            db.Database.ExecuteSqlRawAsync("DELETE FROM WarMembers WHERE WarID IS NULL");
-            db.Database.ExecuteSqlRawAsync("DELETE FROM WarAttacks WHERE WarID IS NULL");
-
-            db.Database.ExecuteSqlRawAsync("DELETE FROM WarMembers WHERE WarID NOT IN ( SELECT ID FROM Wars )");
-            db.Database.ExecuteSqlRawAsync("DELETE FROM WarAttacks WHERE WarID NOT IN ( SELECT ID FROM Wars )");
-
-            //SubmitLogs
-            var keepSubmitLogsSince = DateTime.UtcNow.AddDays(-30.0);
-            db.Database.ExecuteSqlRawAsync("DELETE FROM SubmitLogs WHERE Modified < {0}", keepSubmitLogsSince);
-
+            db.Database.ExecuteSqlRawAsync("DELETE FROM ClanValidities WHERE ValidTo < {0}", keepWarsSince);
         }
+
+        var keepInvalidWarsSince = DateTime.UtcNow.AddDays(-1.0);
+        //Endtime is in past but war is not finished -> delete
+        db.Database.ExecuteSqlRawAsync("DELETE FROM WarMembers WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} AND Result IN({1},{2}))", keepInvalidWarsSince, "preparation", "inWar");
+        db.Database.ExecuteSqlRawAsync("DELETE FROM WarAttacks WHERE WarID IN ( SELECT ID FROM Wars WHERE EndTime < {0} AND Result IN({1},{2}))", keepInvalidWarsSince, "preparation", "inWar");
+        db.Database.ExecuteSqlRawAsync("DELETE FROM Wars WHERE EndTime < {0} AND Result IN({1},{2})", keepInvalidWarsSince, "preparation", "inWar");
+
+        db.Database.ExecuteSqlRawAsync("DELETE FROM WarMembers WHERE WarID IS NULL");
+        db.Database.ExecuteSqlRawAsync("DELETE FROM WarAttacks WHERE WarID IS NULL");
+
+        db.Database.ExecuteSqlRawAsync("DELETE FROM WarMembers WHERE WarID NOT IN ( SELECT ID FROM Wars )");
+        db.Database.ExecuteSqlRawAsync("DELETE FROM WarAttacks WHERE WarID NOT IN ( SELECT ID FROM Wars )");
+
+        //SubmitLogs
+        var keepSubmitLogsSince = DateTime.UtcNow.AddDays(-30.0);
+        db.Database.ExecuteSqlRawAsync("DELETE FROM SubmitLogs WHERE Modified < {0}", keepSubmitLogsSince);
+
     }
 }

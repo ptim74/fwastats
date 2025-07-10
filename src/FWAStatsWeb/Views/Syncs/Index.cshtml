@@ -4,22 +4,24 @@
     ViewBag.Title = "Syncs";
 }
 
-<ol class="breadcrumb">
-    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-    <li class="active">Syncs</li>
-</ol>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Syncs</li>
+    </ol>
+</nav>
 
 <h2>Syncs</h2>
 
-<div class="input-group" style="margin-bottom:20px;">
-    <span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-search"></span></span>
+<div class="input-group mb-4">
+    <span class="input-group-text" id="basic-addon1"><span class="fas fa-search"></span></span>
     <input type="text" id="search" class="form-control" placeholder="Search" aria-describedby="basic-addon1" />
 </div>
 
-<table id="table" class="table table-hover table-responsive tablesorter">
+<table id="table" class="table table-hover table-responsive table-sort">
     <thead>
         <tr>
-            <th width="35"></th>
+            <th width="35" data-sort-method="none"></th>
             <th>
                 Clan
             </th>
@@ -35,26 +37,26 @@
         @foreach (var clan in Model.Clans)
         {
             <tr>
-                <td style="padding:0px;">
-                    <img src="@clan.BadgeUrl" width="35" height="35" />
+                <td class="p-0">
+                    <img src="@clan.BadgeUrl" class="badge-35" />
                 </td>
-                <td class="search">
-                    <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details">@clan.Name</a>
+                <td>
+                    <a asp-route-id="@clan.LinkID" asp-area="" asp-controller="Clans" asp-action="Details" class="table-search">@clan.Name</a>
                     @if (clan.New)
                     {
-                        <small class="label label-success">N<span class="hidden-xs">ew</span></small>
+                        <small class="badge text-bg-success">N<span class="d-none d-sm-inline">ew</span></small>
                     }
                     @if (clan.Departed)
                     {
-                        <small class="label label-info">D<span class="hidden-xs">eparted</span></small>
+                        <small class="badge text-bg-info">D<span class="d-none d-sm-inline">eparted</span></small>
                     }
                     @if (clan.HiddenLog)
                     {
-                        <small class="label label-warning">H<span class="hidden-xs">idden log</span></small>
+                        <small class="badge text-bg-warning">H<span class="d-none d-sm-inline">idden log</span></small>
                     }
                     @if (clan.InLeague)
                     {
-                        <small class="label label-primary">L<span class="hidden-xs">eague</span></small>
+                        <small class="badge text-bg-primary">L<span class="d-none d-sm-inline">eague</span></small>
                     }
                 </td>
                 @foreach (var warResult in clan.Results)
@@ -72,17 +74,17 @@
                     {
                         result_class = "text-muted";
                     }
-                    <td class="search">
-                        <a class="@result_class" asp-route-id="@warResult.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@warResult.OpponentName</a>
+                    <td>
+                        <a class="@result_class table-search" asp-route-id="@warResult.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@warResult.OpponentName</a>
                         @if (!string.IsNullOrEmpty(warResult.OpponentTag) && !warResult.IsAlliance)
                         {
                             if (warResult.OpponentIsBlacklisted)
                             {
-                                <small class="label label-default">B<span class="hidden-xs">lacklisted</span></small>
+                                <small class="badge text-bg-secondary">B<span class="d-none d-sm-inline">lacklisted</span></small>
                             }
                             else
                             {
-                                <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
+                                <small class="badge text-bg-danger">W<span class="d-none d-sm-inline">ar clan</span></small>
                             }
                         }
                     </td>
@@ -94,14 +96,8 @@
 
 @section scripts {
     <script type="text/javascript">
-
-        $('#search').keyup(function () {
-            var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
-            $('#table > tbody > tr').show().filter(function () {
-                var text = $(this).children(".search").text().replace(/\s+/g, ' ').toLowerCase();
-                return !~text.indexOf(val);
-            }).hide();
-        });
-
+        (function() {
+            initSyncsIndex();
+        })();
     </script>
 }

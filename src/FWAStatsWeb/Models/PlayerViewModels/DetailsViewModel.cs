@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
-namespace FWAStatsWeb.Models.PlayerViewModels
+namespace FWAStatsWeb.Models.PlayerViewModels;
+
+public class DetailsViewModel
 {
-    public class DetailsViewModel
-    {
-        public Player Player { get; set; }
-        public ICollection<PlayerDetailsEvent> Events { get; set; } 
-        public bool Claimed { get; set; }
-    }
+    public Player Player { get; set; }
+    public ICollection<PlayerDetailsEvent> Events { get; set; } 
+    public bool Claimed { get; set; }
 }

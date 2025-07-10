@@ -1,108 +1,104 @@
 ﻿using FWAStatsWeb.Data;
 using FWAStatsWeb.Models;
-using Microsoft.EntityFrameworkCore;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
-namespace FWAStatsWeb.Logic
+namespace FWAStatsWeb.Logic;
+
+public class MemberUpdateResponse
 {
-    public class MemberUpdateResponse
+    public string Message { get; set; }
+    public bool Status { get; set; }
+}
+
+public interface IMemberUpdater
+{
+    MemberUpdateResponse UpdatePlayer(Player newPlayer, bool updateOnly);
+}
+
+public class MemberUpdater : IMemberUpdater
+{
+    private readonly ApplicationDbContext db;
+
+    public MemberUpdater(
+        ApplicationDbContext context)
     {
-        public string Message { get; set; }
-        public bool Status { get; set; }
+        this.db = context;
     }
 
-    public interface IMemberUpdater
+    public MemberUpdateResponse UpdatePlayer(Player newPlayer, bool updateOnly = false)
     {
-        MemberUpdateResponse UpdatePlayer(Player newPlayer, bool updateOnly);
-    }
+        var status = new MemberUpdateResponse();
+        var playerTag = newPlayer.Tag;
+        var playerName = newPlayer.Tag;
 
-    public class MemberUpdater : IMemberUpdater
-    {
-        private readonly ApplicationDbContext db;
-
-        public MemberUpdater(
-            ApplicationDbContext context)
+        try
         {
-            this.db = context;
-        }
-
-        public MemberUpdateResponse UpdatePlayer(Player newPlayer, bool updateOnly = false)
-        {
-            var status = new MemberUpdateResponse();
-            var playerTag = newPlayer.Tag;
-            var playerName = newPlayer.Tag;
-
-            try
+            playerName = $"{newPlayer.Name} / {newPlayer.ClanName}";
+            var oldPlayer = db.Players.SingleOrDefault(e => e.Tag == playerTag);
+            if (oldPlayer == null)
             {
-                playerName = $"{newPlayer.Name} / {newPlayer.ClanName}";
-                var oldPlayer = db.Players.SingleOrDefault(e => e.Tag == playerTag);
-                if (oldPlayer == null)
+                if (!updateOnly)
                 {
-                    if (!updateOnly)
-                    {
-                        newPlayer.LastUpdated = DateTime.UtcNow;
-                        db.Players.Add(newPlayer);
-                        db.SaveChanges();
-                    }
-                }
-                else
-                {
-                    if (oldPlayer.TownHallLevel != newPlayer.TownHallLevel)
-                    {
-                        db.Add(new PlayerEvent
-                        {
-                            ClanTag = newPlayer.ClanTag,
-                            PlayerTag = newPlayer.Tag,
-                            EventDate = DateTime.UtcNow,
-                            EventType = PlayerEventType.Townhall,
-                            Value = newPlayer.TownHallLevel
-                        });
-                    }
-
-                    if (oldPlayer.Name != newPlayer.Name)
-                    {
-                        var oldMember = db.Members.SingleOrDefault(m => m.Tag == playerTag);
-                        if (oldMember != null)
-                        {
-                            if (oldMember.Name != newPlayer.Name)
-                            {
-                                db.Add(new PlayerEvent
-                                {
-                                    ClanTag = newPlayer.ClanTag,
-                                    PlayerTag = newPlayer.Tag,
-                                    EventDate = DateTime.UtcNow,
-                                    EventType = PlayerEventType.NameChange,
-                                    StringValue = oldMember.Name
-                                });
-                                oldMember.Name = newPlayer.Name;
-                            }
-                        }
-                    }
-
-                    oldPlayer.AttackWins = newPlayer.AttackWins;
-                    oldPlayer.BestTrophies = newPlayer.BestTrophies;
-                    oldPlayer.DefenseWins = newPlayer.DefenseWins;
-                    oldPlayer.Name = newPlayer.Name;
-                    oldPlayer.TownHallLevel = newPlayer.TownHallLevel;
-                    oldPlayer.WarStars = newPlayer.WarStars;
-                    oldPlayer.LastUpdated = DateTime.UtcNow;
-
+                    newPlayer.LastUpdated = DateTime.UtcNow;
+                    db.Players.Add(newPlayer);
                     db.SaveChanges();
                 }
-
-                status.Message = playerName;
-                status.Status = true;
             }
-            catch (Exception e)
+            else
             {
-                status.Message = string.Format("{0} Failed: {1}", playerName, e.Message);
-                status.Status = false;
+                if (oldPlayer.TownHallLevel != newPlayer.TownHallLevel)
+                {
+                    db.Add(new PlayerEvent
+                    {
+                        ClanTag = newPlayer.ClanTag,
+                        PlayerTag = newPlayer.Tag,
+                        EventDate = DateTime.UtcNow,
+                        EventType = PlayerEventType.Townhall,
+                        Value = newPlayer.TownHallLevel
+                    });
+                }
+
+                if (oldPlayer.Name != newPlayer.Name)
+                {
+                    var oldMember = db.Members.SingleOrDefault(m => m.Tag == playerTag);
+                    if (oldMember != null)
+                    {
+                        if (oldMember.Name != newPlayer.Name)
+                        {
+                            db.Add(new PlayerEvent
+                            {
+                                ClanTag = newPlayer.ClanTag,
+                                PlayerTag = newPlayer.Tag,
+                                EventDate = DateTime.UtcNow,
+                                EventType = PlayerEventType.NameChange,
+                                StringValue = oldMember.Name
+                            });
+                            oldMember.Name = newPlayer.Name;
+                        }
+                    }
+                }
+
+                oldPlayer.AttackWins = newPlayer.AttackWins;
+                oldPlayer.BestTrophies = newPlayer.BestTrophies;
+                oldPlayer.DefenseWins = newPlayer.DefenseWins;
+                oldPlayer.Name = newPlayer.Name;
+                oldPlayer.TownHallLevel = newPlayer.TownHallLevel;
+                oldPlayer.WarStars = newPlayer.WarStars;
+                oldPlayer.LastUpdated = DateTime.UtcNow;
+
+                db.SaveChanges();
             }
 
-            return status;
+            status.Message = playerName;
+            status.Status = true;
         }
+        catch (Exception e)
+        {
+            status.Message = string.Format("{0} Failed: {1}", playerName, e.Message);
+            status.Status = false;
+        }
+
+        return status;
     }
 }

@@ -1,108 +1,104 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace FWAStatsWeb.Logic
+namespace FWAStatsWeb.Logic;
+
+public static class Utils
 {
-    public static class Utils
+    public static string LinkIdToTag(string id)
     {
-        public static string LinkIdToTag(string id)
-        {
-            if (string.IsNullOrEmpty(id))
-                return String.Empty;
-            return string.Concat("#", id.Replace("#", "").ToUpperInvariant().Replace("O","0"));
-        }
+        if (string.IsNullOrEmpty(id))
+            return String.Empty;
+        return string.Concat("#", id.Replace("#", "").ToUpperInvariant().Replace("O","0"));
+    }
 
-        public static string TagToLinkId(string tag)
-        {
-            if (string.IsNullOrEmpty(tag))
-                return String.Empty;
-            return tag.Replace("#", "");
-        }
+    public static string TagToLinkId(string tag)
+    {
+        if (string.IsNullOrEmpty(tag))
+            return String.Empty;
+        return tag.Replace("#", "");
+    }
 
-        public static string TimeSpanToString(TimeSpan timeSpan)
+    public static string TimeSpanToString(TimeSpan timeSpan)
+    {
+        if (timeSpan > TimeSpan.FromDays(7300))
+            return "never";
+        else if(timeSpan > TimeSpan.FromDays(365))
         {
-            if (timeSpan > TimeSpan.FromDays(7300))
-                return "never";
-            else if(timeSpan > TimeSpan.FromDays(365))
+            var years = 0;
+            while(timeSpan > TimeSpan.FromDays(365))
             {
-                var years = 0;
-                while(timeSpan > TimeSpan.FromDays(365))
-                {
-                    years++;
-                    timeSpan -= TimeSpan.FromDays(365);
-                }
-                return string.Format("{0}y {1}d ago", years, timeSpan.Days);
+                years++;
+                timeSpan -= TimeSpan.FromDays(365);
             }
-            else if (timeSpan > TimeSpan.FromDays(10))
-                return string.Format("{0}d ago", timeSpan.Days);
-            else if (timeSpan > TimeSpan.FromDays(1))
-                return string.Format("{0}d {1}h ago", timeSpan.Days, timeSpan.Hours);
-            else if (timeSpan > TimeSpan.FromHours(1))
-                return string.Format("{0}h {1}m ago", timeSpan.Hours, timeSpan.Minutes);
-            else if (timeSpan > TimeSpan.FromMinutes(2))
-                return string.Format("{0}m ago", timeSpan.Minutes);
-            else
-                return "just now";
+            return string.Format("{0}y {1}d ago", years, timeSpan.Days);
         }
+        else if (timeSpan > TimeSpan.FromDays(10))
+            return string.Format("{0}d ago", timeSpan.Days);
+        else if (timeSpan > TimeSpan.FromDays(1))
+            return string.Format("{0}d {1}h ago", timeSpan.Days, timeSpan.Hours);
+        else if (timeSpan > TimeSpan.FromHours(1))
+            return string.Format("{0}h {1}m ago", timeSpan.Hours, timeSpan.Minutes);
+        else if (timeSpan > TimeSpan.FromMinutes(2))
+            return string.Format("{0}m ago", timeSpan.Minutes);
+        else
+            return "just now";
+    }
 
 
 
-        
-        public static string FixRoleName(string roleName)
+    
+    public static string FixRoleName(string roleName)
+    {
+        return roleName switch
         {
-            return roleName switch
+            "leader" => "Leader",
+            "coLeader" => "Co-leader",
+            "admin" => "Elder",
+            "member" => "Member",
+            _ => "Unknown",
+        };
+    }
+
+    private readonly static DateTime D = new(2017, 1, 1);
+
+    public static long WarTimeToId(DateTime warDate)
+    {
+        return (long)Math.Floor(warDate.Subtract(D).TotalSeconds);
+    }
+
+    public static DateTime WarIdToTime(long id)
+    {
+        return D.AddSeconds(id);
+    }
+
+    private static TimeZoneInfo _easternTimeZone = null;
+
+    public static TimeZoneInfo EasternTimeZone
+    {
+        get
+        {
+            if (_easternTimeZone == null)
             {
-                "leader" => "Leader",
-                "coLeader" => "Co-leader",
-                "admin" => "Elder",
-                "member" => "Member",
-                _ => "Unknown",
-            };
-        }
-
-        private readonly static DateTime D = new(2017, 1, 1);
-
-        public static long WarTimeToId(DateTime warDate)
-        {
-            return (long)Math.Floor(warDate.Subtract(D).TotalSeconds);
-        }
-
-        public static DateTime WarIdToTime(long id)
-        {
-            return D.AddSeconds(id);
-        }
-
-        private static TimeZoneInfo _easternTimeZone = null;
-
-        public static TimeZoneInfo EasternTimeZone
-        {
-            get
-            {
-                if (_easternTimeZone == null)
+                try
                 {
-                    try
-                    {
-                        //Windows
-                        _easternTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
-                    }
-                    catch (Exception)
-                    {
-                        //Linux
-                        _easternTimeZone = TimeZoneInfo.FindSystemTimeZoneById("US/Eastern");
-                    }
+                    //Windows
+                    _easternTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Eastern Standard Time");
                 }
-                return _easternTimeZone;
+                catch (Exception)
+                {
+                    //Linux
+                    _easternTimeZone = TimeZoneInfo.FindSystemTimeZoneById("US/Eastern");
+                }
             }
+            return _easternTimeZone;
         }
+    }
 
-        public static DateTime AsEasternTime(DateTime dateTime)
-        {
-            //round to second to eliminate unnecessary updates
-            var ret = new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute, dateTime.Second);
-            ret = ret.Subtract(Utils.EasternTimeZone.GetUtcOffset(ret));
-            return ret;
-        }
+    public static DateTime AsEasternTime(DateTime dateTime)
+    {
+        //round to second to eliminate unnecessary updates
+        var ret = new DateTime(dateTime.Year, dateTime.Month, dateTime.Day, dateTime.Hour, dateTime.Minute, dateTime.Second);
+        ret = ret.Subtract(Utils.EasternTimeZone.GetUtcOffset(ret));
+        return ret;
     }
 }

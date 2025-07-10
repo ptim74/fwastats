@@ -3,33 +3,35 @@
   "defaultProvider": "cdnjs",
   "libraries": [
     {
-      "library": "twitter-bootstrap@3.4.1",
+      "library": "bootstrap@5.3.7",
       "files": [
         "css/bootstrap.min.css",
         "css/bootstrap.min.css.map",
-        "js/bootstrap.min.js",
-        "fonts/glyphicons-halflings-regular.eot",
-        "fonts/glyphicons-halflings-regular.svg",
-        "fonts/glyphicons-halflings-regular.ttf",
-        "fonts/glyphicons-halflings-regular.woff",
-        "fonts/glyphicons-halflings-regular.woff2"
+        "js/bootstrap.bundle.min.js",
+        "js/bootstrap.bundle.min.js.map"
       ],
       "destination": "wwwroot/lib/bootstrap"
     },
     {
-      "library": "jquery@3.6.0",
+      "library": "tablesort@5.2.1",
       "files": [
-        "jquery.min.js",
-        "jquery.min.map" 
+        "tablesort.min.js",
+        "sorts/tablesort.number.min.js"
       ],
-      "destination": "wwwroot/lib/jquery"
+      "destination": "wwwroot/lib/tablesort"
     },
     {
-      "library": "jquery.tablesorter@2.31.3",
+      "library": "font-awesome@6.7.2",
       "files": [
-        "js/jquery.tablesorter.min.js" 
+        "css/all.min.css",
+        "webfonts/fa-solid-900.woff2",
+        "webfonts/fa-solid-900.ttf",
+        "webfonts/fa-regular-400.woff2",
+        "webfonts/fa-regular-400.ttf",
+        "webfonts/fa-brands-400.woff2",
+        "webfonts/fa-brands-400.ttf"
       ],
-      "destination": "wwwroot/lib/tablesorter"
+      "destination": "wwwroot/lib/font-awesome"
     }
   ]
 }

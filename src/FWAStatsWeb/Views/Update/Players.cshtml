@@ -31,7 +31,7 @@
     </dl>
 </div>
 
-<div class="progress hidden">
+<div class="progress d-none">
     <div class="progress-bar progress-bar-success" role="progressbar" aria-valuenow="0"
          aria-valuemin="0" aria-valuemax="100" style="width:0%">
     </div>
@@ -43,67 +43,25 @@
 
 @section scripts {
     <script type="text/javascript">
-
-        var updates_remaining = @player_count;
-        var total_updates = updates_remaining;
-        var updates_done = 0;
-        var update_threads = 16;
-
-        var tasks = [
-        @foreach (var task in Model.Tasks)
-        {
-            if(task_delim)
-            {
-                @:,'@task.LinkID'
-            }
-            else
-            {
-                task_delim = true;
-                @:'@task.LinkID'
-            }
-        }
-        ].reverse();
-
-        function updateTask() {
-
-            if(tasks.length > 0)
-            {
-                $.getJSON('@Url.Action("UpdatePlayerTask","Update")/' + tasks.pop(),updateTaskCallback);
-            }
-        }
-
-        function updateProgress(message) {
-
-            if (message)
-                $(".progress-bar").text(message);
-
-            var progress = Math.round(++updates_done * 100 / total_updates);
-
-            $(".progress-bar").attr("aria-valuenow", progress);
-            $(".progress-bar").attr("style", "width:" + progress + "%");
-        }
-
-        function updateTaskCallback(data) {
-            if (data && data.id) {
-                if(!data.status)
-                    $(".alerts").append($("<div class='alert alert-danger'><strong>Error: </strong></div>").append($("<span></span>").text(data.message)));
-                updateProgress(data.message);
-                updates_remaining--;
-                if(updates_remaining > 0)
+        (function() {
+            initUpdatePlayers({
+                updates_remaining: @player_count,
+                tasks: [
+                @foreach (var task in Model.Tasks)
                 {
-                    updateTask();
+                    if(task_delim)
+                    {
+                        @:,'@task.LinkID'
+                    }
+                    else
+                    {
+                        task_delim = true;
+                        @:'@task.LinkID'
+                    }
                 }
-            }
-        }
-
-        $(function () {
-            $("#confirm-btn").click(function () {
-                $(this).addClass('disabled');
-                $(".progress").removeClass('hidden');
-                for (var i = 0; i < update_threads; i++)
-                    updateTask();
+                ],
+                updatePlayerTaskUrl: '@Url.Action("UpdatePlayerTask","Update")'
             });
-        });
-
+        })();
     </script>
 }

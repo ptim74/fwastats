@@ -1,24 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿namespace FWAStatsWeb.Models.ClanViewModels;
 
-namespace FWAStatsWeb.Models.ClanViewModels
+public class MemberWeightModel
 {
-    public class MemberWeightModel
-    {
-        public string Tag { get; set; }
-        public string Name { get; set; }
-        public int Weight { get; set; }
-        public bool InWar { get; set; }
-        public int TownHallLevel { get; set; }
+    public string Tag { get; set; }
+    public string Name { get; set; }
+    public int Weight { get; set; }
+    public bool InWar { get; set; }
+    public int TownHallLevel { get; set; }
 
-        public string LinkID
+    public string LinkID
+    {
+        get
         {
-            get
-            {
-                return Logic.Utils.TagToLinkId(Tag);
-            }
+            return Logic.Utils.TagToLinkId(Tag);
         }
     }
 }

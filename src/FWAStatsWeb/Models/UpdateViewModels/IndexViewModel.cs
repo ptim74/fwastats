@@ -1,13 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
-namespace FWAStatsWeb.Models.UpdateViewModels
+namespace FWAStatsWeb.Models.UpdateViewModels;
+
+public class IndexViewModel
 {
-    public class IndexViewModel
-    {
-        public ICollection<string> Errors { get; set; }
-        public ICollection<UpdateTask> Tasks { get; set; }
-    }
+    public ICollection<string> Errors { get; set; }
+    public ICollection<UpdateTask> Tasks { get; set; }
 }

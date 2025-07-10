@@ -1,0 +1,102 @@
+parameters:
+- name: environmentName
+  default: FWAStats
+- name: vmImage
+  default: ubuntu-latest
+- name: dotnetVersion
+  default: '8.0.x'
+- name: configuration
+  default: 'Release'
+- name: publishEnvironmentName
+  default: 'Production'
+- name: artifactName
+  default: 'FWAStatsWeb'
+- name: azureServiceConnection
+  type: string
+- name: webAppName
+  type: string
+- name: appType
+  default: 'webAppLinux'
+- name: runtimeStack
+  default: 'DOTNETCORE|8.0'
+- name: startUpCommand
+  default: ''
+
+stages:
+- stage: Build
+  pool:
+    vmImage: ${{parameters.vmImage}}
+  jobs:
+  - job: 'Build_Web'
+    steps:
+    - task: UseDotNet@2
+      displayName: 'Install .NET Core SDK'
+      inputs:
+        version: ${{parameters.dotnetVersion}}
+    
+    - task: DotNetCoreCLI@2
+      displayName: 'dotnet restore'
+      inputs:
+        command: 'restore'
+    
+    - task: DotNetCoreCLI@2
+      displayName: 'dotnet build'
+      inputs:
+        command: 'build'
+        projects: '**/*.csproj'
+        arguments: '--configuration ${{parameters.configuration}}'
+    
+    - task: DotNetCoreCLI@2
+      displayName: 'dotnet publish'
+      inputs:
+        command: publish
+        publishWebProjects: True
+        arguments: '--configuration ${{parameters.configuration}} /p:EnvironmentName=${{parameters.publishEnvironmentName}} --output $(Build.ArtifactStagingDirectory)'
+        zipAfterPublish: False
+    
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)' 
+        artifactName: '${{parameters.artifactName}}'
+
+- stage: Deploy
+  dependsOn: Build
+  condition: succeeded()
+  jobs:
+  - deployment: 'Deploy_WebApp'
+    environment: ${{parameters.environmentName}}
+    pool:
+      vmImage: ${{parameters.vmImage}}
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              buildType: 'current'
+              artifactName: '${{parameters.artifactName}}'
+              targetPath: '$(Pipeline.Workspace)/drop'
+          
+          - task: Bash@3
+            displayName: 'Copy Configuration'
+            inputs:
+              targetType: 'inline'
+              script: |
+                cp $(Pipeline.Workspace)/drop/${{parameters.artifactName}}/appsettings.Sample.json $(Pipeline.Workspace)/drop/${{parameters.artifactName}}/appsettings.Production.json
+
+          - task: FileTransform@2
+            displayName: 'Transform appsettings.json'
+            inputs:
+              folderPath: '$(Pipeline.Workspace)/drop/${{parameters.artifactName}}'
+              jsonTargetFiles: '**/appsettings*.json'
+          
+          - task: AzureWebApp@1
+            displayName: 'Deploy to Azure Web App'
+            inputs:
+              azureSubscription: ${{parameters.azureServiceConnection}}
+              appType: ${{parameters.appType}}
+              appName: ${{parameters.webAppName}}
+              package: '$(Pipeline.Workspace)/drop/${{parameters.artifactName}}'
+              runtimeStack: ${{parameters.runtimeStack}}
+              startUpCommand: ${{parameters.startUpCommand}}
+              deploymentMethod: 'zipDeploy'

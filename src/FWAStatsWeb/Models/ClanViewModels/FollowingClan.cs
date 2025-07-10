@@ -1,35 +1,31 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace FWAStatsWeb.Models.ClanViewModels
+namespace FWAStatsWeb.Models.ClanViewModels;
+
+public class FollowingClan
 {
-    public class FollowingClan
+    public string Tag { get; set; }
+    public string Name { get; set; }
+    public string BadgeURL { get; set; }
+    public int Wars { get; set; }
+    public string LatestClan { get; set; }
+    public string LatestTag { get; set; }
+    public DateTime LatestDate { get; set; }
+    public bool Blacklisted { get; set; }
+
+    public string LinkID
     {
-        public string Tag { get; set; }
-        public string Name { get; set; }
-        public string BadgeURL { get; set; }
-        public int Wars { get; set; }
-        public string LatestClan { get; set; }
-        public string LatestTag { get; set; }
-        public DateTime LatestDate { get; set; }
-        public bool Blacklisted { get; set; }
-
-        public string LinkID
+        get
         {
-            get
-            {
-                return Logic.Utils.TagToLinkId(Tag);
-            }
+            return Logic.Utils.TagToLinkId(Tag);
         }
+    }
 
-        public string LatestLinkID
+    public string LatestLinkID
+    {
+        get
         {
-            get
-            {
-                return Logic.Utils.TagToLinkId(LatestTag);
-            }
+            return Logic.Utils.TagToLinkId(LatestTag);
         }
     }
 }

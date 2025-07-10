@@ -1,19 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
-namespace FWAStatsWeb.Models.GraphViewModels
+namespace FWAStatsWeb.Models.GraphViewModels;
+
+public class GraphNetwork
 {
-    public class GraphNetwork
-    {
-        public ICollection<GraphNode> Nodes { get; set; }
-        public ICollection<GraphEdge> Edges { get; set; }
+    public ICollection<GraphNode> Nodes { get; set; }
+    public ICollection<GraphEdge> Edges { get; set; }
 
-        public GraphNetwork()
-        {
-            Nodes = new List<GraphNode>();
-            Edges = new List<GraphEdge>();
-        }
+    public GraphNetwork()
+    {
+        Nodes = new List<GraphNode>();
+        Edges = new List<GraphEdge>();
     }
 }

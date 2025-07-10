@@ -4,11 +4,13 @@
     ViewBag.Title = "Sync " + Model.Sync.DisplayName;
 }
 
-<ol class="breadcrumb">
-    <li><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
-    <li><a asp-area="" asp-controller="Syncs" asp-action="Index">Syncs</a></li>
-    <li class="active">@Model.Sync.DisplayName</li>
-</ol>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Home" asp-action="Index">Home</a></li>
+        <li class="breadcrumb-item"><a asp-area="" asp-controller="Syncs" asp-action="Index">Syncs</a></li>
+        <li class="breadcrumb-item active" aria-current="page">@Model.Sync.DisplayName</li>
+    </ol>
+</nav>
 
 <h2>@ViewBag.Title</h2>
 
@@ -19,27 +21,29 @@
     var team45Active = Model.TeamSize == Constants.WAR_SIZE3 ? "active" : "";
 }
 
-<ul class="pagination">
-    <li class="@team00Active"><a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@Model.Sync.ID" asp-route-teamSize="">All</a></li>
-    <li class="@team40Active"><a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@Model.Sync.ID" asp-route-teamSize="40">40 vs 40</a></li>
-    <li class="@team45Active"><a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@Model.Sync.ID" asp-route-teamSize="45">45 vs 45</a></li>
-    <li class="@team50Active"><a asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@Model.Sync.ID" asp-route-teamSize="50">50 vs 50</a></li>
-</ul>
+<nav aria-label="War size navigation">
+    <ul class="pagination">
+        <li class="page-item @team00Active"><a class="page-link" asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@Model.Sync.ID" asp-route-teamSize="">All</a></li>
+        <li class="page-item @team40Active"><a class="page-link" asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@Model.Sync.ID" asp-route-teamSize="40">40 vs 40</a></li>
+        <li class="page-item @team45Active"><a class="page-link" asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@Model.Sync.ID" asp-route-teamSize="45">45 vs 45</a></li>
+        <li class="page-item @team50Active"><a class="page-link" asp-area="" asp-controller="Syncs" asp-action="Details" asp-route-id="@Model.Sync.ID" asp-route-teamSize="50">50 vs 50</a></li>
+    </ul>
+</nav>
 
-<div class="input-group" style="margin-bottom:20px;">
-    <span class="input-group-addon" id="basic-addon1"><span class="glyphicon glyphicon-search"></span></span>
+<div class="input-group mb-4">
+    <span class="input-group-text" id="basic-addon1"><span class="fas fa-search"></span></span>
     <input type="text" id="search" class="form-control" placeholder="Search" aria-describedby="basic-addon1" />
 </div>
 
-<table id="table" class="table table-condensed table-hover table-responsive tablesorter">
+<table id="table" class="table table-condensed table-hover table-responsive table-sort">
     <thead>
         <tr>
             <th class="text-right">Clan</th>
-            <th width="35"></th>
-            <th class="text-nowrap text-center" width="35">
+            <th width="35" data-sort-method="none"></th>
+            <th class="text-nowrap text-center" width="35" data-sort-method="none">
                 Result
             </th>
-            <th width="35"></th>
+            <th width="35" data-sort-method="none"></th>
             <th>
                 Opponent
             </th>
@@ -71,47 +75,47 @@
                 opp_class = "text-muted";
             }
             <tr class="@war_class">
-                <td class="text-right text-nowrap search">
-                    <a class="@war_class" asp-route-id="@war.ClanLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.ClanName</a>
+                <td class="text-right text-nowrap">
+                    <a class="@war_class table-search" asp-route-id="@war.ClanLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.ClanName</a>
                     <br />
                     <small class="text-info">@war.ClanExpEarned xp</small>
                     <small class="text-muted">@war.ClanDestructionPercentage.ToString("0.#") %</small>
-                    <small class="text-warning" style="font-weight:bold">@war.ClanStars <span class="glyphicon glyphicon-star" /></small>
+                    <small class="text-warning fw-bold">@war.ClanStars <span class="fas fa-star" /></small>
                 </td>
-                <td style="vertical-align:middle">
-                    <img src="@war.ClanBadgeUrl" width="35" height="35" />
+                <td class="align-middle">
+                    <img src="@war.ClanBadgeUrl" class="badge-35" />
                 </td>
                 <td class="text-nowrap text-center" width="35">
                     @war.Result
                     <br />
                     <small class="text-muted text-center text-nowrap">@war.TeamSize vs @war.TeamSize</small>
                 </td>
-                <td style="vertical-align:middle">
-                    <img src="@war.OpponentBadgeUrl" width="35" height="35" />
+                <td class="align-middle">
+                    <img src="@war.OpponentBadgeUrl" class="badge-35" />
                 </td>
-                <td class="text-nowrap search">
-                    <a class="@opp_class" asp-route-id="@war.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.OpponentName</a>
+                <td class="text-nowrap">
+                    <a class="@opp_class table-search" asp-route-id="@war.OpponentLinkID" asp-area="" asp-controller="Clans" asp-action="Details">@war.OpponentName</a>
                     @if (!war.Matched)
                     {
                         if (war.Blacklisted)
                         {
-                            <small class="label label-default">B<span class="hidden-xs">lacklisted</span></small>
+                            <small class="badge text-bg-secondary">B<span class="d-none d-sm-inline">lacklisted</span></small>
                         }
                         else
                         {
-                            <small class="label label-danger">W<span class="hidden-xs">ar clan</span></small>
+                            <small class="badge text-bg-danger">W<span class="d-none d-sm-inline">ar clan</span></small>
                         }
                     }
                     <br />
-                    <small class="text-warning" style="font-weight:bold">@war.OpponentStars <span class="glyphicon glyphicon-star" /></small>
+                    <small class="text-warning fw-bold">@war.OpponentStars <span class="fas fa-star" /></small>
                     <small class="text-muted">@war.OpponentDestructionPercentage.ToString("0.#") %</small>
                 </td>
-                <td class="text-nowrap">
-                    <span style="display:none;">@offsetOrdering</span>@offset
+                <td class="text-nowrap" data-sort="@offsetOrdering">
+                    @offset
                     @if (!war.Synced)
                     {
                         <br />
-                        <small class="label label-warning">Out of sync</small>
+                        <small class="badge text-bg-warning">Out of sync</small>
                     }
                 </td>
             </tr>
@@ -121,14 +125,8 @@
 
 @section scripts {
     <script type="text/javascript">
-
-        $('#search').keyup(function () {
-            var val = $.trim($(this).val()).replace(/ +/g, ' ').toLowerCase();
-            $('#table > tbody > tr').show().filter(function () {
-                var text = $(this).children("td.search").children("a").text().replace(/\s+/g, ' ').toLowerCase();
-                return !~text.indexOf(val);
-            }).hide();
-        });
-
+        (function() {
+            initSyncsDetails();
+        })();
     </script>
 }

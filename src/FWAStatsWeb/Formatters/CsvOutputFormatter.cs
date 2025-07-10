@@ -1,140 +1,138 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc.Formatters;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Formatters;
 
-namespace FWAStatsWeb.Formatters
+namespace FWAStatsWeb.Formatters;
+
+/// <summary>
+/// Copied from
+/// https://github.com/damienbod/AspNetCoreCsvImportExport
+/// Original code taken from
+/// http://www.tugberkugurlu.com/archive/creating-custom-csvmediatypeformatter-in-asp-net-web-api-for-comma-separated-values-csv-format
+/// Adapted for ASP.NET Core and uses ; instead of , for delimiters
+/// </summary>
+public class CsvOutputFormatter : OutputFormatter
 {
-    /// <summary>
-    /// Copied from
-    /// https://github.com/damienbod/AspNetCoreCsvImportExport
-    /// Original code taken from
-    /// http://www.tugberkugurlu.com/archive/creating-custom-csvmediatypeformatter-in-asp-net-web-api-for-comma-separated-values-csv-format
-    /// Adapted for ASP.NET Core and uses ; instead of , for delimiters
-    /// </summary>
-    public class CsvOutputFormatter : OutputFormatter
+    private readonly CsvFormatterOptions _options;
+
+    public string ContentType { get; private set; }
+
+    public CsvOutputFormatter(CsvFormatterOptions csvFormatterOptions)
     {
-        private readonly CsvFormatterOptions _options;
+        ContentType = "text/csv";
+        SupportedMediaTypes.Add(Microsoft.Net.Http.Headers.MediaTypeHeaderValue.Parse("text/csv"));
+        _options = csvFormatterOptions ?? throw new ArgumentNullException(nameof(csvFormatterOptions));
 
-        public string ContentType { get; private set; }
+        //SupportedEncodings.Add(Encoding.GetEncoding("utf-8"));
+    }
 
-        public CsvOutputFormatter(CsvFormatterOptions csvFormatterOptions)
+    protected override bool CanWriteType(Type type)
+    {
+
+        if (type == null)
+            throw new ArgumentNullException(nameof(type));
+
+        return IsTypeOfIEnumerable(type);
+    }
+
+    private static bool IsTypeOfIEnumerable(Type type)
+    {
+
+        foreach (Type interfaceType in type.GetInterfaces())
         {
-            ContentType = "text/csv";
-            SupportedMediaTypes.Add(Microsoft.Net.Http.Headers.MediaTypeHeaderValue.Parse("text/csv"));
-            _options = csvFormatterOptions ?? throw new ArgumentNullException(nameof(csvFormatterOptions));
 
-            //SupportedEncodings.Add(Encoding.GetEncoding("utf-8"));
+            if (interfaceType == typeof(IList))
+                return true;
         }
 
-        protected override bool CanWriteType(Type type)
+        return false;
+    }
+
+    private static Type GetEnumerableType(Type type)
+    {
+        foreach (Type intType in type.GetInterfaces())
         {
-
-            if (type == null)
-                throw new ArgumentNullException(nameof(type));
-
-            return IsTypeOfIEnumerable(type);
-        }
-
-        private static bool IsTypeOfIEnumerable(Type type)
-        {
-
-            foreach (Type interfaceType in type.GetInterfaces())
+            if (intType.IsConstructedGenericType
+                && intType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
             {
-
-                if (interfaceType == typeof(IList))
-                    return true;
+                return intType.GetGenericArguments()[0];
             }
+        }
+        return null;
+    }
 
-            return false;
+    public async override Task WriteResponseBodyAsync(OutputFormatterWriteContext context)
+    {
+        var response = context.HttpContext.Response;
+
+        Type type = context.Object.GetType();
+        Type itemType = GetEnumerableType(type);
+
+        StringWriter _stringWriter = new();
+
+        if (_options.UseSingleLineHeaderInCsv)
+        {
+            _stringWriter.WriteLine(
+                string.Join<string>(
+                    _options.CsvDelimiter, itemType.GetProperties().Select(x => x.Name)
+                )
+            );
         }
 
-        private static Type GetEnumerableType(Type type)
+        var trimChars = _options.CsvDelimiter.ToCharArray();
+
+        foreach (var obj in (IEnumerable<object>)context.Object)
         {
-            foreach (Type intType in type.GetInterfaces())
-            {
-                if (intType.IsConstructedGenericType
-                    && intType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-                {
-                    return intType.GetGenericArguments()[0];
+
+            var vals = obj.GetType().GetProperties().Select(
+                pi => new {
+                    Value = pi.GetValue(obj, null)
                 }
-            }
-            return null;
-        }
+            );
 
-        public async override Task WriteResponseBodyAsync(OutputFormatterWriteContext context)
-        {
-            var response = context.HttpContext.Response;
+            string _valueLine = string.Empty;
 
-            Type type = context.Object.GetType();
-            Type itemType = GetEnumerableType(type);
-
-            StringWriter _stringWriter = new();
-
-            if (_options.UseSingleLineHeaderInCsv)
-            {
-                _stringWriter.WriteLine(
-                    string.Join<string>(
-                        _options.CsvDelimiter, itemType.GetProperties().Select(x => x.Name)
-                    )
-                );
-            }
-
-            var trimChars = _options.CsvDelimiter.ToCharArray();
-
-            foreach (var obj in (IEnumerable<object>)context.Object)
+            foreach (var val in vals)
             {
 
-                var vals = obj.GetType().GetProperties().Select(
-                    pi => new {
-                        Value = pi.GetValue(obj, null)
-                    }
-                );
-
-                string _valueLine = string.Empty;
-
-                foreach (var val in vals)
+                if (val.Value != null)
                 {
+                    string _val = String.Empty;
 
-                    if (val.Value != null)
-                    {
-                        string _val = String.Empty;
-
-                        if (val.Value is double doubleValue)
-                            _val = doubleValue.ToString(System.Globalization.CultureInfo.InvariantCulture);
-                        else if (val.Value is DateTime timeValue)
-                            _val = timeValue.ToString("yyyy-MM-dd");
-                        else
-                            _val = val.Value.ToString();
-
-                        //Check if quotes needed
-                        if (_val.Contains(',') || _val.Contains('\r') || _val.Contains('\n') || _val.Contains('"'))
-                        {
-                            //Double quote quotes
-                            _val = _val.Replace("\"", "\"\"");
-
-                            //Put value inside quotes
-                            _val = string.Concat("\"", _val, "\"");
-                        }
-
-                        _valueLine = string.Concat(_valueLine, _val, _options.CsvDelimiter);
-                    }
+                    if (val.Value is double doubleValue)
+                        _val = doubleValue.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    else if (val.Value is DateTime timeValue)
+                        _val = timeValue.ToString("yyyy-MM-dd");
                     else
-                    {
-                        _valueLine = string.Concat(_valueLine, string.Empty, _options.CsvDelimiter);
-                    }
-                }
+                        _val = val.Value.ToString();
 
-                _stringWriter.WriteLine(_valueLine.TrimEnd(trimChars));
+                    //Check if quotes needed
+                    if (_val.Contains(',') || _val.Contains('\r') || _val.Contains('\n') || _val.Contains('"'))
+                    {
+                        //Double quote quotes
+                        _val = _val.Replace("\"", "\"\"");
+
+                        //Put value inside quotes
+                        _val = string.Concat("\"", _val, "\"");
+                    }
+
+                    _valueLine = string.Concat(_valueLine, _val, _options.CsvDelimiter);
+                }
+                else
+                {
+                    _valueLine = string.Concat(_valueLine, string.Empty, _options.CsvDelimiter);
+                }
             }
 
-            var streamWriter = new StreamWriter(response.Body);
-            await streamWriter.WriteAsync(_stringWriter.ToString());
-            await streamWriter.FlushAsync();
+            _stringWriter.WriteLine(_valueLine.TrimEnd(trimChars));
         }
+
+        var streamWriter = new StreamWriter(response.Body);
+        await streamWriter.WriteAsync(_stringWriter.ToString());
+        await streamWriter.FlushAsync();
     }
 }

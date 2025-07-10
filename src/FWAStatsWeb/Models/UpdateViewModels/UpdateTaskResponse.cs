@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿namespace FWAStatsWeb.Models.UpdateViewModels;
 
-namespace FWAStatsWeb.Models.UpdateViewModels
+public class UpdateTaskResponse
 {
-    public class UpdateTaskResponse
-    {
-        public string ID { get; set; }
-        public bool Status { get; set; }
-        public string Message { get; set; }
-    }
+    public string ID { get; set; }
+    public bool Status { get; set; }
+    public string Message { get; set; }
 }
