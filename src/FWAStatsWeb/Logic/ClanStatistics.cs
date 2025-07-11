@@ -1,6 +1,7 @@
 ﻿using FWAStatsWeb.Data;
 using FWAStatsWeb.Models;
 using Ical.Net;
+using Ical.Net.DataTypes;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System;
@@ -107,7 +108,7 @@ public class ClanStatistics : IClanStatistics
 
         var cal = Calendar.Load(data);
 
-        foreach (var syncEvent in cal.Events.Where(a => a.Duration >= syncDuration1 && a.Duration <= syncDuration2).OrderBy(a => a.Start))
+        foreach (var syncEvent in cal.Events.Where(a => a.Duration.Value.ToTimeSpanUnspecified() >= syncDuration1 && a.Duration.Value.ToTimeSpanUnspecified() <= syncDuration2).OrderBy(a => a.Start))
         {
             var eventStart = syncEvent.Start.AsUtc;
             var eventEnd = syncEvent.End.AsUtc;
