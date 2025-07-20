@@ -10,6 +10,10 @@
     {
         <meta name="robots" content="@ViewData["MetaRobots"]" />
     }
+    @if (ViewData.ContainsKey("MetaRobots"))
+    {
+        Context.Response.Headers["X-Robots-Tag"] = ViewData["MetaRobots"].ToString();
+    }
 
     <title>@ViewData["Title"] 💎 FWA Stats</title>
     <meta property="og:title" content="@ViewData["Title"] 💎 FWA Stats" />
