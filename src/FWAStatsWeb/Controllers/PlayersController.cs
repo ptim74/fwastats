@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace FWAStatsWeb.Controllers;
 
+[Authorize]
 //[ResponseCache(Duration = Constants.CACHE_MIN)]
 public class PlayersController : Controller
 {

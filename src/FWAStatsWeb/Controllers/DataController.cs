@@ -1,6 +1,7 @@
 ﻿using FWAStatsWeb.Data;
 using FWAStatsWeb.Logic;
 using FWAStatsWeb.Models.DataViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -23,6 +24,7 @@ public class DataController : Controller
         this.logger = logger;
     }
 
+    [Authorize]
     public IActionResult Index()
     {
         return View();

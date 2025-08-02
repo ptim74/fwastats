@@ -1,6 +1,7 @@
 using FWAStatsWeb.Data;
 using FWAStatsWeb.Models;
 using FWAStatsWeb.Models.SyncViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
@@ -9,6 +10,7 @@ using System.Linq;
 
 namespace FWAStatsWeb.Controllers;
 
+[Authorize]
 //[ResponseCache(Duration = Constants.CACHE_NORMAL)]
 public class SyncsController : Controller
 {
