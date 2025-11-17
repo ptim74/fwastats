@@ -188,6 +188,7 @@ public class HomeController : Controller
                         thcounters.Add(weight, th);
                     }
                     th.Clans++;
+                    th.TH18 += result.TH18Count;
                     th.TH17 += result.TH17Count;
                     th.TH16 += result.TH16Count;
                     th.TH15 += result.TH15Count;
@@ -204,6 +205,7 @@ public class HomeController : Controller
                 {
                     th.Weight = th.Weight * divider / 1000;
 
+                    th.TH18 = Math.Round(th.TH18 / th.Clans, 1);
                     th.TH17 = Math.Round(th.TH17 / th.Clans, 1);
                     th.TH16 = Math.Round(th.TH16 / th.Clans, 1);
                     th.TH15 = Math.Round(th.TH15 / th.Clans, 1);
@@ -215,7 +217,7 @@ public class HomeController : Controller
                     th.TH9 = Math.Round(th.TH9 /= th.Clans, 1);
                     th.TH8 = Math.Round(th.TH8 /= th.Clans, 1);
                     //Rounding to teamSize with TH10
-                    th.TH10 = teamSize - th.TH17 - th.TH16 - th.TH15 - th.TH14 - th.TH13 - th.TH12 - th.TH11 - th.TH9 - th.TH8;
+                    th.TH10 = teamSize - th.TH18 - th.TH17 - th.TH16 - th.TH15 - th.TH14 - th.TH13 - th.TH12 - th.TH11 - th.TH9 - th.TH8;
                 }
 
                 if (thcounters.Values.Count > 0)

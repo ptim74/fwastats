@@ -57,6 +57,7 @@ public class TownhallCounter
 {
     public int Clans { get; set; }
     public int Weight { get; set; }
+    public double TH18 { get; set; }
     public double TH17 { get; set; }
     public double TH16 { get; set; }
     public double TH15 { get; set; }

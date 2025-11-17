@@ -294,6 +294,7 @@ public class ClanStatistics : IClanStatistics
 
             if (weights.TryGetValue(clan.Tag, out WeightCalculator.Results weight))
             {
+                clan.Th18Count = weight.Th18Count;
                 clan.Th17Count = weight.Th17Count;
                 clan.Th16Count = weight.Th16Count;
                 clan.Th15Count = weight.Th15Count;

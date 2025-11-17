@@ -19,6 +19,7 @@ public sealed class Constants
 
     public const int WEIGHT_COMPARE = 30000;
 
+    public const int MAXWEIGHT_TH18 = 180000;
     public const int MAXWEIGHT_TH17 = 170000;
     public const int MAXWEIGHT_TH16 = 160000;
     public const int MAXWEIGHT_TH15 = 150000;

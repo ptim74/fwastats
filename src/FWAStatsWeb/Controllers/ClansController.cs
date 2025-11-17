@@ -60,6 +60,7 @@ public class ClansController : Controller
             Name = c.Name,
             Members = c.Members,
             BadgeUrl = c.BadgeUrl,
+            Th18Count = c.Th18Count,
             Th17Count = c.Th17Count,
             Th16Count = c.Th16Count,
             Th15Count = c.Th15Count,
@@ -323,6 +324,7 @@ public class ClansController : Controller
             }
         }
 
+        details.Clan.Th18Count = 0;
         details.Clan.Th17Count = 0;
         details.Clan.Th16Count = 0;
         details.Clan.Th15Count = 0;
@@ -342,7 +344,9 @@ public class ClansController : Controller
             if (member != null)
             {
                 member.TownHallLevel = thlevel.TownHallLevel;
-                if (member.TownHallLevel == 17)
+                if (member.TownHallLevel == 18)
+                    details.Clan.Th18Count++;
+                else if (member.TownHallLevel == 17)
                     details.Clan.Th17Count++;
                 else if (member.TownHallLevel == 16)
                     details.Clan.Th16Count++;
@@ -382,7 +386,17 @@ public class ClansController : Controller
                 }
                 else
                 {
-                    if (member.TownHallLevel == 13)
+                    if (member.TownHallLevel == 18)
+                        details.Clan.EstimatedWeight += 175;
+                    else if (member.TownHallLevel == 17)
+                        details.Clan.EstimatedWeight += 165;
+                    else if (member.TownHallLevel == 16)
+                        details.Clan.EstimatedWeight += 155;
+                    else if (member.TownHallLevel == 15)
+                        details.Clan.EstimatedWeight += 145;
+                    else if (member.TownHallLevel == 14)
+                        details.Clan.EstimatedWeight += 135;
+                    else if (member.TownHallLevel == 13)
                         details.Clan.EstimatedWeight += 125;
                     else if (member.TownHallLevel == 12)
                         details.Clan.EstimatedWeight += 115;

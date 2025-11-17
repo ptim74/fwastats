@@ -15,6 +15,7 @@ public class WeightResult
 
     public int TeamSize { get; set; }
 
+    public int TH18Count { get; set; }
     public int TH17Count { get; set; }
     public int TH16Count { get; set; }
     public int TH15Count { get; set; }

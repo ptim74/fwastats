@@ -10,6 +10,7 @@ public class WeightCalculator
     public class Results
     {
         public string Tag { get; set; }
+        public int Th18Count { get; set; }
         public int Th17Count { get; set; }
         public int Th16Count { get; set; }
         public int Th15Count { get; set; }
@@ -46,6 +47,9 @@ public class WeightCalculator
             {
                 switch (th.TownHallLevel)
                 {
+                    case 18:
+                        ret.Th18Count = th.Count;
+                        break;
                     case 17:
                         ret.Th17Count = th.Count;
                         break;
@@ -85,8 +89,12 @@ public class WeightCalculator
             //Calculate estimated max weight
             var availableMembers = Constants.WAR_SIZE1; //TODO
 
-            var thLevelMembers = ret.Th17Count < availableMembers ? ret.Th17Count : availableMembers;
-            var maxWeight = thLevelMembers * Constants.MAXWEIGHT_TH17 / 1000 - 5;
+            var thLevelMembers = ret.Th18Count < availableMembers ? ret.Th18Count : availableMembers;
+            var maxWeight = thLevelMembers * Constants.MAXWEIGHT_TH18 / 1000 - 5;
+            availableMembers -= thLevelMembers;
+
+            thLevelMembers = ret.Th17Count < availableMembers ? ret.Th17Count : availableMembers;
+            maxWeight += thLevelMembers * Constants.MAXWEIGHT_TH17 / 1000 - 5;
             availableMembers -= thLevelMembers;
 
             thLevelMembers = ret.Th16Count < availableMembers ? ret.Th16Count : availableMembers;

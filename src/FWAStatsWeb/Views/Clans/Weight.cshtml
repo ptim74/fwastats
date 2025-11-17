@@ -133,6 +133,9 @@ else
                 var member_max = 0;
                 switch (member.TownHallLevel)
                 {
+                    case 18:
+                        member_max = Constants.MAXWEIGHT_TH18;
+                        break;
                     case 17:
                         member_max = Constants.MAXWEIGHT_TH17;
                         break;
@@ -174,7 +177,11 @@ else
                     <td>@member_pos</td>
                     <td>
                         <input type="hidden" name="Members[@member_id].Tag" value="@member.Tag" />
-                        @if (member.TownHallLevel == 17 || member.TownHallLevel == 11)
+                        @if (member.TownHallLevel == 18 || member.TownHallLevel == 12)
+                        {
+                            <span class="badge text-bg-primary">@member.TownHallLevel</span>
+                        }
+                        else if (member.TownHallLevel == 17 || member.TownHallLevel == 11)
                         {
                             <span class="badge text-bg-success">@member.TownHallLevel</span>
                         }
@@ -189,10 +196,6 @@ else
                         else if (member.TownHallLevel == 13)
                         {
                             <span class="badge text-bg-info">@member.TownHallLevel</span>
-                        }
-                        else if (member.TownHallLevel == 12)
-                        {
-                            <span class="badge text-bg-primary">@member.TownHallLevel</span>
                         }
                         else // 14, 8, 7, ...
                         {
@@ -306,6 +309,8 @@ else
                 weightStatusUrl: '/Clan/@Model.ClanLink/WeightStatus',
                 comparisonData: @Html.Raw(comparisonData),
                 maxWeights: {
+                    TH18: @Constants.MAXWEIGHT_TH18,
+                    TH17: @Constants.MAXWEIGHT_TH17,
                     TH16: @Constants.MAXWEIGHT_TH16,
                     TH15: @Constants.MAXWEIGHT_TH15,
                     TH14: @Constants.MAXWEIGHT_TH14,
