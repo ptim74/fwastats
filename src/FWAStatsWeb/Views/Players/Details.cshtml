@@ -30,7 +30,7 @@
     <div class="well card p-3 mt-4 mb-4">
         <div class="row">
             <div class="col">
-                <img src="@Model.Player.BadgeUrl" class="float-start me-2 ms-2" />
+                <img src="@Model.Player.BadgeUrl" class="badge-70 float-start me-2 ms-2" />
                 @if (Model.Claimed)
                 {
                     <a asp-area="" asp-route-id="@Model.Player.LinkID" asp-controller="Players" asp-action="Unlink" class="text-muted float-end me-2"><span class="fas fa-tag"></span> Unlink</a>

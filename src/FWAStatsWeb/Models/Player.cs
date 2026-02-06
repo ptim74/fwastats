@@ -70,6 +70,10 @@ public class Player
 
     [NotMapped]
     [DataMember]
+    private League LeagueTier { get; set; }
+
+    [NotMapped]
+    [DataMember]
     public virtual ICollection<PlayerAchievement> Achievements { get; set; }
 
     [NotMapped]
@@ -104,20 +108,21 @@ public class Player
 
     public void FixData()
     {
-        if (League != null)
+        if (LeagueTier != null)
         {
-            LeagueName = League.Name;
+            LeagueName = LeagueTier.Name;
 
-            if (League.IconUrls != null)
+            if (LeagueTier.IconUrls != null)
             {
-                BadgeUrl = League.IconUrls.Small;
+                BadgeUrl = LeagueTier.IconUrls.Small;
             }
         }
         else
         {
             //TODO: Get image from league API and cache value
             //Hardcoded small image of Unranked league
-            BadgeUrl = "https://api-assets.clashofclans.com/leagues/72/e--YMyIexEQQhE4imLoJcwhYn6Uy8KqlgyY3_kFV6t4.png";
+            //BadgeUrl = "https://api-assets.clashofclans.com/leagues/72/e--YMyIexEQQhE4imLoJcwhYn6Uy8KqlgyY3_kFV6t4.png";
+            BadgeUrl = "https://api-assets.clashofclans.com/leaguetiers/125/yyYo5DUFeFBZvmMEQh0ZxvG-1sUOZ_S3kDMB7RllXX0.png";
         }
         if (Clan != null)
         {

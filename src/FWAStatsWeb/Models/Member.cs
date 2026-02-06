@@ -46,6 +46,9 @@ public class Member
     [DataMember]
     private League League { get; set; }
 
+    [DataMember]
+    private League LeagueTier { get; set; }
+
     [StringLength(30)]
     public string LeagueName { get; set; }
 
@@ -59,13 +62,13 @@ public class Member
     {
         ClanTag = clanTag;
 
-        if (League != null)
+        if (LeagueTier != null)
         {
-            LeagueName = League.Name;
+            LeagueName = LeagueTier.Name;
 
-            if (League.IconUrls != null)
+            if (LeagueTier.IconUrls != null)
             {
-                BadgeUrl = League.IconUrls.Tiny;
+                BadgeUrl = LeagueTier.IconUrls.Small;
             }
         }
     }
