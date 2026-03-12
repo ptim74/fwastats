@@ -163,11 +163,36 @@ public class DataController : Controller
                    orderby w.EndTime descending
                    select w;
 
+        var blacklisted = db.BlacklistedClans.Select(c => c.Tag).ToList();
+        var syncs = db.WarSyncs.ToList();
+
         foreach (var row in wars)
         {
+            var opponentInfo = "Unknown";
+            if (row.Matched)
+            {
+                opponentInfo = "FWA";
+            }
+            if (blacklisted.Contains(row.OpponentTag))
+            {
+                opponentInfo = "Blacklisted";
+            }
+            if (row.Friendly)
+            {
+                opponentInfo = "Friendly";
+            }
+
+            string searchTime = null;
+            var sync = syncs.Where(s => s.Start <= row.SearchTime.AddHours(6) && s.Finish >= row.SearchTime.AddHours(-6)).FirstOrDefault();
+            if (sync != null)
+            {
+                searchTime = row.SearchTime.Subtract(sync.Start).ToString("c", System.Globalization.CultureInfo.InvariantCulture);
+            }
+
             data.Add(new ClanWarModel
             {
                 EndTime = RoundToDate(row.EndTime, DateTimeKind.Utc),
+                SearchTime = searchTime,
                 Result = row.Result,
                 TeamSize = row.TeamSize,
                 ClanTag = row.ClanTag,
@@ -182,8 +207,9 @@ public class DataController : Controller
                 OpponentLevel = row.OpponentLevel,
                 OpponentStars = row.OpponentStars,
                 OpponentDestructionPercentage = row.OpponentDestructionPercentage,
+                OpponentInfo = opponentInfo,
                 Synced = row.Synced,
-                Matched = row.Matched
+                Matched = row.Matched,
             });
         }
 

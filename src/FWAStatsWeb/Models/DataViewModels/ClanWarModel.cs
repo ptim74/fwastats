@@ -13,6 +13,7 @@ public class ClanWars : List<ClanWarModel>
 public class ClanWarModel
 {
     public DateTime EndTime { get; set; }
+    public string SearchTime { get; set; }
     public string Result { get; set; }
     public int TeamSize { get; set; }
 
@@ -23,14 +24,14 @@ public class ClanWarModel
     public double ClanDestructionPercentage { get; set; }
     public int ClanAttacks { get; set; }
     public int ClanExpEarned { get; set; }
-    //public string ClanBadgeUrl { get; set; }
+
 
     public string OpponentTag { get; set; }
     public string OpponentName { get; set; }
     public int OpponentLevel { get; set; }
     public int OpponentStars { get; set; }
     public double OpponentDestructionPercentage { get; set; }
-    //public string OpponentBadgeUrl { get; set; }
+    public string OpponentInfo { get; set; }
 
     public bool Synced { get; set; }
     public bool Matched { get; set; }
