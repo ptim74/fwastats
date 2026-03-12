@@ -697,7 +697,7 @@ function initClansWeight(config) {
                 war_weight += member_weight;
                 if (member_weight > config.maxWeights.TH17)
                     th18_count++;
-                if (member_weight > config.maxWeights.TH16)
+                else if (member_weight > config.maxWeights.TH16)
                     th17_count++;
                 else if (member_weight > config.maxWeights.TH15)
                     th16_count++;
