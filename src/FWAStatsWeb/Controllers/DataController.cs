@@ -1,5 +1,6 @@
 ﻿using FWAStatsWeb.Data;
 using FWAStatsWeb.Logic;
+using FWAStatsWeb.Models;
 using FWAStatsWeb.Models.DataViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -222,6 +223,65 @@ public class DataController : Controller
     {
         logger.LogInformation("Clans");
 
+        var weights = new WeightCalculator(db).Calculate().ToDictionary(w => w.Tag);
+        var format = RouteData.Values["format"]?.ToString();
+
+        if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
+        {
+            var latestWeights = db.WeightResults.ToDictionary(w => w.Tag);
+            var data = new List<ClanJsonModel>();
+
+            var badges = from c in db.Clans
+                         select new ClanJsonModel
+                         {
+                             Description = c.Description,
+                             Image = c.BadgeUrl,
+                             IsWarLogPublic = c.IsWarLogPublic,
+                             Level = c.ClanLevel,
+                             Location = c.LocationName,
+                             Losses = c.WarLosses,
+                             Name = c.Name,
+                             Points = c.ClanPoints,
+                             RequiredTrophies = c.RequiredTrophies,
+                             Tag = c.Tag,
+                             Ties = c.WarTies,
+                             Type = c.Type,
+                             WarFrequency = c.WarFrequency,
+                             Wins = c.WarWins,
+                             WinStreak = c.WarWinStreak
+                         };
+
+            foreach (var row in badges)
+            {
+                if (weights.TryGetValue(row.Tag, out WeightCalculator.Results weight))
+                {
+                    row.Th18Count = weight.Th18Count;
+                    row.Th17Count = weight.Th17Count;
+                    row.Th16Count = weight.Th16Count;
+                    row.Th15Count = weight.Th15Count;
+                    row.Th14Count = weight.Th14Count;
+                    row.Th13Count = weight.Th13Count;
+                    row.Th12Count = weight.Th12Count;
+                    row.Th11Count = weight.Th11Count;
+                    row.Th10Count = weight.Th10Count;
+                    row.Th9Count = weight.Th9Count;
+                    row.Th8Count = weight.Th8Count;
+                    row.ThLowCount = weight.ThLowCount;
+                    row.EstimatedWeight = weight.EstimatedWeight;
+                }
+
+                if (latestWeights.TryGetValue(row.Tag, out WeightResult latestWeight) && latestWeight.Timestamp != DateTime.MinValue)
+                {
+                    row.LastSubmittedTotalWeight = latestWeight.Weight;
+                    row.LastSubmittedAt = latestWeight.Timestamp;
+                }
+
+                data.Add(row);
+            }
+
+            return Ok(data);
+        }
+
         var data = new Clans();
 
         var badges = from c in db.Clans
@@ -243,8 +303,6 @@ public class DataController : Controller
                          Wins = c.WarWins,
                          WinStreak = c.WarWinStreak
                      };
-
-        var weights = new WeightCalculator(db).Calculate().ToDictionary(w => w.Tag);
 
         foreach (var row in badges)
         {
