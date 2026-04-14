@@ -6,31 +6,22 @@
     ViewBag.MetaRobots = "noindex, nofollow";
     int member_id = 0;
     string resultType = "alert-success";
-    string resultMessage = "";
-    if (Model.PendingWeightSubmit)
+    string resultMessage = string.Format("Clan weight submitted {0}.", FWAStatsWeb.Logic.Utils.TimeSpanToString(DateTime.UtcNow.Subtract(Model.WeightSubmitDate)));
+    if (Model.WeightSubmitDate == DateTime.MinValue)
+    {
+        resultMessage = "Weight submit results not found.";
+    }
+    if (Model.WeightSubmitDate > DateTime.Now.AddDays(-28))
+    {
+        resultType = "alert-success";
+    }
+    else if (Model.WeightSubmitDate > DateTime.Now.AddDays(-42))
     {
         resultType = "alert-warning";
-        resultMessage = "Clan has pending weight submit response which has to be approved by FWA weight department.";
     }
     else
     {
-        resultMessage = string.Format("Clan weight submitted {0}.", FWAStatsWeb.Logic.Utils.TimeSpanToString(DateTime.UtcNow.Subtract(Model.WeightSubmitDate)));
-        if (Model.WeightSubmitDate == DateTime.MinValue)
-        {
-            resultMessage = "Weight submit results not found.";
-        }
-        if (Model.WeightSubmitDate > DateTime.Now.AddDays(-28))
-        {
-            resultType = "alert-success";
-        }
-        else if (Model.WeightSubmitDate > DateTime.Now.AddDays(-42))
-        {
-            resultType = "alert-warning";
-        }
-        else
-        {
-            resultType = "alert-danger";
-        }
+        resultType = "alert-danger";
     }
 }
 
@@ -78,32 +69,6 @@
         </select>
     </div>
 </form>
-
-@if (Model.Comparisons != null)
-{
-    int me = (int)(Model.ComparisonDeviation / Model.ComparisonSampleSize);
-    <div id="chart"></div>
-    <div class="caption">
-        <p class="small">Weight of selected roster compared against average of @Model.ComparisonSampleSize weight submit results close to selected weight (+/- @Constants.WEIGHT_COMPARE). 
-        <!--Mean absolute deviation is @Model.ComparisonDeviation and mean absolute error is @me. -->
-        </p>
-    </div>
-}
-else
-{
-    if (Model.WarID == 0)
-    {
-        <div class="caption">
-            <p class="small">To see the weight chart please fill weights for @Constants.WAR_SIZE1 or @Constants.WAR_SIZE2 or @Constants.WAR_SIZE3 selected members.</p>
-        </div>
-    }
-    else
-    {
-        <div class="caption">
-            <p class="small">To see the weight chart please fill weights for all war members.</p>
-        </div>
-    }
-}
 
 <form id="form2" asp-action="Weight">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
@@ -290,24 +255,10 @@ else
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <script type="text/javascript">
         (function() {
-            @{
-                var comparisonData = "null";
-                if (Model.Comparisons != null)
-                {
-                    var dataRows = new List<string>();
-                    foreach(var c in Model.Comparisons)
-                    {
-                        dataRows.Add($"[{c.Position}, {c.Weight}, {c.Average.ToString().Replace(",",".")}]");
-                    }
-                    comparisonData = "[" + string.Join(",", dataRows) + "]";
-                }
-            }
-            
             initClansWeight({
                 clanLink: '@Model.ClanLink',
                 weightSubmitQueued: @Model.WeightSubmitQueued.ToString().ToLower(),
                 weightStatusUrl: '/Clan/@Model.ClanLink/WeightStatus',
-                comparisonData: @Html.Raw(comparisonData),
                 maxWeights: {
                     TH18: @Constants.MAXWEIGHT_TH18,
                     TH17: @Constants.MAXWEIGHT_TH17,

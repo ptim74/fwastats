@@ -59,31 +59,23 @@
             {
                 submitRestrictionChangedAt =  FWAStatsWeb.Logic.Utils.TimeSpanToString(DateTime.UtcNow.Subtract(clan.SubmitRestrictionChangedAt.Value));
             }
-            if (clan.PendingWeightSubmit)
+            resultMessage = string.Format("Submitted  {0}", FWAStatsWeb.Logic.Utils.TimeSpanToString(DateTime.UtcNow.Subtract(clan.WeightSubmitDate)));
+            if (clan.WeightSubmitDate == DateTime.MinValue)
+            {
+                resultMessage = "Missing";
+                resultType = "text-default";
+            }
+            if (clan.WeightSubmitDate > DateTime.Now.AddDays(-28))
+            {
+                resultType = "text-success";
+            }
+            else if (clan.WeightSubmitDate > DateTime.Now.AddDays(-42))
             {
                 resultType = "text-warning";
-                resultMessage = "Pending";
             }
             else
             {
-                resultMessage = string.Format("Submitted  {0}", FWAStatsWeb.Logic.Utils.TimeSpanToString(DateTime.UtcNow.Subtract(clan.WeightSubmitDate)));
-                if (clan.WeightSubmitDate == DateTime.MinValue)
-                {
-                    resultMessage = "Missing";
-                    resultType = "text-default";
-                }
-                if (clan.WeightSubmitDate > DateTime.Now.AddDays(-28))
-                {
-                    resultType = "text-success";
-                }
-                else if (clan.WeightSubmitDate > DateTime.Now.AddDays(-42))
-                {
-                    resultType = "text-warning";
-                }
-                else
-                {
-                    resultType = "text-danger";
-                }
+                resultType = "text-danger";
             }
             <tr>
                 <td class="p-0">

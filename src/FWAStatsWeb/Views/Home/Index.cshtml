@@ -74,24 +74,6 @@
         </div>
         <p class="mt-2"><a asp-area="" asp-controller="Clans" asp-action="Index" class="btn btn-outline-primary">View all clans</a></p>
     </div>
-    @foreach (var townhallCounters in Model.TownhallCounters)
-    {
-        var chart = "thchart" + townhallCounters.Key;
-        <div class="col-sm-6">
-            <h3 class="my-3">TH composition <small class="text-muted">@townhallCounters.Key members</small></h3>
-            <div id="@chart" class="chart-container"><p><i class="fas fa-hourglass"></i> Loading...</p></div>
-            <div class="mt-2"><a href="https://docs.google.com/spreadsheets/d/1QPyciESc0AifmKgUDV5bua0LDI_hUqSRHXi6_TwCtLM/edit#gid=587579726" class="btn btn-outline-primary">More details</a></div>
-        </div>
-    }
-    @foreach (var townhallCounters in Model.TownhallCounters)
-    {
-        var chart = "histogram" + townhallCounters.Key;
-        <div class="col-sm-6">
-            <h3 class="my-3">Weight distribution <small class="text-muted">@townhallCounters.Key members</small></h3>
-            <div id="@chart" class="chart-container"><p><i class="fas fa-hourglass"></i> Loading...</p></div>
-            <div class="mt-2"><a href="https://docs.google.com/spreadsheets/d/1QPyciESc0AifmKgUDV5bua0LDI_hUqSRHXi6_TwCtLM/edit#gid=587579726" class="btn btn-outline-primary">More details</a></div>
-        </div>
-    }
 </div>
 
 @section scripts {
@@ -120,55 +102,12 @@
                     }).ToList()
                 } : null;
 
-                var areaCharts = new List<object>();
-                var histogramCharts = new List<object>();
-                
-                foreach(var townhallCounters in Model.TownhallCounters)
-                {
-                    var teamSize = townhallCounters.Key;
-                    int gridlines = teamSize / 10 + 1;
-                    var thChart = "thchart" + teamSize;
-                    var histogramChart = "histogram" + teamSize;
-
-                    // Build area chart data
-                    var areaData = new List<List<object>>();
-                    areaData.Add(new List<object> { "Weight", "18", "17", "16", "15", "14", "13", "12", "11", "10", "9", "8" });
-                    foreach(var th in townhallCounters.Value)
-                    {
-                        areaData.Add(new List<object> { 
-                            th.Weight, th.TH18, th.TH17, th.TH16, th.TH15, th.TH14, th.TH13, 
-                            th.TH12, th.TH11, th.TH10, th.TH9, th.TH8 
-                        });
-                    }
-
-                    areaCharts.Add(new {
-                        chartId = thChart,
-                        data = areaData,
-                        gridlines = gridlines,
-                        teamSize = teamSize
-                    });
-
-                    // Build histogram chart data
-                    var histogramData = new List<List<object>>();
-                    histogramData.Add(new List<object> { "Weight", "Count" });
-                    foreach(var th in townhallCounters.Value)
-                    {
-                        histogramData.Add(new List<object> { th.Weight, th.Clans });
-                    }
-
-                    histogramCharts.Add(new {
-                        chartId = histogramChart,
-                        data = histogramData
-                    });
-                }
             }
 
             initHomeIndex({
                 chartData: {
                     pieCharts: @Html.Raw(Json.Serialize(pieCharts)),
-                    syncHistoryChart: @Html.Raw(Json.Serialize(syncHistoryChart)),
-                    areaCharts: @Html.Raw(Json.Serialize(areaCharts)),
-                    histogramCharts: @Html.Raw(Json.Serialize(histogramCharts))
+                    syncHistoryChart: @Html.Raw(Json.Serialize(syncHistoryChart))
                 }
             });
         })();

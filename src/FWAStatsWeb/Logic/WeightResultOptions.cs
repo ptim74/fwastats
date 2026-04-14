@@ -16,5 +16,4 @@ public class WeightResultDetails
     public int TeamSize { get; set; }
     public string SheetId { get; set; }
     public string ResultRange { get; set; }
-    public string PendingRange { get; set; }
 }

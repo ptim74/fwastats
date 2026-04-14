@@ -245,24 +245,16 @@ public class UpdateController : Controller
         {
             logger.LogInformation("UpdateResults.ResultFetchBegin{0}", resultDb.TeamSize);
 
-            var ranges = new string[] { resultDb.ResultRange, resultDb.PendingRange };
+            var resultData = await googleSheets.Get(resultDb.SheetId, "ROWS", resultDb.ResultRange);
 
-            var resultDataDict = await googleSheets.BatchGet(resultDb.SheetId, "ROWS", ranges);
-
-            if (resultDataDict == null)
-                throw new Exception("BatchGet returned null");
-            if (resultDataDict.Count != ranges.Length)
-                throw new Exception(string.Format("BatchGet returned {0} elements when {1} was expected", resultDataDict.Count, ranges.Length));
-
-            var resultData = resultDataDict[0];
             logger.LogInformation("UpdateResults.ResultFetchEnd{0}", resultDb.TeamSize);
             if (resultData != null)
             {
                 foreach (var row in resultData)
                 {
-                    if (row.Count > (resultDb.TeamSize + 12))
+                    if (row.Count == 4)
                     {
-                        var clanTag = Utils.LinkIdToTag(Convert.ToString(row[4]));
+                        var clanTag = Utils.LinkIdToTag(Convert.ToString(row[3]));
                         if (!string.IsNullOrEmpty(clanTag))
                         {
                             if (!resultSet.Contains(clanTag))
@@ -277,10 +269,6 @@ public class UpdateController : Controller
 
                             try
                             {
-                                int dataOffset = 0;
-                                if (row.Count > (resultDb.TeamSize + 15))
-                                    dataOffset = 3;
-
                                 DateTime timestamp;
                                 try
                                 {
@@ -300,113 +288,12 @@ public class UpdateController : Controller
                                 {
                                     result.Timestamp = timestamp;
                                     result.TeamSize = resultDb.TeamSize;
-
-                                    //TODO
-                                    result.TH18Count = 0;
-                                    result.TH17Count = 0;
-                                    result.TH16Count = 0;
-                                    result.TH15Count = 0;
-                                    result.TH14Count = 0;
-                                    result.TH13Count = 0;
-                                    result.TH12Count = 0;
-                                    result.TH11Count = 0;
-                                    result.TH10Count = 0;
-                                    result.TH9Count = 0;
-                                    result.TH8Count = 0;
-                                    result.TH7Count = 0;
-
-                                    var totalWeight = 0;
-
-                                    int max = resultDb.TeamSize + 10;
-                                    for (int i = 11; i <= max; i++)
-                                    {
-                                        var weight = Convert.ToInt32(row[i + dataOffset]);
-                                        if (weight > Constants.MAXWEIGHT_TH18)
-                                            weight = Constants.MAXWEIGHT_TH18;
-                                        if (weight < 0)
-                                            weight = 0;
-                                        totalWeight += weight;
-
-                                        if (weight > Constants.MAXWEIGHT_TH17)
-                                            result.TH18Count++;
-                                        else if (weight > Constants.MAXWEIGHT_TH16)
-                                            result.TH17Count++;
-                                        else if (weight > Constants.MAXWEIGHT_TH15)
-                                            result.TH16Count++;
-                                        else if (weight > Constants.MAXWEIGHT_TH14)
-                                            result.TH15Count++;
-                                        else if (weight > Constants.MAXWEIGHT_TH13)
-                                            result.TH14Count++;
-                                        else if (weight > Constants.MAXWEIGHT_TH12)
-                                            result.TH13Count++;
-                                        else if (weight > Constants.MAXWEIGHT_TH11)
-                                            result.TH12Count++;
-                                        else if (weight > Constants.MAXWEIGHT_TH10)
-                                            result.TH11Count++;
-                                        else if (weight > Constants.MAXWEIGHT_TH9)
-                                            result.TH10Count++;
-                                        else if (weight > Constants.MAXWEIGHT_TH8)
-                                            result.TH9Count++;
-                                        else if (weight > Constants.MAXWEIGHT_TH7)
-                                            result.TH8Count++;
-                                        else
-                                            result.TH7Count++;
-
-                                        result.SetBase(i - 10, weight);
-                                    }
-
-                                    for (int i = resultDb.TeamSize + 1; i <= Constants.WAR_SIZE2; i++)
-                                    {
-                                        result.SetBase(i, 0);
-                                    }
-
-                                    result.THSum =
-                                        result.TH18Count * 18 +
-                                        result.TH17Count * 17 +
-                                        result.TH16Count * 16 +
-                                        result.TH15Count * 15 + 
-                                        result.TH14Count * 14 + 
-                                        result.TH13Count * 13 + 
-                                        result.TH12Count * 12 + 
-                                        result.TH11Count * 11 + 
-                                        result.TH10Count * 10 + 
-                                        result.TH9Count * 9 + 
-                                        result.TH8Count * 8 + 
-                                        result.TH7Count * 7;
-
-                                    result.Weight = totalWeight;
                                 }
 
                             }
                             catch(Exception e)
                             {
                                 logger.LogError("ClanResult {0}: {1}", clanTag, e.ToString());
-                            }
-                        }
-                    }
-                }
-            }
-
-            var pendingData = resultDataDict[1];
-            if (pendingData != null)
-            {
-                foreach (var row in pendingData)
-                {
-                    if (row.Count > 0)
-                    {
-                        var clanTag = Utils.LinkIdToTag((string)row[0]);
-                        if (!string.IsNullOrEmpty(clanTag) && !pendingSet.Contains(clanTag))
-                        {
-                            pendingSet.Add(clanTag);
-                            if (!results.ContainsKey(clanTag))
-                            {
-                                var result = new WeightResult { Tag = clanTag, Timestamp = DateTime.MinValue };
-                                db.WeightResults.Add(result);
-                                results.Add(clanTag, result);
-                                if (!resultSet.Contains(clanTag))
-                                {
-                                    resultSet.Add(clanTag);
-                                }
                             }
                         }
                     }
@@ -421,10 +308,6 @@ public class UpdateController : Controller
             if (!resultSet.Contains(result.Key))
             {
                 db.WeightResults.Remove(result.Value);
-            }
-            else
-            {
-                result.Value.PendingResult = pendingSet.Contains(result.Key);
             }
         }
 

@@ -135,7 +135,6 @@ public class ClansController : Controller
             if(result != null)
             {
                 clan.WeightSubmitDate = result.Timestamp;
-                clan.PendingWeightSubmit = result.PendingResult;
             }
         }
 
@@ -794,7 +793,6 @@ public class ClansController : Controller
         if(result != null)
         {
             model.WeightSubmitDate = result.Timestamp;
-            model.PendingWeightSubmit = result.PendingResult;
         }
 
         model.Wars = new List<WeightWarModel>();
@@ -859,73 +857,6 @@ public class ClansController : Controller
             }
 
             model.Members = memberWeights.ToList();
-        }
-
-        var clanWeight = 0;
-        var memberCount = 0;
-        var thCount = 0;
-        var comparisons = new Dictionary<int, WeightComparison>();
-        foreach (var member in model.Members.OrderByDescending(m => m.Weight))
-        {
-            if (member.Weight > 0 && member.InWar == true)
-            {
-                memberCount++;
-                clanWeight += member.Weight;
-                thCount += member.TownHallLevel;
-                comparisons.Add(memberCount, new WeightComparison { Position = memberCount, Weight = member.Weight, Max = int.MinValue, Min = int.MaxValue });
-            }
-        }
-
-        if(memberCount == Constants.WAR_SIZE1 || memberCount == Constants.WAR_SIZE2 || memberCount == Constants.WAR_SIZE3)
-        {
-            var maxWeight = clanWeight + Constants.WEIGHT_COMPARE; //30000
-            var minWeight = clanWeight - Constants.WEIGHT_COMPARE;
-            var results = db.WeightResults.Where(w => w.Weight >= minWeight && w.Weight <= maxWeight && w.TeamSize == memberCount && w.Tag != tag).ToList();
-
-            model.ComparisonSampleSize = results.Count;
-            //double sumOfSquares = 0D;
-            double sumOfAbs = 0D;
-
-            if (results.Count > 0)
-            {
-                foreach (var res in results)
-                {
-                    for (var i = 1; i <= memberCount; i++)
-                    {
-                        if (comparisons.TryGetValue(i, out WeightComparison comparison))
-                        {
-                            var weight = res.GetBase(i);
-                            comparison.Average += weight;
-                            if (weight > comparison.Max)
-                                comparison.Max = weight;
-                            if (weight < comparison.Min)
-                                comparison.Min = weight;
-                        }
-                    }
-                }
-
-                model.Comparisons = new List<WeightComparison>();
-
-                for (var i = 1; i <= memberCount; i++)
-                {
-                    if (comparisons.TryGetValue(i, out WeightComparison comparison))
-                    {
-                        comparison.Average /= results.Count;
-                        comparison.Average /= 1000;
-                        comparison.Average = Math.Round(comparison.Average, 1);
-                        comparison.Weight /= 1000;
-                        comparison.Min /= 1000;
-                        comparison.Max /= 1000;
-                        model.Comparisons.Add(comparison);
-                        var diff = comparison.Weight - comparison.Average;
-                        //sumOfSquares += diff * diff;
-                        sumOfAbs += Math.Abs(diff);
-                    }
-                }
-            }
-
-            //model.ComparisonDeviation =  (int)(Math.Sqrt(sumOfSquares) / memberCount * 1000);
-            model.ComparisonDeviation = (int)(sumOfAbs / memberCount * 1000);
         }
 
         return model;

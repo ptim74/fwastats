@@ -34,8 +34,6 @@ public class ClanIndexClan
 
     public DateTime WeightSubmitDate { get; set; }
 
-    public bool PendingWeightSubmit { get; set; }
-
     public string SubmitRestrictionChangedByID
     {
         get

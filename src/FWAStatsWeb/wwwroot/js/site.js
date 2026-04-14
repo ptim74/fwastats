@@ -101,34 +101,6 @@ function initHomeIndex(config) {
             new google.visualization.AreaChart(document.getElementById(config.chartData.syncHistoryChart.chartId)).draw(data, options);
         }
 
-        // Initialize townhall area charts
-        if (config.chartData.areaCharts) {
-            config.chartData.areaCharts.forEach(function(areaChart) {
-                const data = google.visualization.arrayToDataTable(areaChart.data);
-
-                const options = {
-                    isStacked: 'absolute',
-                    legend: {position: 'top', maxLines: 3},
-                    chartArea: { left: 35, top: 15, width: '250', height: '170' },
-                    vAxis: { gridlines: { count: areaChart.gridlines }, viewWindow: { min: 0, max: areaChart.teamSize }}
-                };
-
-                new google.visualization.AreaChart(document.getElementById(areaChart.chartId)).draw(data, options);
-            });
-        }
-
-        // Initialize weight histogram charts
-        if (config.chartData.histogramCharts) {
-            config.chartData.histogramCharts.forEach(function(histogramChart) {
-                const data = google.visualization.arrayToDataTable(histogramChart.data);
-
-                const options = {
-                    chartArea: { left: 35, top: 15, width: '250', height: '170' }
-                };
-
-                new google.visualization.ColumnChart(document.getElementById(histogramChart.chartId)).draw(data, options);
-            });
-        }
     });
 }
 
@@ -608,39 +580,12 @@ function initClansWeight(config) {
     }
 
     calculateWarWeight();
-    resizeChart();
 
     // Handle queued submit modal
     if (config.weightSubmitQueued) {
         statusPoll();
         const submitModal = new bootstrap.Modal(document.getElementById('submitModal'));
         submitModal.show();
-    }
-
-    // Initialize Google Charts if comparison data is provided
-    if (config.comparisonData) {
-        google.charts.load('current', { 'packages': ['corechart'] });
-        google.charts.setOnLoadCallback(function () {
-            const data = new google.visualization.DataTable();
-            data.addColumn('number', 'Pos');
-            data.addColumn('number', 'Weight');
-            data.addColumn('number', 'Average');
-            data.addRows(config.comparisonData);
-
-            resizeChart();
-
-            const options = {
-                theme: 'maximized',
-                legend: {
-                    alignment: 'end'
-                },
-                series: {
-                    3: { color: 'black' }
-                }
-            };
-
-            new google.visualization.LineChart(document.getElementById('chart')).draw(data, options);
-        });
     }
     
     async function statusPoll() {
@@ -736,16 +681,6 @@ function initClansWeight(config) {
                 btn.classList.remove('btn-success');
             }
         });
-    }
-
-    function resizeChart() {
-        const chart = document.getElementById('chart');
-        if (chart) {
-            const width = chart.offsetWidth;
-            let height = Math.round(width * 0.5);
-            if (height > 400) height = 400;
-            chart.style.height = height + 'px';
-        }
     }
 }
 

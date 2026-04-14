@@ -12,31 +12,17 @@ public class WeightViewModel
     public string ClanBadge { get; set; }
     public string Command { get; set; }
     public DateTime WeightSubmitDate { get; set; }
-    public bool PendingWeightSubmit { get; set; }
     public bool WeightSubmitQueued { get; set; }
-    public int ComparisonSampleSize { get; set; }
-    public int ComparisonDeviation { get; set; }
     public string OpponentTag { get; set; }
     public string OpponentName { get; set; }
 
     public virtual ICollection<MemberWeightModel> Members { get; set; }
 
     public virtual ICollection<WeightWarModel> Wars { get; set; }
-
-    public virtual ICollection<WeightComparison> Comparisons { get; set; }
 }
 
 public class WeightWarModel
 {
     public long ID { get; set; }
     public string OpponentName { get; set; }
-}
-
-public class WeightComparison
-{
-    public int Position { get; set; }
-    public int Weight { get; set; }
-    public int Max { get; set; }
-    public int Min { get; set; }
-    public double Average { get; set; }
 }

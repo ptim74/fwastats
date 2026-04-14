@@ -7,7 +7,6 @@ public class IndexViewModel
     public IDictionary<int, SyncStats> LastStats { get; set; }
     public ICollection<SyncStats> SyncHistory { get; set; }
     public CounterStats Counters { get; set; }
-    public IDictionary<int, ICollection<TownhallCounter>> TownhallCounters { get; set; }
 }
 
 public class SyncStats
@@ -51,21 +50,4 @@ public class ClanDetails
             return Logic.Utils.TagToLinkId(Tag);
         }
     }
-}
-
-public class TownhallCounter
-{
-    public int Clans { get; set; }
-    public int Weight { get; set; }
-    public double TH18 { get; set; }
-    public double TH17 { get; set; }
-    public double TH16 { get; set; }
-    public double TH15 { get; set; }
-    public double TH14 { get; set; }
-    public double TH13 { get; set; }
-    public double TH12 { get; set; }
-    public double TH11 { get; set; }
-    public double TH10 { get; set; }
-    public double TH9 { get; set; }
-    public double TH8 { get; set; }
 }
