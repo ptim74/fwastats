@@ -47,7 +47,7 @@ public class HomeController : Controller
 
             var fromDate = recentSyncs.Last().Start;
             var loadedWars = (from w in db.Wars
-                              where w.PreparationStartTime >= fromDate && w.Synced == true && w.Friendly == false && (w.TeamSize == Constants.WAR_SIZE1 || w.TeamSize == Constants.WAR_SIZE2 || w.TeamSize == Constants.WAR_SIZE3)
+                              where w.PreparationStartTime >= fromDate && w.Synced == true && w.Friendly == false && (w.TeamSize == Constants.WAR_SIZE2 || w.TeamSize == Constants.WAR_SIZE3)
                               select new { w.Result, w.PreparationStartTime, w.ClanTag, w.OpponentTag, w.TeamSize }).ToList();
 
             var loadedValidities = db.ClanValidities.ToList();
@@ -68,7 +68,7 @@ public class HomeController : Controller
             var lastSync = recentSyncs.FirstOrDefault();
 
             if (lastSync != null)
-                foreach (var teamSize in new int[] { Constants.WAR_SIZE1, Constants.WAR_SIZE3, Constants.WAR_SIZE2 })
+                foreach (var teamSize in new int[] { Constants.WAR_SIZE3, Constants.WAR_SIZE2 })
                     model.LastStats.Add(teamSize, new SyncStats { ID = lastSync.ID, DisplayName = lastSync.DisplayName });
 
             foreach (var currentSync in recentSyncs.OrderBy(w => w.Start))
@@ -156,11 +156,9 @@ public class HomeController : Controller
 
             foreach (var lastStat in model.LastStats)
             {
-                if (lastStat.Key == Constants.WAR_SIZE1)
-                    model.Counters.TeamSize40Wars = lastStat.Value.AllianceMatches + lastStat.Value.WarMatches;
-                else if (lastStat.Key == Constants.WAR_SIZE3)
+                if (lastStat.Key == Constants.WAR_SIZE3)
                     model.Counters.TeamSize45Wars = lastStat.Value.AllianceMatches + lastStat.Value.WarMatches;
-                else  if (lastStat.Key == Constants.WAR_SIZE2)
+                else if (lastStat.Key == Constants.WAR_SIZE2)
                     model.Counters.TeamSize50Wars = lastStat.Value.AllianceMatches + lastStat.Value.WarMatches;
             }
 

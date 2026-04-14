@@ -30,7 +30,6 @@ public class CounterStats
     public int MemberCount { get; set; }
     public double MatchPercentage { get; set; }
     public double WinPercentage { get; set; }
-    public int TeamSize40Wars { get; set; }
     public int TeamSize45Wars { get; set; }
     public int TeamSize50Wars { get; set; }
     public int ClansInLeague { get; set; }
