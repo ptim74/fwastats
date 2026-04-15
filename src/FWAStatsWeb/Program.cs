@@ -70,6 +70,7 @@ builder.Services.Configure<WeightDatabaseOptions>(builder.Configuration.GetSecti
 builder.Services.Configure<WeightResultOptions>(builder.Configuration.GetSection("ResultDatabase"));
 builder.Services.Configure<GoogleServiceOptions>(builder.Configuration.GetSection("GoogleService"));
 builder.Services.Configure<SendGridOptions>(builder.Configuration.GetSection("SendGrid"));
+builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
 
 // MVC and formatters configuration
 var csvFormatterOptions = new CsvFormatterOptions();
@@ -99,7 +100,7 @@ builder.Services.AddTransient<IGoogleCalendarService, GoogleCalendarService>();
 builder.Services.AddTransient<IGoogleSheetsService, GoogleSheetsService>();
 builder.Services.AddSingleton<WeightSubmitService>();
 builder.Services.AddSingleton<IHostedService, HostedWebSubmitService>();
-builder.Services.AddTransient<IEmailSender, EmailSender>();
+builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
 
 // Data protection
 builder.Services.AddDataProtection()

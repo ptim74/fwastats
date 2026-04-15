@@ -1,4 +1,4 @@
-﻿using FWAStatsWeb.Logic;
+using FWAStatsWeb.Logic;
 using Microsoft.Extensions.Options;
 using SendGrid;
 using SendGrid.Helpers.Mail;
@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace FWAStatsWeb.Services;
 
-public class EmailSender : IEmailSender
+public class SendGridEmailSender : IEmailSender
 {
-    public EmailSender(IOptions<SendGridOptions> optionsAccessor)
+    public SendGridEmailSender(IOptions<SendGridOptions> optionsAccessor)
     {
         Options = optionsAccessor.Value;
     }
