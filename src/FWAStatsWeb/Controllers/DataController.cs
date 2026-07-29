@@ -246,6 +246,8 @@ public class DataController : Controller
 
         var weights = new WeightCalculator(db).Calculate().ToDictionary(w => w.Tag);
 
+        var submitDates = db.WeightResults.ToDictionary(r => r.Tag, r => r.Timestamp);
+
         foreach (var row in badges)
         {
             if (weights.TryGetValue(row.Tag, out WeightCalculator.Results weight))
@@ -263,6 +265,11 @@ public class DataController : Controller
                 row.Th8Count = weight.Th8Count;
                 row.ThLowCount = weight.ThLowCount;
                 row.EstimatedWeight = weight.EstimatedWeight;
+            }
+
+            if (submitDates.TryGetValue(row.Tag, out DateTime submitDate))
+            {
+                row.WeightSubmitDate = RoundToSec(submitDate, DateTimeKind.Utc);
             }
 
             data.Add(row);

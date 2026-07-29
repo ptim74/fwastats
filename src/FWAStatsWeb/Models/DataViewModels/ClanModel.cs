@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Xml.Serialization;
 
 namespace FWAStatsWeb.Models.DataViewModels;
@@ -41,4 +42,6 @@ public class ClanModel
     public int ThLowCount { get; set; }
 
     public int EstimatedWeight { get; set; }
+
+    public DateTime? WeightSubmitDate { get; set; }
 }
