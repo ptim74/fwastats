@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace FWAStatsWeb;
+﻿namespace FWAStatsWeb;
 
 public sealed class Constants
 {

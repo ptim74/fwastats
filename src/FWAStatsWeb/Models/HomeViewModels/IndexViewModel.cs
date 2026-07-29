@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace FWAStatsWeb.Models.HomeViewModels;
+﻿namespace FWAStatsWeb.Models.HomeViewModels;
 
 public class IndexViewModel
 {

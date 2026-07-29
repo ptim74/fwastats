@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace FWAStatsWeb.Models.ClanViewModels;
+﻿namespace FWAStatsWeb.Models.ClanViewModels;
 
 public class FormerClan
 {

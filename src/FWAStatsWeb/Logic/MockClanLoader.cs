@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-
-namespace FWAStatsWeb.Logic;
+﻿namespace FWAStatsWeb.Logic;
 
 public class MockClanLoader : IClanLoader
 {

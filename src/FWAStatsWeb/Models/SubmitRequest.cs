@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace FWAStatsWeb.Models;
+﻿namespace FWAStatsWeb.Models;
 
 public class SubmitRequest
 {

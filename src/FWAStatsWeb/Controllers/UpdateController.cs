@@ -6,12 +6,7 @@ using FWAStatsWeb.Models;
 using FWAStatsWeb.Models.UpdateViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace FWAStatsWeb.Controllers;
 
@@ -144,7 +139,7 @@ public class UpdateController : Controller
             var dateFormat = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'";
             var sinceDate = DateTime.UtcNow.AddHours(-1 * weightDatabase.Value.SinceHours).ToString(dateFormat);
 
-            logger.LogInformation("Weight search from {0}", sinceDate);
+            logger.LogInformation("Weight search from {SinceDate}", sinceDate);
 
             query = firebase
                 .Child(weightDatabase.Value.ResourceName)
@@ -195,7 +190,7 @@ public class UpdateController : Controller
                     {
                         if (weight != w.WarWeight && timestamp > w.LastModified)
                         {
-                            logger.LogInformation("UpdateWeight: {0} {1} -> {2} ({3} > {4})", tag, w.WarWeight, weight, timestamp, w.LastModified);
+                            logger.LogInformation("UpdateWeight: {PlayerTag} {OldWeight} -> {NewWeight} ({Timestamp} > {LastModified})", tag, w.WarWeight, weight, timestamp, w.LastModified);
                             w.WarWeight = weight;
                             w.ExtWeight = weight;
                             w.LastModified = timestamp;
@@ -209,7 +204,7 @@ public class UpdateController : Controller
                     }
                     else
                     {
-                        logger.LogInformation("InsertWeight: {0} {1} ({2})", tag, weight, timestamp);
+                        logger.LogInformation("InsertWeight: {PlayerTag} {Weight} ({Timestamp})", tag, weight, timestamp);
                         var newWeight = new Weight { Tag = tag, WarWeight = weight, ExtWeight = weight, LastModified = timestamp };
                         db.Weights.Add(newWeight);
                         weights.Add(tag, newWeight);
@@ -225,7 +220,7 @@ public class UpdateController : Controller
             }
             db.SaveChanges();
 
-            logger.LogInformation("{0} weights processed", data.Count);
+            logger.LogInformation("{Count} weights processed", data.Count);
         }
     }
 
@@ -243,11 +238,11 @@ public class UpdateController : Controller
 
         foreach (var resultDb in resultDatabase.Value)
         {
-            logger.LogInformation("UpdateResults.ResultFetchBegin{0}", resultDb.TeamSize);
+            logger.LogInformation("UpdateResults.ResultFetchBegin{TeamSize}", resultDb.TeamSize);
 
             var resultData = await googleSheets.Get(resultDb.SheetId, "ROWS", resultDb.ResultRange);
 
-            logger.LogInformation("UpdateResults.ResultFetchEnd{0}", resultDb.TeamSize);
+            logger.LogInformation("UpdateResults.ResultFetchEnd{TeamSize}", resultDb.TeamSize);
             if (resultData != null)
             {
                 foreach (var row in resultData)
@@ -276,7 +271,7 @@ public class UpdateController : Controller
                                 }
                                 catch (Exception)
                                 {
-                                    logger.LogError("Unable to convert to double: '{0}'", row[0]);
+                                    logger.LogError("Unable to convert to double: '{Value}'", row[0]);
                                     timestamp = new DateTime(1900, 1, 1);
                                 }
 
@@ -293,7 +288,7 @@ public class UpdateController : Controller
                             }
                             catch(Exception e)
                             {
-                                logger.LogError("ClanResult {0}: {1}", clanTag, e.ToString());
+                                logger.LogError("ClanResult {ClanTag}: {Error}", clanTag, e.ToString());
                             }
                         }
                     }
@@ -774,13 +769,13 @@ public class UpdateController : Controller
         }
         catch (Exception e)
         {
-            logger.LogError("PerformTask.Error: {0}", e.ToString());
+            logger.LogError("PerformTask.Error: {Error}", e.ToString());
             status.Message = string.Format("{0} {1} {2} Failed: {3}", task.ClanTag, task.ClanName, task.Mode, e.Message);
             status.Status = false;
             var inner = e.InnerException;
             while(inner != null)
             {
-                logger.LogError("PerformTask.Inner: {0}", inner.Message);
+                logger.LogError("PerformTask.Inner: {ErrorMessage}", inner.Message);
                 inner = inner.InnerException;
             }
         }
@@ -1013,7 +1008,7 @@ public class UpdateController : Controller
         }
         catch(Exception e)
         {
-            logger.LogError("UpdateTask.Error {0}: {1}", id, e.ToString());
+            logger.LogError("UpdateTask.Error {TaskId}: {Error}", id, e.ToString());
             return Json(new UpdateTaskResponse { ID = id, Message = e.Message, Status = false });
         }
     }
@@ -1030,7 +1025,7 @@ public class UpdateController : Controller
         }
         catch (Exception e)
         {
-            logger.LogError("UpdatePlayerTask.Error {0}: {1}", id, e.Message);
+            logger.LogError("UpdatePlayerTask.Error {TaskId}: {ErrorMessage}", id, e.Message);
             return Json(new UpdateTaskResponse { ID = id, Message = e.Message, Status = false });
         }
     }
@@ -1201,7 +1196,7 @@ public class UpdateController : Controller
         }
         catch(Exception e)
         {
-            logger.LogError("UpdateFinished.Error: {0}", e.Message);
+            logger.LogError("UpdateFinished.Error: {ErrorMessage}", e.Message);
 
             status.Message = e.Message;
             status.Status = false;
@@ -1218,7 +1213,7 @@ public class UpdateController : Controller
 
         var memberTags = db.Members.Where(m => !db.Players.Where(p => p.Tag == m.Tag).Any()).Select(m => m.Tag).Take(Constants.PLAYER_BATCH).ToList();
 
-        logger.LogInformation("PlayerBatch.NewMembers = {0}", memberTags.Count);
+        logger.LogInformation("PlayerBatch.NewMembers = {Count}", memberTags.Count);
 
         if (memberTags.Count < Constants.PLAYER_BATCH)
         {

@@ -6,11 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Linq;
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace FWAStatsWeb.Controllers;
 
@@ -57,7 +53,7 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
     {
-        _logger.LogInformation("Login: {0}", model.Email);
+        _logger.LogInformation("Login: {Email}", model.Email);
         ViewData["ReturnUrl"] = returnUrl;
         if (ModelState.IsValid)
         {
@@ -146,7 +142,7 @@ public class AccountController : Controller
                 //await _emailSender.SendEmailAsync(model.Email, "Confirm your account",
                 //    $"Please confirm your account by clicking this link: <a href='{callbackUrl}'>link</a>");
                 await _signInManager.SignInAsync(user, isPersistent: true);
-                _logger.LogInformation("Register: {0}", model.Email);
+                _logger.LogInformation("Register: {Email}", model.Email);
                 //return RedirectToAction(nameof(Created));
                 return RedirectToLocal(returnUrl);
             }
@@ -201,7 +197,7 @@ public class AccountController : Controller
         var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, isPersistent: false);
         if (result.Succeeded)
         {
-            _logger.LogInformation("User logged in with {0} provider.", info.LoginProvider);
+            _logger.LogInformation("User logged in with {LoginProvider} provider.", info.LoginProvider);
             return RedirectToLocal(returnUrl);
         }
         if (result.RequiresTwoFactor)
@@ -245,7 +241,7 @@ public class AccountController : Controller
                 if (result.Succeeded)
                 {
                     await _signInManager.SignInAsync(user, isPersistent: false);
-                    _logger.LogInformation("User created an account using {0} provider.", info.LoginProvider);
+                    _logger.LogInformation("User created an account using {LoginProvider} provider.", info.LoginProvider);
                     return RedirectToLocal(returnUrl);
                 }
             }
@@ -297,7 +293,7 @@ public class AccountController : Controller
                 {
                     foreach(var claim in db.PlayerClaims.Where(p => p.UserId == user.Id))
                     {
-                        _logger.LogInformation("Delete: Removing player {0} from user {1}", claim.Tag, user.Email);
+                        _logger.LogInformation("Delete: Removing player {PlayerTag} from user {Email}", claim.Tag, user.Email);
                         db.PlayerClaims.Remove(claim);
                     }
                     foreach(var userDetail in db.UserDetails.Where(u => u.Id == user.Id))
@@ -305,7 +301,7 @@ public class AccountController : Controller
                         db.UserDetails.Remove(userDetail);
                     }
                     db.SaveChanges();
-                    _logger.LogInformation("Delete: user {0} deleted", user.Email);
+                    _logger.LogInformation("Delete: user {Email} deleted", user.Email);
                     await _userManager.DeleteAsync(user);
                 }
                 await _signInManager.SignOutAsync();
@@ -358,7 +354,7 @@ public class AccountController : Controller
             // For more information on how to enable account confirmation and password reset please visit http://go.microsoft.com/fwlink/?LinkID=532713
             // Send an email with this link
             var code = await _userManager.GeneratePasswordResetTokenAsync(user);
-            _logger.LogInformation("ForgotPassword: {0}", model.Email);
+            _logger.LogInformation("ForgotPassword: {Email}", model.Email);
             var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code }, protocol: HttpContext.Request.Scheme);
             await _emailSender.SendEmailAsync(model.Email, "Reset Password",
                $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>");
@@ -401,14 +397,14 @@ public class AccountController : Controller
         var user = await _userManager.FindByNameAsync(model.Email);
         if (user == null)
         {
-            _logger.LogWarning("ResetPasswordAttempt: {0}", model.Email);
+            _logger.LogWarning("ResetPasswordAttempt: {Email}", model.Email);
             // Don't reveal that the user does not exist
             return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
         }
         var result = await _userManager.ResetPasswordAsync(user, model.Code, model.Password);
         if (result.Succeeded)
         {
-            _logger.LogInformation("ResetPasswordSucceeded: {0}", user.Email);
+            _logger.LogInformation("ResetPasswordSucceeded: {Email}", user.Email);
             return RedirectToAction(nameof(AccountController.ResetPasswordConfirmation), "Account");
         }
         AddErrors(result);

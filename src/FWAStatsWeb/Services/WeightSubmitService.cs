@@ -1,18 +1,11 @@
 ﻿using FWAStatsWeb.Data;
 using FWAStatsWeb.Logic;
 using FWAStatsWeb.Models;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using System;
 using System.Collections.Concurrent;
-using System.Linq;
-using System.Net.Http;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace FWAStatsWeb.Services;
 
@@ -43,7 +36,7 @@ public class WeightSubmitService
 
     public void Queue(SubmitRequest request)
     {
-        logger.LogInformation("Queued {0} [{1}]", request.ClanTag, request.Members.Count);
+        logger.LogInformation("Queued {ClanTag} [{MemberCount}]", request.ClanTag, request.Members.Count);
 
         var entry = new SubmitEntry
         {
@@ -91,14 +84,14 @@ public class WeightSubmitService
 
     protected async Task Submit(SubmitEntry entry)
     {
-        logger.LogInformation("Weight.SubmitRequest '{0}'", entry.Request.ClanName);
+        logger.LogInformation("Weight.SubmitRequest '{ClanName}'", entry.Request.ClanName);
         entry.Status.UpdatePhase(SubmitPhase.Running);
         var changes = GetChangesCount(entry.Request);
-        logger.LogInformation("Weight.SubmitChanges {0}", changes);
+        logger.LogInformation("Weight.SubmitChanges {Changes}", changes);
         if (changes < Constants.MIN_WEIGHT_CHANGES_ON_SUBMIT)
         {
             entry.Status.Message = "Too few weight changes since last submit.";
-            logger.LogInformation("Weight.SubmitResponse {0}", entry.Status.Message);
+            logger.LogInformation("Weight.SubmitResponse {Message}", entry.Status.Message);
             entry.Status.UpdatePhase(SubmitPhase.Failed);
             return;
         }
@@ -106,10 +99,10 @@ public class WeightSubmitService
         entry.Request.Mode = "submit";
         var submitResponse = await NewSubmit(entry.Request);
         entry.Status.Message = submitResponse.ToString();
-        logger.LogInformation("Weight.SubmitResponse {0}", submitResponse.ToString());
+        logger.LogInformation("Weight.SubmitResponse {Response}", submitResponse.ToString());
         var runningSecs = Convert.ToInt32(DateTime.UtcNow.Subtract(entry.Status.Timestamp).TotalSeconds);
         if (runningSecs > 15)
-            logger.LogWarning("Submit took {0} seconds", runningSecs);
+            logger.LogWarning("Submit took {Seconds} seconds", runningSecs);
         var submitPhase = submitResponse.Status ? SubmitPhase.Succeeded : SubmitPhase.Failed;
         entry.Status.UpdatePhase(submitPhase);
         if (submitResponse.Status)
@@ -164,7 +157,7 @@ public class WeightSubmitService
         }
         catch (Exception e)
         {
-            logger.LogError("Failed {0} {1}", request.ClanTag, e.ToString());
+            logger.LogError("Failed {ClanTag} {Error}", request.ClanTag, e.ToString());
             return new SubmitResponse
             {
                 Status = false,

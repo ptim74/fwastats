@@ -3,10 +3,6 @@ using FWAStatsWeb.Logic;
 using FWAStatsWeb.Models.DataViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace FWAStatsWeb.Controllers;
 
@@ -34,7 +30,7 @@ public class DataController : Controller
     [Route("Clan/{id}/Members.{format}")]
     public IActionResult ClanMembers(string id)
     {
-        logger.LogInformation("Members {0}", id);
+        logger.LogInformation("Members {ClanTag}", id);
 
         var tag = Utils.LinkIdToTag(id);
 
@@ -74,7 +70,7 @@ public class DataController : Controller
     [Route("Clan/{id}/WarMembers.{format}")]
     public IActionResult WarMembers(string id, int warNo)
     {
-        logger.LogInformation("WarMembers {0}", id);
+        logger.LogInformation("WarMembers {ClanTag}", id);
 
         var tag = Utils.LinkIdToTag(id);
 
@@ -152,7 +148,7 @@ public class DataController : Controller
     [Route("Clan/{id}/Wars.{format}")]
     public IActionResult ClanWars(string id)
     {
-        logger.LogInformation("Wars {0}", id);
+        logger.LogInformation("Wars {ClanTag}", id);
 
         var tag = Utils.LinkIdToTag(id);
 

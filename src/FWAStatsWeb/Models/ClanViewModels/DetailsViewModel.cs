@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace FWAStatsWeb.Models.ClanViewModels;
+﻿namespace FWAStatsWeb.Models.ClanViewModels;
 
 public class DetailsViewModel
 {

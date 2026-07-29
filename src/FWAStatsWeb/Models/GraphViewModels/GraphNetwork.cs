@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace FWAStatsWeb.Models.GraphViewModels;
+﻿namespace FWAStatsWeb.Models.GraphViewModels;
 
 public class GraphNetwork
 {

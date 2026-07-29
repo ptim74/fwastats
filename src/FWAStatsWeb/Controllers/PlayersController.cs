@@ -5,11 +5,6 @@ using FWAStatsWeb.Models.PlayerViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace FWAStatsWeb.Controllers;
 
@@ -39,7 +34,7 @@ public class PlayersController : Controller
 
     public IActionResult Index(string q)
     {
-        logger.LogInformation("Index {0}", q);
+        logger.LogInformation("Index {Query}", q);
 
         var model = new SearchViewModel();
 
@@ -165,7 +160,7 @@ public class PlayersController : Controller
     [Route("Player/{id}")]
     public async Task<IActionResult> Details(string id)
     {
-        logger.LogInformation("Details {0}", id);
+        logger.LogInformation("Details {PlayerTag}", id);
 
         try
         {
@@ -217,13 +212,13 @@ public class PlayersController : Controller
         }
         catch (ClashApiException e)
         {
-            logger.LogWarning("Details {0}: API Exception: {1}", id, e.Message);
+            logger.LogWarning("Details {PlayerTag}: API Exception: {ErrorMessage}", id, e.Message);
             ViewData["Message"] = $"Failed to get player data, API Error: {e.Message}";
             return View("../Home/Error");
         }
         catch (Exception e)
         {
-            logger.LogWarning("Details {0}: {1}", id, e.ToString());
+            logger.LogWarning("Details {PlayerTag}: {Error}", id, e.ToString());
             ViewData["Message"] = "Failed to get player data.";
             return View("../Home/Error");
         }
@@ -265,7 +260,7 @@ public class PlayersController : Controller
     {
         if (ModelState.IsValid)
         {
-            logger.LogInformation("Link {0}", model.Tag);
+            logger.LogInformation("Link {PlayerTag}", model.Tag);
 
             var tag = Utils.LinkIdToTag(model.Tag);
 
@@ -320,7 +315,7 @@ public class PlayersController : Controller
     {
         if (ModelState.IsValid)
         {
-            logger.LogInformation("Unlink {0}", model.Tag);
+            logger.LogInformation("Unlink {PlayerTag}", model.Tag);
 
             var tag = Utils.LinkIdToTag(model.Tag);
 

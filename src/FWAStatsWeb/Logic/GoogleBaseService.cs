@@ -1,7 +1,6 @@
 ﻿using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Microsoft.Extensions.Options;
-using System.Collections.Generic;
 
 namespace FWAStatsWeb.Logic;
 

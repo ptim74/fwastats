@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-namespace FWAStatsWeb.Logic;
+﻿namespace FWAStatsWeb.Logic;
 
 public class WeightResultOptions : List<WeightResultDetails>
 {

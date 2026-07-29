@@ -1,13 +1,6 @@
 ﻿using FWAStatsWeb.Models;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 
 namespace FWAStatsWeb.Logic;
 
@@ -45,35 +38,22 @@ public interface IClashApi
 
 public class ClashApi : IClashApi
 {
-    private readonly IHttpClientFactory clientFactory;
+    private readonly HttpClient client;
     private readonly IOptions<ClashApiOptions> options;
 
     public ClashApi(
         IOptions<ClashApiOptions> options,
-        IHttpClientFactory clientFactory)
+        HttpClient client)
     {
         this.options = options;
-        this.clientFactory = clientFactory;
-    }
-
-    private static async Task<Stream> GetUncompressedResponseStream(HttpResponseMessage response)
-    {
-        Stream responseStream = await response.Content.ReadAsStreamAsync();
-        if (response.Content.Headers.Contains("Content-Encoding"))
-            foreach (var encoding in response.Content.Headers.GetValues("Content-Encoding"))
-                if ("gzip".Equals(encoding))
-                    responseStream = new GZipStream(responseStream, CompressionMode.Decompress);
-        return responseStream;
+        this.client = client;
     }
 
     private async Task<string> Request(string page, HttpMethod method = null, string content = null)
     {
         var url = string.Format("{0}/{1}", options.Value.Url, page);
-        var client = clientFactory.CreateClient();
 
         using var request = new HttpRequestMessage(method ?? HttpMethod.Get, url);
-        request.Headers.Add("Authorization", string.Format("Bearer {0}", options.Value.Token));
-        request.Headers.Add("Accept-Encoding", "gzip");
 
         if (method != null && method != HttpMethod.Get && content != null)
         {
@@ -81,9 +61,7 @@ public class ClashApi : IClashApi
         }
 
         using var response = await client.SendAsync(request);
-        using var responseStream = await GetUncompressedResponseStream(response);
-        using var reader = new StreamReader(responseStream);
-        var data = await reader.ReadToEndAsync();
+        var data = await response.Content.ReadAsStringAsync();
         if (!response.IsSuccessStatusCode)
         {
             var error = JsonConvert.DeserializeObject<ClashApiError>(data);

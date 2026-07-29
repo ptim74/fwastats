@@ -1,9 +1,6 @@
 ﻿using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace FWAStatsWeb.Logic;
 

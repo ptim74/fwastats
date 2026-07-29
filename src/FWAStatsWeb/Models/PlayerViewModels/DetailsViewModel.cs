@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace FWAStatsWeb.Models.PlayerViewModels;
+﻿namespace FWAStatsWeb.Models.PlayerViewModels;
 
 public class DetailsViewModel
 {

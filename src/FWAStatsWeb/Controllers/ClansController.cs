@@ -7,12 +7,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace FWAStatsWeb.Controllers;
 
@@ -300,7 +295,7 @@ public class ClansController : Controller
     [Route("Clan/{id}")]
     public async Task<ActionResult> Details(string id)
     {
-        logger.LogInformation("Details {0}", id);
+        logger.LogInformation("Details {ClanTag}", id);
 
         var tag = Utils.LinkIdToTag(id);
 
@@ -495,7 +490,7 @@ public class ClansController : Controller
     [Route("Clan/{id}/War/{warId}")]
     public async Task<IActionResult> WarDetails(string id, long warId)
     {
-        logger.LogInformation("War {0} {1}", id, warId);
+        logger.LogInformation("War {ClanTag} {WarId}", id, warId);
 
         var tag = Utils.LinkIdToTag(id);
 
@@ -522,7 +517,7 @@ public class ClansController : Controller
         }
         else
         {
-            logger.LogWarning("War {0} {1}, War does not exist.", id, warId);
+            logger.LogWarning("War {ClanTag} {WarId}, War does not exist.", id, warId);
             ViewData["Message"] = $"War does not exist.";
             return View("../Home/Error");
         }
@@ -612,7 +607,7 @@ public class ClansController : Controller
     [Route("Clan/{id}/Edit")]
     public async Task<IActionResult> Edit(string id)
     {
-        logger.LogInformation("Edit {0}", id);
+        logger.LogInformation("Edit {ClanTag}", id);
 
         var tag = Utils.LinkIdToTag(id);
         if (tag == null)
@@ -657,7 +652,7 @@ public class ClansController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(string id, [Bind("Tag,Name,LinkID,Group,ValidFrom,ValidTo")] ClanValidity clanValidity)
     {
-        logger.LogInformation("Edit.Post {0}", id);
+        logger.LogInformation("Edit.Post {ClanTag}", id);
 
         var tag = Utils.LinkIdToTag(id);
 
@@ -734,7 +729,7 @@ public class ClansController : Controller
     [Route("Clan/{id}/Attacks")]
     public IActionResult Attacks(string id)
     {
-        logger.LogInformation("Attacks {0}", id);
+        logger.LogInformation("Attacks {ClanTag}", id);
 
         var tag = Utils.LinkIdToTag(id);
 
@@ -866,7 +861,7 @@ public class ClansController : Controller
     [Route("Clan/{id}/Weight/{WarID}")]
     public IActionResult Weight(string id, long WarID)
     {
-        logger.LogInformation("Weight {0} {1}", id, WarID > 0 ? WarID.ToString() : "");
+        logger.LogInformation("Weight {ClanTag} {WarId}", id, WarID > 0 ? WarID.ToString() : "");
 
         var model = WeightData(id, WarID);
 
@@ -878,7 +873,7 @@ public class ClansController : Controller
     [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult WeightForm(string id, long WarID)
     {
-        logger.LogInformation("WeightForm {0}", id);
+        logger.LogInformation("WeightForm {ClanTag}", id);
 
         var model = WeightData(id, WarID);
 
@@ -1013,7 +1008,7 @@ public class ClansController : Controller
         }
 
         if (model.Final)
-            logger.LogInformation("Weight.Post SubmitStatus {0}, {1}", id, model.Result);
+            logger.LogInformation("Weight.Post SubmitStatus {ClanTag}, {SubmitResult}", id, model.Result);
 
         return Json(model);
     }
@@ -1107,11 +1102,11 @@ public class ClansController : Controller
     {
         if(model.Command != null)
         {
-            logger.LogInformation("Weight.Post Clan {0} {1}", id, model?.ClanName);
+            logger.LogInformation("Weight.Post Clan {ClanTag} {ClanName}", id, model?.ClanName);
 
-            logger.LogInformation("Weight.Post IpAddr {0}", GetIpAddr());
+            logger.LogInformation("Weight.Post IpAddr {IpAddr}", GetIpAddr());
 
-            logger.LogInformation("Weight.Post GA {0}", GetGa());
+            logger.LogInformation("Weight.Post GA {GaCookie}", GetGa());
 
             var tag = Utils.LinkIdToTag(id);
 
@@ -1121,7 +1116,7 @@ public class ClansController : Controller
             var user = await GetCurrentUserAsync();
             if (user != null)
             {
-                logger.LogInformation("Weight.Post User {0}", user.Email);
+                logger.LogInformation("Weight.Post User {Email}", user.Email);
                 userId = user.Id;
             }
             var players = from pc in db.PlayerClaims
@@ -1186,7 +1181,7 @@ public class ClansController : Controller
                 {
                     ViewData["Message"] = "You have reached the monthly weight submit limit. Please try again later.";
                     ViewData["ClanLink"] = clan.LinkID;
-                    logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {0}/{1}", monthlyChanges, monthlyChangesLimit);
+                    logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {Changes}/{ChangesLimit}", monthlyChanges, monthlyChangesLimit);
                     return View("WeightError");
                 }
 
@@ -1198,7 +1193,7 @@ public class ClansController : Controller
                 {
                     ViewData["Message"] = "You have reached the weekly weight submit limit. Please try again in couple of days.";
                     ViewData["ClanLink"] = clan.LinkID;
-                    logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {0}/{1}", weeklyChanges, weeklyChangesLimit);
+                    logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {Changes}/{ChangesLimit}", weeklyChanges, weeklyChangesLimit);
                     return View("WeightError");
                 }
 
@@ -1210,7 +1205,7 @@ public class ClansController : Controller
                 {
                     ViewData["Message"] = "You have reached the daily weight submit limit. Please try again tomorrow.";
                     ViewData["ClanLink"] = clan.LinkID;
-                    logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {0}/{1}", dailyChanges, dailyChangesLimit);
+                    logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {Changes}/{ChangesLimit}", dailyChanges, dailyChangesLimit);
                     return View("WeightError");
                 }
 
@@ -1220,13 +1215,13 @@ public class ClansController : Controller
                 {
                     ViewData["Message"] = "You have reached the hourly weight submit limit. Please try again after an hour.";
                     ViewData["ClanLink"] = clan.LinkID;
-                    logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {0}/{1}", hourlyChanges, hourlyChangesLimit);
+                    logger.LogWarning("Weight.Post AccessDenied MaxSubmitChanges {Changes}/{ChangesLimit}", hourlyChanges, hourlyChangesLimit);
                     return View("WeightError");
                 }
             }
             var changes = await SaveWeight(model);
 
-            logger.LogInformation("Weight.Post Changes {0}", changes);
+            logger.LogInformation("Weight.Post Changes {Changes}", changes);
 
             if (model.Command.Equals("submit", StringComparison.OrdinalIgnoreCase))
             {
@@ -1239,7 +1234,7 @@ public class ClansController : Controller
         }
         else
         {
-            logger.LogInformation("Weight {0} {1}", id, model?.WarID > 0 ? model?.WarID.ToString() : "");
+            logger.LogInformation("Weight {ClanTag} {WarId}", id, model?.WarID > 0 ? model?.WarID.ToString() : "");
         }
 
         return Weight(id, model.WarID);
@@ -1331,7 +1326,7 @@ public class ClansController : Controller
     [Route("Clan/{id}/Track")]
     public IActionResult Track(string id)
     {
-        logger.LogInformation("Track {0}", id);
+        logger.LogInformation("Track {ClanTag}", id);
 
         var tag = Utils.LinkIdToTag(id);
 

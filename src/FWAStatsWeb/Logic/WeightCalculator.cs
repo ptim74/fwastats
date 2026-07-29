@@ -1,8 +1,5 @@
 ﻿using FWAStatsWeb.Data;
 using FWAStatsWeb.Models.DataViewModels;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace FWAStatsWeb.Logic;
 

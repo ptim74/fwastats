@@ -1,36 +1,40 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>FWAStatsWeb</AssemblyName>
     <UserSecretsId>4e467321-1bc3-484e-82d8-47c50a4bbdb7</UserSecretsId>
-    <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
-    <AspNetCoreModuleName>AspNetCoreModule</AspNetCoreModuleName>
-  </PropertyGroup>
-	
-  <PropertyGroup>
-	  <NoWarn>CA2253,CA2254</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="LigerShark.WebOptimizer.Core" Version="3.0.436" />
+    <PackageReference Include="LigerShark.WebOptimizer.Core" Version="3.0.477" />
     <PackageReference Include="FirebaseDatabase.net" Version="5.0.0" />
-    <PackageReference Include="Google.Apis.Calendar.v3" Version="1.69.0.3746" />
-    <PackageReference Include="Google.Apis.Sheets.v4" Version="1.70.0.3819" />
-    <PackageReference Include="Ical.Net" Version="5.0.0" />
+    <PackageReference Include="Google.Apis.Calendar.v3" Version="1.75.0.4206" />
+    <PackageReference Include="Google.Apis.Sheets.v4" Version="1.75.0.4178" />
+    <PackageReference Include="Ical.Net" Version="5.2.3" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.10" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqLite" Version="10.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.10">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="NLog.Extensions.Logging" Version="6.0.1" />
-    <PackageReference Include="NLog.Web.AspNetCore" Version="6.0.1" />
-    <PackageReference Include="SendGrid" Version="9.29.3" />
+    <!-- Used directly by ClashApi, WeightSubmitService and ClanTracker. Referenced
+         explicitly so the build does not depend on it arriving transitively.
+         Not worth migrating to System.Text.Json: it ships anyway via
+         FirebaseDatabase.net and Google.Apis.Core, and the Clash API models rely on
+         [DataContract]/[DataMember] opt-in semantics plus a custom date format that
+         System.Text.Json does not honour. -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="6.1.4" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.4" />
+    <!-- Overrides the 2.1.11 that EF Core 10.0.10 pins, which carries
+         GHSA-2m69-gcr7-jv3q (NU1903). Remove once EF Core ships 2.1.12 itself. -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.12" />
   </ItemGroup>
 
   <ItemGroup>

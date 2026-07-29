@@ -3,11 +3,6 @@ using FWAStatsWeb.Logic;
 using FWAStatsWeb.Models.HomeViewModels;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace FWAStatsWeb.Controllers;
 
@@ -171,7 +166,7 @@ public class HomeController : Controller
         }
         catch (Exception e)
         {
-            logger.LogError("Index.Error: {0}", e.ToString());
+            logger.LogError("Index.Error: {Error}", e.ToString());
         }
 
         return View(model);
@@ -213,12 +208,12 @@ public class HomeController : Controller
 
     public IActionResult Error(int id)
     {
-        logger.LogError("Error.{0}", id);
+        logger.LogError("Error.{StatusCode}", id);
 
         try
         {
             var feature = this.HttpContext.Features.Get<IExceptionHandlerFeature>();
-            logger.LogError("Error.Details: {0}", feature.Error.ToString());
+            logger.LogError("Error.Details: {Error}", feature.Error.ToString());
         }
         catch (Exception) { }
 
@@ -235,7 +230,7 @@ public class HomeController : Controller
         var model = new TrackerViewModel();
         var tag = Utils.LinkIdToTag(id);
 
-        logger.LogInformation("Tracker {0}", id);
+        logger.LogInformation("Tracker {ClanTag}", id);
 
         try
         {
@@ -253,7 +248,7 @@ public class HomeController : Controller
         }
         catch(Exception e)
         {
-            logger.LogError("Tracker.Error: {0}", e.ToString());
+            logger.LogError("Tracker.Error: {Error}", e.ToString());
         }
 
         return View(model);

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace FWAStatsWeb.Models.PlayerViewModels;
+﻿namespace FWAStatsWeb.Models.PlayerViewModels;
 
 public class SearchResultModel
 {

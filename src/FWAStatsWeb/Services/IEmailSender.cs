@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace FWAStatsWeb.Services;
+﻿namespace FWAStatsWeb.Services;
 
 public interface IEmailSender
 {

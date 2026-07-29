@@ -3,10 +3,6 @@ using FWAStatsWeb.Models;
 using FWAStatsWeb.Models.SyncViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace FWAStatsWeb.Controllers;
 
@@ -131,7 +127,7 @@ public class SyncsController : Controller
 
     public ActionResult Index(int? count)
     {
-        logger.LogInformation("Index {0}", count);
+        logger.LogInformation("Index {Count}", count);
 
         var model = GetData(count);
 
@@ -191,7 +187,7 @@ public class SyncsController : Controller
     [Route("Sync/{id}/{teamSize?}")]
     public ActionResult Details(string id, int teamSize)
     {
-        logger.LogInformation("Details {0} {1}", id, teamSize);
+        logger.LogInformation("Details {SyncId} {TeamSize}", id, teamSize);
 
         if (int.TryParse(id, out int i))
         {

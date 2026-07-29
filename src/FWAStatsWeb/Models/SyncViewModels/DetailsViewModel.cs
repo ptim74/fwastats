@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace FWAStatsWeb.Models.SyncViewModels;
+﻿namespace FWAStatsWeb.Models.SyncViewModels;
 
 public class DetailsViewModel
 {

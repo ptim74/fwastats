@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace FWAStatsWeb.Models.UpdateViewModels;
+﻿namespace FWAStatsWeb.Models.UpdateViewModels;
 
 public class PlayersViewModel
 {

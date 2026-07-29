@@ -3,21 +3,15 @@ using FWAStatsWeb.Formatters;
 using FWAStatsWeb.Logic;
 using FWAStatsWeb.Models;
 using FWAStatsWeb.Services;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
 using NLog.Extensions.Logging;
-using System;
-using System.IO;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,13 +19,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     var connectionType = builder.Configuration.GetConnectionString("Default");
+    if (string.IsNullOrWhiteSpace(connectionType))
+        throw new InvalidOperationException("ConnectionStrings:Default is not configured.");
+
     var connectionString = builder.Configuration.GetConnectionString(connectionType);
     if (connectionType.Equals("SQLite"))
         options.UseSqlite(connectionString);
     else if (connectionType.Equals("SqlServer"))
         options.UseSqlServer(connectionString);
     else
-        throw new Exception($"Invalid connection type {connectionType}");
+        throw new InvalidOperationException($"Invalid connection type {connectionType}");
 });
 
 // Logging configuration
@@ -69,7 +66,6 @@ builder.Services.Configure<WeightSubmitOptions>(builder.Configuration.GetSection
 builder.Services.Configure<WeightDatabaseOptions>(builder.Configuration.GetSection("WeightDatabase"));
 builder.Services.Configure<WeightResultOptions>(builder.Configuration.GetSection("ResultDatabase"));
 builder.Services.Configure<GoogleServiceOptions>(builder.Configuration.GetSection("GoogleService"));
-builder.Services.Configure<SendGridOptions>(builder.Configuration.GetSection("SendGrid"));
 builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Smtp"));
 
 // MVC and formatters configuration
@@ -95,16 +91,35 @@ builder.Services.AddTransient<IClanLoader, ClanLoader>();
 builder.Services.AddTransient<IClanUpdater, ClanUpdater>();
 builder.Services.AddTransient<IMemberUpdater, MemberUpdater>();
 builder.Services.AddTransient<IClanStatistics, ClanStatistics>();
-builder.Services.AddTransient<IClashApi, ClashApi>();
+builder.Services.AddHttpClient<IClashApi, ClashApi>((serviceProvider, client) =>
+{
+    var clashApiOptions = serviceProvider.GetRequiredService<IOptions<ClashApiOptions>>().Value;
+    // Fully qualified: System.Net.Http.Headers cannot be imported here without making
+    // MediaTypeHeaderValue ambiguous against Microsoft.Net.Http.Headers below.
+    client.DefaultRequestHeaders.Authorization =
+        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", clashApiOptions.Token);
+})
+.ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
+{
+    // Replaces the hand-rolled gzip handling ClashApi used to do, and sends the
+    // matching Accept-Encoding request header for us.
+    AutomaticDecompression = DecompressionMethods.All
+});
 builder.Services.AddTransient<IGoogleCalendarService, GoogleCalendarService>();
 builder.Services.AddTransient<IGoogleSheetsService, GoogleSheetsService>();
 builder.Services.AddSingleton<WeightSubmitService>();
-builder.Services.AddSingleton<IHostedService, HostedWebSubmitService>();
+builder.Services.AddHostedService<HostedWebSubmitService>();
 builder.Services.AddTransient<IEmailSender, SmtpEmailSender>();
 
 // Data protection
+// .NET 10 preserves null values from configuration instead of dropping the key, so this
+// can now come back null and must not be handed straight to DirectoryInfo.
+var keyStorageFolder = builder.Configuration.GetValue<string>("KeyStorageFolder");
+if (string.IsNullOrWhiteSpace(keyStorageFolder))
+    throw new InvalidOperationException("KeyStorageFolder is not configured.");
+
 builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(builder.Configuration.GetValue<string>("KeyStorageFolder")))
+    .PersistKeysToFileSystem(new DirectoryInfo(keyStorageFolder))
     .SetApplicationName("FwaStats");
 
 // Caching and HTTP client

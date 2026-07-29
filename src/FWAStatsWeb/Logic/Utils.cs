@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace FWAStatsWeb.Logic;
+﻿namespace FWAStatsWeb.Logic;
 
 public static class Utils
 {

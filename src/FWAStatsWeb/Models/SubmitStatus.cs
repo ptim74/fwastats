@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace FWAStatsWeb.Models;
+﻿namespace FWAStatsWeb.Models;
 
 public class SubmitStatus
 {
