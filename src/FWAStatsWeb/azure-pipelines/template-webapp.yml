@@ -4,7 +4,7 @@ parameters:
 - name: vmImage
   default: ubuntu-latest
 - name: dotnetVersion
-  default: '8.0.x'
+  default: '10.0.x'
 - name: configuration
   default: 'Release'
 - name: publishEnvironmentName
@@ -18,7 +18,7 @@ parameters:
 - name: appType
   default: 'webAppLinux'
 - name: runtimeStack
-  default: 'DOTNETCORE|8.0'
+  default: 'DOTNETCORE|10.0'
 - name: startUpCommand
   default: ''
 

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <AssemblyName>FWAStatsWeb</AssemblyName>
     <UserSecretsId>4e467321-1bc3-484e-82d8-47c50a4bbdb7</UserSecretsId>
     <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel>
@@ -18,13 +18,13 @@
     <PackageReference Include="Google.Apis.Calendar.v3" Version="1.69.0.3746" />
     <PackageReference Include="Google.Apis.Sheets.v4" Version="1.70.0.3819" />
     <PackageReference Include="Ical.Net" Version="5.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.18" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="8.0.18" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.18" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="8.0.18" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.18" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqLite" Version="8.0.18" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.18">
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.10" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqLite" Version="10.0.10" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.10">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

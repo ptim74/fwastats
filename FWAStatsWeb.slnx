@@ -1,0 +1,13 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/src/">
+    <Project Path="src/FWAStatsWeb/FWAStatsWeb.csproj">
+      <Build Solution="*|x64" Project="false" />
+      <Build Solution="*|x86" Project="false" />
+    </Project>
+  </Folder>
+</Solution>
