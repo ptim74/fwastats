@@ -15,7 +15,7 @@ namespace FWAStatsWeb.Data.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.18");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.15");
 
             modelBuilder.Entity("FWAStatsWeb.Models.ApplicationUser", b =>
                 {
@@ -180,6 +180,9 @@ namespace FWAStatsWeb.Data.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Th18Count")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Th19Count")
                         .HasColumnType("INTEGER");
 
                     b.Property<int>("Th8Count")

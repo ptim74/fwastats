@@ -600,8 +600,6 @@ function initClansWeight(config) {
                 } else {
                     document.getElementById("submitModalTitle").textContent = "Submit failed";
                     document.getElementById("submitModalHeader").classList.add("modal-header-danger");
-                    if (data.text !== "Too few weight changes since last submit.")
-                        document.getElementById("backup-submit-button").classList.remove("d-none");
                 }
                 document.getElementById("submitModalHeader").classList.remove("modal-header-primary");
                 document.getElementById("submitModalAnimation").classList.remove("loader");
@@ -614,7 +612,6 @@ function initClansWeight(config) {
             document.getElementById("submitModalHeader").classList.remove("modal-header-primary");
             document.getElementById("submitModalAnimation").classList.remove("loader");
             document.getElementById("submit-details").textContent = "Network error: " + error.message;
-            document.getElementById("backup-submit-button").classList.remove("d-none");
         }
     }
 
@@ -630,7 +627,7 @@ function initClansWeight(config) {
 
         document.getElementById('war-members').textContent = members_in_war + ' / ' + members_total;
 
-        let th18_count = 0, th17_count = 0, th16_count = 0, th15_count = 0, th14_count = 0, th13_count = 0;
+        let th19_count = 0, th18_count = 0, th17_count = 0, th16_count = 0, th15_count = 0, th14_count = 0, th13_count = 0;
         let th12_count = 0, th11_count = 0, th10_count = 0, th9_count = 0, th8_count = 0, th7_count = 0;
         let war_weight = 0;
 
@@ -640,7 +637,9 @@ function initClansWeight(config) {
             const warCheckbox = document.querySelector("input[name='" + checkName + "']");
             if (warCheckbox && warCheckbox.checked) {
                 war_weight += member_weight;
-                if (member_weight > config.maxWeights.TH17)
+                if (member_weight > config.maxWeights.TH18)
+                    th19_count++;
+                else if (member_weight > config.maxWeights.TH17)
                     th18_count++;
                 else if (member_weight > config.maxWeights.TH16)
                     th17_count++;
@@ -668,7 +667,7 @@ function initClansWeight(config) {
         });
 
         document.getElementById('war-weight').textContent = war_weight;
-        document.getElementById('war-composition').textContent = th18_count + ' / ' + th17_count + ' / ' + th16_count + ' / ' + th15_count + ' / ' + th14_count + ' / ' + th13_count + ' / ' + th12_count + ' / ' + th11_count + ' / ' + th10_count + ' / ' + th9_count + ' / ' + th8_count + ' / ' + th7_count;
+        document.getElementById('war-composition').textContent = th19_count + ' / ' + th18_count + ' / ' + th17_count + ' / ' + th16_count + ' / ' + th15_count + ' / ' + th14_count + ' / ' + th13_count + ' / ' + th12_count + ' / ' + th11_count + ' / ' + th10_count + ' / ' + th9_count + ' / ' + th8_count + ' / ' + th7_count;
 
         const saveButtons = document.querySelectorAll('.btn-save');
         const isValidSize = (members_in_war === config.warSizes.SIZE1 || members_in_war === config.warSizes.SIZE2 || members_in_war === config.warSizes.SIZE3);

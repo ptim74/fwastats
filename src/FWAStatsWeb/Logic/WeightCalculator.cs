@@ -8,6 +8,7 @@ public class WeightCalculator
     public class Results
     {
         public string Tag { get; set; }
+        public int Th19Count { get; set; }
         public int Th18Count { get; set; }
         public int Th17Count { get; set; }
         public int Th16Count { get; set; }
@@ -42,7 +43,8 @@ public class WeightCalculator
         15    => Constants.MAXWEIGHT_TH15,
         16    => Constants.MAXWEIGHT_TH16,
         17    => Constants.MAXWEIGHT_TH17,
-        _     => Constants.MAXWEIGHT_TH18,
+        18    => Constants.MAXWEIGHT_TH18,
+        _     => Constants.MAXWEIGHT_TH19,
     };
 
     public IEnumerable<Results> Calculate()
@@ -81,6 +83,7 @@ public class WeightCalculator
             {
                 switch (th.TownHallLevel)
                 {
+                    case 19: ret.Th19Count = th.Count; break;
                     case 18: ret.Th18Count = th.Count; break;
                     case 17: ret.Th17Count = th.Count; break;
                     case 16: ret.Th16Count = th.Count; break;

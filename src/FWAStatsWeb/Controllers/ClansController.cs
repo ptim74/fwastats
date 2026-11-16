@@ -55,6 +55,7 @@ public class ClansController : Controller
             Name = c.Name,
             Members = c.Members,
             BadgeUrl = c.BadgeUrl,
+            Th19Count = c.Th19Count,
             Th18Count = c.Th18Count,
             Th17Count = c.Th17Count,
             Th16Count = c.Th16Count,
@@ -318,6 +319,7 @@ public class ClansController : Controller
             }
         }
 
+        details.Clan.Th19Count = 0;
         details.Clan.Th18Count = 0;
         details.Clan.Th17Count = 0;
         details.Clan.Th16Count = 0;
@@ -338,7 +340,9 @@ public class ClansController : Controller
             if (member != null)
             {
                 member.TownHallLevel = thlevel.TownHallLevel;
-                if (member.TownHallLevel == 18)
+                if (member.TownHallLevel == 19)
+                    details.Clan.Th19Count++;
+                else if (member.TownHallLevel == 18)
                     details.Clan.Th18Count++;
                 else if (member.TownHallLevel == 17)
                     details.Clan.Th17Count++;
@@ -380,7 +384,9 @@ public class ClansController : Controller
                 }
                 else
                 {
-                    if (member.TownHallLevel == 18)
+                    if (member.TownHallLevel == 19)
+                        details.Clan.EstimatedWeight += 185;
+                    else if (member.TownHallLevel == 18)
                         details.Clan.EstimatedWeight += 175;
                     else if (member.TownHallLevel == 17)
                         details.Clan.EstimatedWeight += 165;
@@ -866,104 +872,6 @@ public class ClansController : Controller
         var model = WeightData(id, WarID);
 
         return View(model);
-    }
-
-    [Route("Clan/{id}/WeightForm")]
-    [Route("Clan/{id}/WeightForm/{WarID}")]
-    [ResponseCache(Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult WeightForm(string id, long WarID)
-    {
-        logger.LogInformation("WeightForm {ClanTag}", id);
-
-        var model = WeightData(id, WarID);
-
-        if (model.Members.Count != Constants.WAR_SIZE1 && model.Members.Count != Constants.WAR_SIZE2 && model.Members.Count != Constants.WAR_SIZE3)
-            throw new Exception("Select 40, 45 or 50 members");
-
-        var form_id = "1FAIpQLSfckkdP851e2Ri_nHtO0XEWe2u3o0aA4NbJrMub06-zRkCzTQ";
-        if (model.Members.Count == Constants.WAR_SIZE1)
-            form_id = "1FAIpQLSfYtzGV7C7VHWQs0Z7r0aAOTtNR-9IbraAyvAEaNApIQNsiQQ";
-        //if (model.Members.Count == Constants.WAR_SIZE3)
-        //    form_id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-
-        var url = string.Format("https://docs.google.com/forms/d/e/{0}/viewform?usp=pp_url", form_id);
-
-        var ids = new List<int>
-        {
-            1984567353,
-            1690011935,
-            403343332,
-            370160221,
-            1607084216,
-            1882413334,
-            1543939269,
-            685739330,
-            463435811,
-            898718070,
-            1948329846,
-            383495722,
-            2020682725,
-            331529930,
-            1050253465,
-            819675385,
-            760895081,
-            244948353,
-            1506790920,
-            915825883,
-            258936521,
-            742699705,
-            1367988689,
-            1491884247,
-            167280690,
-            1877792108,
-            185518162,
-            226536694,
-            1109192970,
-            888631196,
-            1119555861,
-            51377383,
-            1284290519,
-            500778845,
-            61565236,
-            895253717,
-            1530094428,
-            917968866,
-            1120193979,
-            38604784,
-            985340327,
-            1823279444,
-            1688094775,
-            189936802,
-            1650758928,
-            1048120044,
-            1541727037,
-            628819663,
-            1485246803,
-            612547503,
-            1154234695,
-            2118269445,
-            1326597082,
-            2128262510
-        };
-
-        int i = 0;
-
-        url += string.Format("&entry.{0}={1}",ids[i++], Uri.EscapeDataString("'" + model.ClanName));
-        url += string.Format("&entry.{0}={1}", ids[i++], "FWAStatsPrefilled");
-        url += string.Format("&entry.{0}={1}", ids[i++], Uri.EscapeDataString(model.ClanTag));
-
-        foreach(var m in model.Members)
-            url += string.Format("&entry.{0}={1}", ids[i++], m.Weight);
-
-        if (!string.IsNullOrEmpty(model.OpponentName))
-        {
-            if (model.Members.Count == Constants.WAR_SIZE1)
-                url += string.Format("&entry.{0}={1}", 790268828, Uri.EscapeDataString(model.OpponentName));
-            else
-                url += string.Format("&entry.{0}={1}", ids[i++], Uri.EscapeDataString(model.OpponentName));
-        }
-
-        return Redirect(url);
     }
 
     [Route("Clan/{id}/WeightStatus")]

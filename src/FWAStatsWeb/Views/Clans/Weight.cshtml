@@ -98,6 +98,9 @@
                 var member_max = 0;
                 switch (member.TownHallLevel)
                 {
+                    case 19:
+                        member_max = Constants.MAXWEIGHT_TH19;
+                        break;
                     case 18:
                         member_max = Constants.MAXWEIGHT_TH18;
                         break;
@@ -142,7 +145,11 @@
                     <td>@member_pos</td>
                     <td>
                         <input type="hidden" name="Members[@member_id].Tag" value="@member.Tag" />
-                        @if (member.TownHallLevel == 18 || member.TownHallLevel == 12)
+                        @if (member.TownHallLevel == 19 || member.TownHallLevel == 13)
+                        {
+                            <span class="badge text-bg-info">@member.TownHallLevel</span>
+                        }
+                        else if (member.TownHallLevel == 18 || member.TownHallLevel == 12)
                         {
                             <span class="badge text-bg-primary">@member.TownHallLevel</span>
                         }
@@ -157,10 +164,6 @@
                         else if (member.TownHallLevel == 15 || member.TownHallLevel == 9)
                         {
                             <span class="badge text-bg-secondary">@member.TownHallLevel</span>
-                        }
-                        else if (member.TownHallLevel == 13)
-                        {
-                            <span class="badge text-bg-info">@member.TownHallLevel</span>
                         }
                         else // 14, 8, 7, ...
                         {
@@ -197,10 +200,6 @@
             }
         </tbody>
     </table>
-
-    <div>
-        <a class="small" asp-area="" asp-controller="Clans" asp-action="WeightForm" asp-route-id="@Model.ClanLink" asp-route-warid="@Model.WarID">...</a>
-    </div>
 
     <div style="position:fixed;bottom:0px;left:0px;width:100%;height:50px;background-color:black;color:white;z-index:1030;">
         <div class="container">
@@ -242,7 +241,6 @@
                 <p id="submit-details">Please wait...</p>
             </div>
             <div class="modal-footer">
-                <a id="backup-submit-button" class="btn btn-primary d-none" asp-area="" asp-controller="Clans" asp-action="WeightForm" asp-route-id="@Model.ClanLink" asp-route-warid="@Model.WarID">Submit with Google Forms</a>
                 <button type="button" class="btn btn-outline-primary" data-bs-dismiss="modal">Close</button>
             </div>
         </div>
@@ -260,6 +258,7 @@
                 weightSubmitQueued: @Model.WeightSubmitQueued.ToString().ToLower(),
                 weightStatusUrl: '/Clan/@Model.ClanLink/WeightStatus',
                 maxWeights: {
+                    TH19: @Constants.MAXWEIGHT_TH19,
                     TH18: @Constants.MAXWEIGHT_TH18,
                     TH17: @Constants.MAXWEIGHT_TH17,
                     TH16: @Constants.MAXWEIGHT_TH16,

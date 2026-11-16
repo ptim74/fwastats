@@ -248,6 +248,7 @@ public class DataController : Controller
         {
             if (weights.TryGetValue(row.Tag, out WeightCalculator.Results weight))
             {
+                row.Th19Count = weight.Th19Count;
                 row.Th18Count = weight.Th18Count;
                 row.Th17Count = weight.Th17Count;
                 row.Th16Count = weight.Th16Count;

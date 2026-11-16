@@ -26,6 +26,7 @@ public class ClanModel
     public string Image { get; set; }
     public string Description { get; set; }
 
+    public int Th19Count { get; set; }
     public int Th18Count { get; set; }
     public int Th17Count { get; set; }
     public int Th16Count { get; set; }

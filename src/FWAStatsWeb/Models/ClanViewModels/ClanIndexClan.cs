@@ -10,6 +10,7 @@ public class ClanIndexClan
     public double MatchPercentage { get; set; }
     public double WinPercentage { get; set; }
 
+    public int Th19Count { get; set; }
     public int Th18Count { get; set; }
     public int Th17Count { get; set; }
     public int Th16Count { get; set; }
