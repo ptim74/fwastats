@@ -10,16 +10,16 @@
   <ItemGroup>
     <PackageReference Include="LigerShark.WebOptimizer.Core" Version="3.0.477" />
     <PackageReference Include="FirebaseDatabase.net" Version="5.0.0" />
-    <PackageReference Include="Google.Apis.Calendar.v3" Version="1.75.0.4206" />
-    <PackageReference Include="Google.Apis.Sheets.v4" Version="1.75.0.4178" />
-    <PackageReference Include="Ical.Net" Version="5.2.3" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.10" />
-    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.10" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.10" />
-    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.10" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.10" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.10" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.10">
+    <PackageReference Include="Google.Apis.Calendar.v3" Version="1.78.0.4320" />
+    <PackageReference Include="Google.Apis.Sheets.v4" Version="1.78.0.4309" />
+    <PackageReference Include="Ical.Net" Version="5.2.4" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.15" />
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="10.0.15" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.15" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="10.0.15" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.15" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.15" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.15">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -30,11 +30,11 @@
          [DataContract]/[DataMember] opt-in semantics plus a custom date format that
          System.Text.Json does not honour. -->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="NLog.Extensions.Logging" Version="6.1.4" />
-    <PackageReference Include="NLog.Web.AspNetCore" Version="6.1.4" />
+    <PackageReference Include="NLog.Extensions.Logging" Version="6.3.0" />
+    <PackageReference Include="NLog.Web.AspNetCore" Version="6.3.0" />
     <!-- Overrides the 2.1.11 that EF Core 10.0.10 pins, which carries
          GHSA-2m69-gcr7-jv3q (NU1903). Remove once EF Core ships 2.1.12 itself. -->
-    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.12" />
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.5" />
   </ItemGroup>
 
   <ItemGroup>
